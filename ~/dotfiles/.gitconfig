@@ -1,0 +1,43 @@
+[user]
+    name = Your Name
+    email = your.email@example.com
+
+[core]
+    editor = vim
+    autocrlf = input
+    filemode = false
+    ignorecase = true
+    safecrlf = true
+
+[init]
+    defaultBranch = main
+
+[color]
+    ui = auto
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    last = log -1 HEAD
+    visual = !gitk
+    unstage = reset HEAD --
+    discard = checkout --
+
+[push]
+    default = simple
+    autoSetupRemote = true
+
+[pull]
+    rebase = true
+
+[merge]
+    ff = only
+
+[rebase]
+    autoStash = true
+
+[help]
+    autocorrect = 1 
