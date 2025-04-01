@@ -13,6 +13,10 @@ import {
 import Image from "next/image"
 import type { Movie } from "@/lib/types"
 
+// Disabilitiamo il caching per garantire un film diverso ad ogni refresh
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Home() {
   // Recupera i dati in parallelo con gestione degli errori
   let nowPlayingMovies: Movie[] = []
@@ -50,11 +54,13 @@ export default async function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-screen">
-        {/* Immagine di background casuale dai film "Ora al Cinema" */}
+      <section className="relative h-[60vh]">
+        {/* Immagine di background casuale dai film "Ora al Cinema" - cambia ad ogni refresh */}
         {upcomingMovies.length > 0 &&
           (() => {
-            const randomIndex = Math.floor(Math.random() * upcomingMovies.length)
+            // Usiamo il timestamp attuale come parte del calcolo per garantire variabilità
+            const timestamp = Date.now();
+            const randomIndex = Math.floor((Math.random() * timestamp) % upcomingMovies.length)
             const randomMovie = upcomingMovies[randomIndex]
             const backdropUrl = randomMovie.backdrop_path
               ? `https://image.tmdb.org/t/p/original${randomMovie.backdrop_path}`
@@ -86,7 +92,7 @@ export default async function Home() {
       </section>
 
       {/* Contenuto principale */}
-      <div className="max-w-[1100px] mx-auto px-4 pb-20 relative z-10 mt-[-200px]">
+      <div className="max-w-[1100px] mx-auto px-4 pb-20 relative z-10 mt-[-100px]">
         {/* Ora al Cinema - Solo qui usiamo isFirstSection={true} */}
         <MovieSectionInterattivo 
           title="Ora al Cinema" 

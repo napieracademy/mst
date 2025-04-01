@@ -301,7 +301,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   return (
     <>
-      <div className="relative w-full h-[80vh]" ref={containerRef}>
+      <div className="relative w-full h-[60vh]" ref={containerRef}>
         {/* Backdrop Image */}
         {backdropUrl && (
           <div className="absolute inset-0">

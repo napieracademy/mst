@@ -124,7 +124,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
 
   return (
     <>
-      <div className="relative w-full h-[80vh]">
+      <div className="relative w-full h-[60vh]">
         {/* Backdrop Image */}
         {backdropUrl && (
           <div className="absolute inset-0">
