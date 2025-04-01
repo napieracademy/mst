@@ -124,7 +124,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
 
   return (
     <>
-      <div className="relative w-full h-[60vh]">
+      <div className="relative w-full h-[40vh] sm:h-[50vh] md:h-[70vh]">
         {/* Backdrop Image */}
         {backdropUrl && (
           <div className="absolute inset-0">
@@ -132,21 +132,21 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
               src={backdropUrl || "/placeholder.svg"}
               alt={show.name || ""}
               fill
-              className="object-cover object-top"
+              className="object-cover object-center"
               priority
               quality={90}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
             {/* Gradiente verticale per degradare verso il main content nero */}
-            <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-black to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black to-transparent" />
           </div>
         )}
 
         {/* Header */}
         <Header />
 
-        {/* Action buttons on the right */}
-        <div className="fixed right-4 top-1/4 z-10 flex flex-col gap-4">
+        {/* Action buttons on the right - Nascondi su mobile */}
+        <div className="hidden sm:flex fixed right-4 top-1/4 z-10 flex-col gap-4">
           <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
             <Heart className="w-5 h-5" />
           </button>
@@ -159,12 +159,12 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
         </div>
 
         {/* Show Info */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full p-8 z-10">
-          <div className="max-w-[1100px] mx-auto flex items-center gap-8">
+        <div className="absolute top-0 left-0 w-full h-full flex items-center p-3 sm:p-8 z-10">
+          <div className="max-w-[1100px] w-full mx-auto flex flex-col md:flex-row md:items-start items-start gap-3 md:gap-8">
             {/* Poster */}
             <div
               ref={posterRef}
-              className={`w-48 h-72 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${isDesktop ? "cursor-move" : ""} z-20`}
+              className={`movie-poster-mobile w-24 h-36 sm:w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${isDesktop ? "cursor-move" : ""} z-20`}
               style={{
                 transform: `scale(${posterSize}) translate(${posterPosition.x / posterSize}px, ${posterPosition.y / posterSize}px)`,
                 transformOrigin: "center center",
@@ -221,58 +221,36 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
                 </>
               )}
 
-              {/* Mobile controls */}
+              {/* Mobile controls - Solo reset button, nascosto */}
               {!isDesktop && (
-                <div className="absolute bottom-2 right-2 flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setPosterSize((prev) => Math.max(0.5, prev - 0.25))
-                    }}
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                    aria-label="Riduci poster"
-                  >
-                    <span className="text-white text-lg font-bold">-</span>
-                  </button>
+                <div className="absolute bottom-1 right-1 opacity-50">
                   <button
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       resetPoster()
                     }}
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+                    className="w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
                     aria-label="Ripristina dimensione poster"
                   >
-                    <span className="text-white text-sm font-bold">↺</span>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setPosterSize((prev) => Math.min(1.5, prev + 0.25))
-                    }}
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                    aria-label="Ingrandisci poster"
-                  >
-                    <span className="text-white text-lg font-bold">+</span>
+                    <RefreshCw className="w-2 h-2" />
                   </button>
                 </div>
               )}
             </div>
 
             {/* Info */}
-            <div className="flex-1 z-10">
-              {releaseDate && <div className="text-sm text-yellow-400 mb-2">Prima uscita: {releaseDate}</div>}
+            <div className="mobile-content-position space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[251px]">
+              {releaseDate && <div className="text-xs sm:text-sm text-yellow-400 mb-1 sm:mb-2">Prima uscita: {releaseDate}</div>}
 
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">{show.name}</h1>
+              <h1 className="text-lg sm:text-2xl md:text-5xl lg:text-6xl font-bold text-white mb-1 sm:mb-4">{show.name}</h1>
 
               {trailers && trailers.length > 0 && (
                 <button
                   onClick={() => setIsTrailerOpen(true)}
-                  className="flex items-center gap-2 text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-black/50 transition-colors z-10"
+                  className="inline-flex items-center text-xs sm:text-sm text-gray-300 hover:text-white transition-colors group"
                 >
-                  <Play className="w-4 h-4 fill-current" />
+                  <Play className="w-3 h-3 mr-1 group-hover:text-red-500 transition-colors" />
                   Guarda trailer
                 </button>
               )}

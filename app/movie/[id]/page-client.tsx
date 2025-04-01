@@ -41,7 +41,7 @@ export function MoviePageClient({
   return (
     <main className="min-h-screen bg-black text-white">
       {/* Hero Section */}
-      <div className="relative w-full h-[80vh]">
+      <div className="relative w-full h-[70vh]">
         <MovieHero
           movie={movie}
           posterUrl={posterUrl}

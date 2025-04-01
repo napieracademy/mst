@@ -54,7 +54,7 @@ export default async function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-[60vh]">
+      <section className="relative h-[50vh] md:h-[70vh]">
         {/* Immagine di background casuale dai film "Ora al Cinema" - cambia ad ogni refresh */}
         {upcomingMovies.length > 0 &&
           (() => {
@@ -86,8 +86,10 @@ export default async function Home() {
           })()}
 
         {/* Barra di ricerca centrale */}
-        <div className="absolute inset-0 flex items-center justify-center px-4">
-          <SearchBar />
+        <div className="absolute inset-0 flex items-center justify-center px-5 sm:px-8 lg:px-16 z-10">
+          <div className="w-full max-w-lg mx-auto">
+            <SearchBar />
+          </div>
         </div>
       </section>
 

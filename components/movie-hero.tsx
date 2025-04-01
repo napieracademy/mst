@@ -301,7 +301,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   return (
     <>
-      <div className="relative w-full h-[60vh]" ref={containerRef}>
+      <div className="relative w-full h-[40vh] sm:h-[50vh] md:h-[70vh]" ref={containerRef}>
         {/* Backdrop Image */}
         {backdropUrl && (
           <div className="absolute inset-0">
@@ -309,21 +309,21 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
               src={backdropUrl || "/placeholder.svg"}
               alt={movie.title || ""}
               fill
-              className="object-cover object-top"
+              className="object-cover object-center"
               priority
               quality={90}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
             {/* Gradiente verticale per degradare verso il main content nero */}
-            <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-t from-black to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black to-transparent" />
           </div>
         )}
 
         {/* Header */}
         <Header />
 
-        {/* Action buttons on the right */}
-        <div className="fixed right-4 top-1/4 z-10 flex flex-col gap-4">
+        {/* Action buttons on the right - Nascondi su mobile */}
+        <div className="hidden sm:flex fixed right-4 top-1/4 z-10 flex-col gap-4">
           <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
             <Heart className="w-5 h-5" />
           </button>
@@ -345,12 +345,12 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         ></div>
 
         {/* Movie Info */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full p-8 z-10">
-          <div className="max-w-[1100px] mx-auto flex items-center gap-8">
+        <div className="absolute top-0 left-0 w-full h-full flex items-center p-3 sm:p-8 z-10">
+          <div className="max-w-[1100px] w-full mx-auto flex flex-col md:flex-row md:items-start items-start gap-3 md:gap-8">
             {/* Poster */}
             <div
               ref={posterRef}
-              className={`w-48 h-72 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all ${isDesktop ? "cursor-move" : ""} z-20`}
+              className={`movie-poster-mobile w-24 h-36 sm:w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all ${isDesktop ? "cursor-move" : ""} z-20`}
               style={{
                 transform: `scale(${posterSize}) translate(${posterPosition.x / posterSize}px, ${posterPosition.y / posterSize}px)`,
                 transformOrigin: "center center",
@@ -407,85 +407,56 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                 </>
               )}
 
-              {/* Mobile controls */}
+              {/* Mobile controls - Solo reset button, nascosto */}
               {!isDesktop && (
-                <div className="absolute bottom-2 right-2 flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setPosterSize((prev) => Math.max(0.5, prev - 0.25))
-                    }}
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                    aria-label="Riduci poster"
-                  >
-                    <span className="text-white text-lg font-bold">-</span>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setPosterSize((prev) => Math.min(2.5, prev + 0.25))
-                    }}
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                    aria-label="Ingrandisci poster"
-                  >
-                    <span className="text-white text-lg font-bold">+</span>
-                  </button>
+                <div className="absolute bottom-1 right-1 opacity-50">
                   <button
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       resetPoster()
                     }}
-                    className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+                    className="w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
                     aria-label="Ripristina poster"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-2 h-2" />
                   </button>
                 </div>
               )}
             </div>
             
             {/* Rest of content */}
-            <div className="flex-1 space-y-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-md">
+            <div className="mobile-content-position space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[251px]">
+              <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-md">
                 {movie.title || ""}
               </h1>
               
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                 {movie.vote_average ? (
-                  <div className="flex items-center gap-1 text-sm">
+                  <div className="flex items-center gap-1 text-xs sm:text-sm">
                     <span className="text-yellow-400 font-semibold">{Math.round(movie.vote_average * 10) / 10}</span>
                     <span className="text-yellow-400">/</span>
                     <span className="text-yellow-400">10</span>
                   </div>
                 ) : null}
                 
-                {releaseDate && <div className="text-sm text-gray-300">{releaseDate}</div>}
+                {releaseDate && <div className="text-xs sm:text-sm text-gray-300">{releaseDate}</div>}
                 
                 {movie.runtime ? (
-                  <div className="text-sm text-gray-300">{movie.runtime} min</div>
+                  <div className="text-xs sm:text-sm text-gray-300">{movie.runtime} min</div>
                 ) : null}
-                
-                
               </div>
               
-              {/* Tagline */}
-              {movie.tagline && (
-                <div className="text-lg italic text-gray-300 mt-4">{movie.tagline}</div>
-              )}
-              
-              {/* Trailer button */}
+              {/* Trailer button - Stile adattato per mobile */}
               {trailers.length > 0 && (
                 <button
                   onClick={() => {
-                    setIsPipTrailerActive(false); // Disattiva il PIP quando si apre il modal completo
+                    setIsPipTrailerActive(false);
                     setIsTrailerOpen(true);
                   }}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-full text-white font-medium transition-colors mt-4"
+                  className="inline-flex items-center text-xs sm:text-sm text-gray-300 hover:text-white transition-colors mt-1 sm:mt-3 group"
                 >
-                  <Play className="w-5 h-5" fill="white" />
+                  <Play className="w-3 h-3 mr-1 group-hover:text-red-500 transition-colors" />
                   Guarda il trailer
                 </button>
               )}
