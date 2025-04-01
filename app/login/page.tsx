@@ -1,9 +1,10 @@
+"use client";
 
 import AuthForm from '@/components/auth/AuthForm'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 
-export default function LoginPage() {
+export default function Login() {
   return (
     <>
       <Header />

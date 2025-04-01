@@ -1,10 +1,17 @@
+version: '3.8'
+
 services:
   app:
+    container_name: my_app_container
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
     environment:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}

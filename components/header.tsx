@@ -3,6 +3,39 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Menu, Search } from "lucide-react"
+import { createClient } from '../lib/supabase'
+
+const supabase = createClient()
+
+function UserProfile() {
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (data) {
+        setUser(data.user)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  if (!user) return null
+
+  return (
+    <div className="flex items-center space-x-2">
+      {user.user_metadata.avatar_url && (
+        <img
+          src={user.user_metadata.avatar_url}
+          alt="User Avatar"
+          className="w-8 h-8 rounded-full"
+        />
+      )}
+      <span>{user.user_metadata.full_name || user.email}</span>
+    </div>
+  )
+}
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -64,10 +97,11 @@ export function Header() {
                 >
                   Accedi
                 </Link>
-                
               </div>
             )}
           </div>
+
+          <UserProfile />
         </div>
       </div>
     </header>

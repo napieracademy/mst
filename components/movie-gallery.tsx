@@ -101,6 +101,17 @@ export function MovieGallery({ movieId, type }: MovieGalleryProps) {
             </button>
           </>
         )}
+
+        <a
+          href={`https://image.tmdb.org/t/p/original${images[currentIndex].file_path}`}
+          download={`movie-image-${currentIndex}.jpg`}
+          className="absolute bottom-4 right-4 z-10 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
+          aria-label="Scarica immagine"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l-3-3m3 3l3-3m-9 0h12" />
+          </svg>
+        </a>
       </div>
     </section>
   )
