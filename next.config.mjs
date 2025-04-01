@@ -25,7 +25,6 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
-  swcMinify: true,
 }
 
 mergeConfig(nextConfig, userConfig)
