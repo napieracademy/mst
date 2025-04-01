@@ -468,18 +468,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                   <div className="text-sm text-gray-300">{movie.runtime} min</div>
                 ) : null}
                 
-                {movie.genres && movie.genres.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {movie.genres.slice(0, 3).map((genre: { id: number; name: string }) => (
-                      <span
-                        key={genre.id}
-                        className="px-3 py-1 bg-gray-800/70 backdrop-blur-sm rounded-full text-xs"
-                      >
-                        {genre.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                
               </div>
               
               {/* Tagline */}
