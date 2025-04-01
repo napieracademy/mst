@@ -1,3 +1,4 @@
+
 'use client'
 
 import { Auth } from '@supabase/auth-ui-react'
@@ -13,33 +14,53 @@ export default function AuthForm() {
     setOrigin(window.location.origin)
   }, [])
 
-  const handleAuthStateChange = async (event: string, session: any) => {
-    if (event === 'SIGNED_IN') {
-      console.log('Utente autenticato:', session?.user)
-      // Qui puoi aggiungere logica aggiuntiva dopo il login
-    }
-  }
-
   return (
-    <div className="w-full max-w-md mx-auto p-6">
-      <Auth
-        supabaseClient={supabase}
-        appearance={{
-          theme: ThemeSupa,
-          variables: {
-            default: {
-              colors: {
-                brand: '#404040',
-                brandAccent: '#2d2d2d',
+    <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="bg-gray-900 px-4 py-8 shadow sm:rounded-lg sm:px-10">
+        <Auth
+          supabaseClient={supabase}
+          view="sign_in"
+          appearance={{
+            theme: ThemeSupa,
+            style: {
+              button: {
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                padding: '10px 15px',
+                border: 'none',
+              },
+              container: {
+                gap: '1rem',
+              },
+              input: {
+                borderRadius: '8px',
+                backgroundColor: '#1f2937',
+                border: '1px solid #374151',
+                color: 'white',
+              },
+              label: {
+                color: '#9ca3af',
               },
             },
-          },
-        }}
-        providers={[]}
-        redirectTo={`${origin}/auth/callback`}
-        theme="light"
-        onAuthStateChange={handleAuthStateChange}
-      />
+            variables: {
+              default: {
+                colors: {
+                  brand: '#3b82f6',
+                  brandAccent: '#2563eb',
+                  inputBackground: '#1f2937',
+                  inputBorder: '#374151',
+                  inputText: 'white',
+                  inputPlaceholder: '#9ca3af',
+                }
+              }
+            }
+          }}
+          providers={['google', 'twitter']}
+          redirectTo={`${origin}/auth/callback`}
+          theme="dark"
+        />
+      </div>
     </div>
   )
-} 
+}
