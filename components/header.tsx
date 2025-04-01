@@ -58,6 +58,13 @@ export function Header() {
                   Cerca
                 </Link>
                 <Link
+                  href="/login"
+                  className="block px-4 py-2 text-sm hover:bg-gray-800"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Accedi
+                </Link>
+                <Link
                   href="/debug"
                   className="block px-4 py-2 text-sm hover:bg-gray-800"
                   onClick={() => setIsMenuOpen(false)}
