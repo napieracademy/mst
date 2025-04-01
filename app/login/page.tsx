@@ -1,6 +1,7 @@
 
 import AuthForm from '@/components/auth/AuthForm'
 import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
 
 export default function LoginPage() {
   return (
@@ -17,6 +18,7 @@ export default function LoginPage() {
         </div>
         <AuthForm />
       </div>
+      <Footer />
     </>
   )
 }
