@@ -125,9 +125,9 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
   return (
     <>
       <div className="relative w-full h-[40vh] sm:h-[50vh] md:h-[70vh]">
-        {/* Backdrop Image */}
+        {/* Backdrop Image - Visibile solo su tablet e desktop */}
         {backdropUrl && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 hidden sm:block">
             <Image
               src={backdropUrl || "/placeholder.svg"}
               alt={show.name || ""}
@@ -141,6 +141,19 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
             <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black to-transparent" />
           </div>
         )}
+
+        {/* Poster come sfondo su mobile */}
+        <div className="absolute inset-0 sm:hidden">
+          <Image
+            src={posterUrl || "/placeholder.svg"}
+            alt={show.name || ""}
+            fill
+            className="object-cover object-center"
+            priority
+            quality={90}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" />
+        </div>
 
         {/* Header */}
         <Header />
@@ -158,13 +171,13 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
           </button>
         </div>
 
-        {/* Show Info */}
-        <div className="absolute top-0 left-0 w-full h-full flex items-center p-3 sm:p-8 z-10">
+        {/* Show Info - Desktop e Tablet */}
+        <div className="absolute top-0 left-0 w-full h-full hidden sm:flex items-center p-3 sm:p-8 z-10">
           <div className="max-w-[1100px] w-full mx-auto flex flex-col md:flex-row md:items-start items-start gap-3 md:gap-8">
             {/* Poster */}
             <div
               ref={posterRef}
-              className={`movie-poster-mobile w-24 h-36 sm:w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${isDesktop ? "cursor-move" : ""} z-20`}
+              className={`movie-poster-mobile w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${isDesktop ? "cursor-move" : ""} z-20`}
               style={{
                 transform: `scale(${posterSize}) translate(${posterPosition.x / posterSize}px, ${posterPosition.y / posterSize}px)`,
                 transformOrigin: "center center",
@@ -189,58 +202,33 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
                     <RefreshCw className="w-4 h-4" />
                   </button>
 
-                  {/* Resize handle - Versione migliorata e più stilosa */}
+                  {/* Resize handle */}
                   <div 
                     className="absolute bottom-0 right-0 w-10 h-10 cursor-se-resize group" 
                     onMouseDown={handleResizeStart}
                   >
                     <div className="absolute bottom-0 right-0 w-full h-full overflow-hidden">
-                      {/* Sfondo statico invece dell'animazione lampeggiante */}
                       <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tr from-transparent to-yellow-400/10" />
                       
-                      {/* Maniglia stilizzata */}
                       <div className="absolute bottom-0 right-0 w-full h-full flex items-end justify-end p-1">
                         <div className="relative w-5 h-5">
-                          {/* Linea orizzontale */}
                           <div className="absolute bottom-0 right-0 w-5 h-1 bg-white/90 rounded-full shadow-glow group-hover:bg-yellow-400 transition-colors duration-200"></div>
-                          
-                          {/* Linea verticale */}
                           <div className="absolute bottom-0 right-0 w-1 h-5 bg-white/90 rounded-full shadow-glow group-hover:bg-yellow-400 transition-colors duration-200"></div>
-                          
-                          {/* Punto all'angolo */}
                           <div className="absolute bottom-0 right-0 w-2 h-2 bg-white rounded-full shadow-glow group-hover:bg-yellow-400 group-hover:scale-110 transition-all duration-200"></div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Tooltip */}
                     <div className="absolute bottom-full right-full mb-1 mr-1 px-2 py-1 bg-black/70 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       Ridimensiona
                     </div>
                   </div>
                 </>
               )}
-
-              {/* Mobile controls - Solo reset button, nascosto */}
-              {!isDesktop && (
-                <div className="absolute bottom-1 right-1 opacity-50">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      resetPoster()
-                    }}
-                    className="w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                    aria-label="Ripristina dimensione poster"
-                  >
-                    <RefreshCw className="w-2 h-2" />
-                  </button>
-                </div>
-              )}
             </div>
 
-            {/* Info */}
-            <div className="mobile-content-position space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[251px]">
+            {/* Info - Desktop e Tablet */}
+            <div className="space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[251px]">
               {releaseDate && <div className="text-xs sm:text-sm text-yellow-400 mb-1 sm:mb-2">Prima uscita: {releaseDate}</div>}
 
               <h1 className="text-lg sm:text-2xl md:text-5xl lg:text-6xl font-bold text-white mb-1 sm:mb-4">{show.name}</h1>
@@ -255,6 +243,28 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
                 </button>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Layout Mobile - Contenuto in basso */}
+        <div className="absolute bottom-0 left-0 right-0 sm:hidden p-4 z-10">
+          <div className="w-full text-center">
+            {releaseDate && <div className="text-xs text-yellow-400 mb-1">Prima uscita: {releaseDate}</div>}
+            
+            <h1 className="text-xl font-bold text-white drop-shadow-md mb-1">
+              {show.name || ""}
+            </h1>
+            
+            {/* Pulsante trailer mobile - ottimizzato e minimalista */}
+            {trailers && trailers.length > 0 && (
+              <button
+                onClick={() => setIsTrailerOpen(true)}
+                className="mx-auto flex items-center justify-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs text-white hover:bg-white/20 transition-colors mt-2"
+              >
+                <Play className="w-3 h-3 text-red-500" />
+                Guarda trailer
+              </button>
+            )}
           </div>
         </div>
       </div>
