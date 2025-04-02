@@ -108,7 +108,7 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
       {/* Griglia di film/serie */}
       {sortedCredits.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {sortedCredits.map((credit) => {
+          {sortedCredits.map((credit, index) => {
             const mediaType = credit.media_type
             const title = credit.title || credit.name || ""
             const date = credit.release_date || credit.first_air_date
@@ -116,11 +116,11 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
             const role = credit.character || credit.job || ""
 
             return (
-              <Link key={`${credit.id}-${mediaType}-${role}`} href={`/${mediaType}/${credit.id}`} className="group">
+              <Link key={`${credit.id}-${mediaType}-${role}-${index}`} href={`/${mediaType}/${credit.id}`} className="group">
                 <div className="aspect-[2/3] relative rounded-lg overflow-hidden mb-2">
                   {credit.poster_path ? (
                     <Image
-                      src={`https://image.tmdb.org/t/p/w500${credit.poster_path}`}
+                      src={`/api/image-proxy?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${credit.poster_path}`)}`}
                       alt={title}
                       fill
                       sizes="(max-width: 768px) 50vw, 20vw"
