@@ -109,37 +109,46 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
       {sortedCredits.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {sortedCredits.map((credit, index) => {
-            const mediaType = credit.media_type
-            const title = credit.title || credit.name || ""
-            const date = credit.release_date || credit.first_air_date
-            const year = date ? new Date(date).getFullYear() : null
-            const role = credit.character || credit.job || ""
+            const mediaType = credit.media_type;
+            const title = credit.title || credit.name || "";
+            const date = credit.release_date || credit.first_air_date;
+            const year = date ? new Date(date).getFullYear() : null;
+            const role = credit.character || credit.job || "";
+            const posterPath = credit.poster_path;
 
             return (
-              <Link key={`${credit.id}-${mediaType}-${role}-${index}`} href={`/${mediaType}/${credit.id}`} className="group">
-                <div className="aspect-[2/3] relative rounded-lg overflow-hidden mb-2">
-                  {credit.poster_path ? (
+              <Link 
+                key={`${credit.id}-${mediaType}-${role}-${index}`} 
+                href={`/${mediaType}/${credit.id}`} 
+                className="group relative block overflow-hidden rounded-lg bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50"
+              >
+                <div className="aspect-[2/3] relative">
+                  {posterPath ? (
                     <Image
-                      src={`/api/image-proxy?url=${encodeURIComponent(`https://image.tmdb.org/t/p/w500${credit.poster_path}`)}`}
+                      src={`https://image.tmdb.org/t/p/w500${posterPath}`}
                       alt={title}
                       fill
                       sizes="(max-width: 768px) 50vw, 20vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
                       No Image
                     </div>
                   )}
-                </div>
-                <h3 className="font-medium text-sm truncate">{title}</h3>
-                <div className="flex items-center text-xs text-gray-400">
-                  {year && <span>{year}</span>}
-                  {role && year && <span className="mx-1">•</span>}
-                  {role && <span className="truncate">{role}</span>}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-2 left-2 right-2 text-white">
+                      <h3 className="font-medium text-sm truncate">{title}</h3>
+                      <div className="flex items-center text-xs text-gray-300">
+                        {year && <span>{year}</span>}
+                        {role && year && <span className="mx-1">•</span>}
+                        {role && <span className="truncate">{role}</span>}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </Link>
-            )
+            );
           })}
         </div>
       ) : (
