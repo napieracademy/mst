@@ -65,7 +65,7 @@ export function TVPageClient({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+      <div className="max-w-[1300px] mx-auto px-2 sm:px-4 py-8 sm:py-16">
         <div className="flex flex-col lg:flex-row gap-8 sm:gap-16">
           {/* Left Column - Show Details */}
           <div className="w-full lg:w-2/3">

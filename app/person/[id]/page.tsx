@@ -124,7 +124,7 @@ export default async function PersonPage({ params }: PersonPageProps) {
           </div>
           
           {/* Avatar e informazioni - centrati e meglio posizionati */}
-          <div className="relative max-w-6xl mx-auto px-6 flex flex-col items-center -mt-[100px] md:-mt-[120px]">
+          <div className="relative max-w-7xl mx-auto px-2 sm:px-4 flex flex-col items-center -mt-[100px] md:-mt-[120px]">
             {/* Avatar centrato */}
             <div className="w-[180px] h-[180px] md:w-[200px] md:h-[200px] rounded-full overflow-hidden border-4 border-gray-800 shadow-2xl mx-auto mb-6">
               {hasValidProfilePath ? (
@@ -167,7 +167,7 @@ export default async function PersonPage({ params }: PersonPageProps) {
         </div>
         
         {/* Contenuto principale con migliore spaziatura */}
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-8">
           {/* Biografia */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">Biografia</h2>
