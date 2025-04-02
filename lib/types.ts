@@ -19,6 +19,12 @@ export interface Movie {
   original_language?: string
   production_countries?: { iso_3166_1: string; name: string }[]
   production_companies?: { id: number; name: string; logo_path: string | null }[]
+  created_by?: { 
+    id: number
+    name: string
+    profile_path: string | null
+    credit_id: string
+  }[]
   credits?: {
     cast: {
       id: number

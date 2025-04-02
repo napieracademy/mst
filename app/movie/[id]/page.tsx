@@ -40,9 +40,18 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
     const trailers = (await getTrailers(id, "movie").catch(() => [])) || []
     const similarMovies = (await getSimilarMovies(id, "movie").catch(() => [])) || []
 
-    const backdropUrl = movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : null
+    // Gestione migliorata delle immagini con verifica di validità
+    const checkImagePath = (path: string | null | undefined): boolean => {
+      return !!path && typeof path === 'string' && path.startsWith('/');
+    };
 
-    const posterUrl = movie.poster_path
+    // Controllo più robusto per il backdrop_path
+    const backdropUrl = checkImagePath(movie.backdrop_path) 
+      ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+      : null
+
+    // Controllo più robusto per il poster_path con fallback migliorato
+    const posterUrl = checkImagePath(movie.poster_path)
       ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
       : "/placeholder.svg?height=750&width=500"
 
@@ -67,6 +76,16 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
     // Estrai i produttori
     const producers =
       movie.credits?.crew?.filter((person) => ["Producer", "Executive Producer"].includes(person.job)) || []
+
+    // Log per il debug del recupero delle immagini
+    console.log(`Movie ${id} image paths:`, {
+      posterPath: movie.poster_path,
+      posterUrl,
+      backdropPath: movie.backdrop_path,
+      backdropUrl,
+      validPoster: checkImagePath(movie.poster_path),
+      validBackdrop: checkImagePath(movie.backdrop_path)
+    });
 
     return (
       <MoviePageClient

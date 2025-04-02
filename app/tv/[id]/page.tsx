@@ -39,9 +39,18 @@ export default async function TVShowPage({ params }: { params: { id: string } })
     const trailers = (await getTrailers(id, "tv").catch(() => [])) || []
     const similarShows = (await getSimilarMovies(id, "tv").catch(() => [])) || []
 
-    const backdropUrl = show.backdrop_path ? `https://image.tmdb.org/t/p/original${show.backdrop_path}` : null
+    // Gestione migliorata delle immagini con verifica di validità
+    const checkImagePath = (path: string | null | undefined): boolean => {
+      return !!path && typeof path === 'string' && path.startsWith('/');
+    };
 
-    const posterUrl = show.poster_path
+    // Controllo più robusto per il backdrop_path
+    const backdropUrl = checkImagePath(show.backdrop_path) 
+      ? `https://image.tmdb.org/t/p/original${show.backdrop_path}`
+      : null
+
+    // Controllo più robusto per il poster_path con fallback migliorato
+    const posterUrl = checkImagePath(show.poster_path)
       ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
       : "/placeholder.svg?height=750&width=500"
 
@@ -66,6 +75,16 @@ export default async function TVShowPage({ params }: { params: { id: string } })
     // Estrai i produttori
     const producers =
       show.credits?.crew?.filter((person) => ["Producer", "Executive Producer"].includes(person.job)) || []
+
+    // Log per il debug del recupero delle immagini
+    console.log(`TV Show ${id} image paths:`, {
+      posterPath: show.poster_path,
+      posterUrl,
+      backdropPath: show.backdrop_path,
+      backdropUrl,
+      validPoster: checkImagePath(show.poster_path),
+      validBackdrop: checkImagePath(show.backdrop_path)
+    });
 
     return (
       <TVPageClient
