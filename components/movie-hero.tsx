@@ -29,8 +29,8 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
   const [isPipTrailerActive, setIsPipTrailerActive] = useState(false)
   const [userScrolledPastThreshold, setUserScrolledPastThreshold] = useState(false)
   const [hasPipBeenShown, setHasPipBeenShown] = useState(false)
-  const [posterSize, setPosterSize] = useState(1) // 1 is default size
-  const [posterPosition, setPosterPosition] = useState({ x: 0, y: 0 }) // Position offset
+  const [posterSize, setPosterSize] = useState(1)
+  const [posterPosition, setPosterPosition] = useState({ x: 0, y: 0 })
   const [isResizing, setIsResizing] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
@@ -39,9 +39,9 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false)
   const posterRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const scrollThreshold = 300 // Soglia di scroll per attivare il PIP
+  const scrollThreshold = 300
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const scrollThrottleDelay = 200 // Ritardo per il throttling dello scroll in ms
+  const scrollThrottleDelay = 200
   const prefersReducedMotion = useRef(false)
   const hasBatteryInfo = useRef(false)
   const isSavingBattery = useRef(false)
@@ -94,11 +94,6 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   // Determina se il PIP dovrebbe essere attivato in base alle condizioni
   const shouldEnablePip = useCallback(() => {
-    // Non attivare il PIP se:
-    // 1. L'utente preferisce meno animazioni
-    // 2. La batteria è bassa e in modalità risparmio
-    // 3. La connessione è lenta
-    // 4. Siamo su mobile (già controllato con isDesktop)
     return !(
       prefersReducedMotion.current || 
       (hasBatteryInfo.current && isSavingBattery.current) || 
@@ -168,7 +163,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
             setIsPipTrailerActive(false);
           }
         },
-        { threshold: 0.1 } // Quando il 10% del contenitore è visibile
+        { threshold: 0.1 }
       );
       
       observer.observe(containerRef.current);
@@ -303,8 +298,8 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   return (
     <>
-      <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh] mb-[30px] sm:mb-0">
-        {/* Backdrop Image - Visibile solo su tablet e desktop */}
+      <div className="relative h-[100dvh] sm:h-[60vh] md:h-[80vh] mb-[30px] sm:mb-0 pt-40 sm:pt-56">
+        {/* Backdrop Image - Solo desktop/tablet */}
         {backdropUrl && (
           <div className="absolute inset-0 hidden sm:block">
             <Image
@@ -337,111 +332,53 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         {/* Header */}
         <Header />
 
-        {/* Action buttons - Desktop e Mobile */}
-        <div className={`fixed right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-4 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <button className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Heart className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
+        {/* Action buttons */}
+        <div className={`fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-3 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <button className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
+            <Heart className="w-6 h-6 sm:w-5 sm:h-5" />
           </button>
-          <button className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Bell className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
+          <button className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
+            <Bell className="w-6 h-6 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={() => setIsShareMenuOpen(true)}
-            className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors"
+            className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors"
           >
-            <Share2 className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
+            <Share2 className="w-6 h-6 sm:w-5 sm:h-5" />
           </button>
         </div>
 
-        {/* Movie Info - Desktop e Tablet */}
-        <div className="absolute top-0 left-0 w-full h-full hidden sm:flex items-center p-3 sm:p-8 z-10">
-          <div className="max-w-[1100px] w-full mx-auto flex flex-col md:flex-row md:items-start items-start gap-3 md:gap-8">
+        {/* Movie Info - Desktop/Tablet */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full py-12 sm:py-16 md:py-24 z-10 hidden sm:block">
+          <div className="max-w-[1100px] mx-auto px-4 sm:px-8 flex items-center gap-8">
             {/* Poster */}
-            <div
-              ref={posterRef}
-              className={`hidden sm:block w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all ${isDesktop ? "cursor-move" : ""} z-20`}
-              style={{
-                transform: `scale(${posterSize}) translate(${posterPosition.x / posterSize}px, ${posterPosition.y / posterSize}px)`,
-                transformOrigin: "center center",
-              }}
-              onMouseDown={handleMouseDown}
-            >
-              <Image src={posterUrl || "/placeholder.svg"} alt={movie.title || ""} fill className="object-cover" />
-
-              {/* Controls for desktop */}
-              {isDesktop && (
-                <>
-                  {/* Reset button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      resetPoster()
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                    aria-label="Ripristina poster"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
-
-                  {/* Resize handle */}
-                  <div 
-                    className="absolute bottom-0 right-0 w-10 h-10 cursor-se-resize group" 
-                    onMouseDown={handleResizeStart}
-                  >
-                    <div className="absolute bottom-0 right-0 w-full h-full overflow-hidden">
-                      <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tr from-transparent to-yellow-400/10" />
-                      
-                      <div className="absolute bottom-0 right-0 w-full h-full flex items-end justify-end p-1">
-                        <div className="relative w-5 h-5">
-                          <div className="absolute bottom-0 right-0 w-5 h-1 bg-white/90 rounded-full shadow-glow group-hover:bg-yellow-400 transition-colors duration-200"></div>
-                          <div className="absolute bottom-0 right-0 w-1 h-5 bg-white/90 rounded-full shadow-glow group-hover:bg-yellow-400 transition-colors duration-200"></div>
-                          <div className="absolute bottom-0 right-0 w-2 h-2 bg-white rounded-full shadow-glow group-hover:bg-yellow-400 group-hover:scale-110 transition-all duration-200"></div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="absolute bottom-full right-full mb-1 mr-1 px-2 py-1 bg-black/70 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      Ridimensiona
-                    </div>
-                  </div>
-                </>
-              )}
+            <div className="w-48 h-72 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl">
+              <Image
+                src={posterUrl}
+                alt={movie.title || ""}
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
-            
-            {/* Rest of content - Desktop and Tablet */}
-            <div className="sm:block hidden space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[201px]">
-              <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-md">
-                {movie.title || ""}
-              </h1>
-              
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                {movie.vote_average ? (
-                  <div className="flex items-center gap-1 text-xs sm:text-sm">
-                    <span className="text-yellow-400 font-semibold">{Math.round(movie.vote_average * 10) / 10}</span>
-                    <span className="text-yellow-400">/</span>
-                    <span className="text-yellow-400">10</span>
-                  </div>
-                ) : null}
-                
-                {releaseDate && <div className="text-xs sm:text-sm text-gray-300">{releaseDate}</div>}
-                
-                {movie.runtime ? (
-                  <div className="text-xs sm:text-sm text-gray-300">{movie.runtime} min</div>
-                ) : null}
-              </div>
-              
-              {/* Trailer button - Desktop/Tablet */}
+
+            {/* Info */}
+            <div className="flex-1">
+              {releaseDate && (
+                <div className="text-sm text-yellow-400 mb-2">
+                  Uscita: {releaseDate}
+                </div>
+              )}
+
+              <h1 className="text-4xl md:text-6xl font-bold mb-6">{movie.title}</h1>
+
               {trailers.length > 0 && (
                 <button
-                  onClick={() => {
-                    setIsPipTrailerActive(false);
-                    setIsTrailerOpen(true);
-                  }}
-                  className="inline-flex items-center text-xs sm:text-sm text-gray-300 hover:text-white transition-colors mt-1 sm:mt-3 group"
+                  onClick={() => setIsTrailerOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-black/50 transition-colors"
                 >
-                  <Play className="w-3 h-3 mr-1 group-hover:text-red-500 transition-colors" />
-                  Guarda il trailer
+                  <Play className="w-4 h-4 fill-current" />
+                  Guarda trailer
                 </button>
               )}
             </div>
@@ -450,11 +387,11 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
         {/* Mobile Movie Info */}
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:hidden z-10">
-          <div className="flex flex-col items-center justify-center w-full space-y-2 mb-12 px-5 pb-6">
+          <div className="flex flex-col items-center justify-center w-full space-y-2 mb-12 px-5">
             <h1 className="text-[47px] leading-tight font-bold text-white text-center w-full mb-2">{movie.title}</h1>
             {releaseDate && (
               <div className="text-sm text-yellow-400 text-center w-full mb-3">
-                Release: {releaseDate}
+                Uscita: {releaseDate}
               </div>
             )}
             {trailers && trailers.length > 0 && (
@@ -486,6 +423,18 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
           onClose={() => setIsTrailerOpen(false)}
           trailerKey={trailers[0].key}
           trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
+        />
+      )}
+
+      {/* PIP Trailer */}
+      {isPipTrailerActive && trailers && trailers.length > 0 && (
+        <LazyTrailerModal
+          isOpen={true}
+          onClose={() => setIsPipTrailerActive(false)}
+          trailerKey={trailers[0].key}
+          trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
+          initialPIP={true}
+          autoMute={true}
         />
       )}
     </>

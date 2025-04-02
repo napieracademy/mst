@@ -31,7 +31,7 @@ interface DirectorAvatarProps {
   }
 }
 
-export const DirectorAvatar = ({ director }: DirectorAvatarProps) => {
+export function DirectorAvatar({ director }: DirectorAvatarProps) {
   const [activeTooltip, setActiveTooltip] = useState<boolean>(false);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [directorDetails, setDirectorDetails] = useState<PersonDetails | null>(null);
@@ -168,7 +168,7 @@ export const DirectorAvatar = ({ director }: DirectorAvatarProps) => {
   const hasImage = hasValidProfilePath || finalImagePath || false;
 
   return (
-    <>
+    <div className="flex items-center gap-4">
       <div
         ref={avatarRef}
         className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white"
@@ -190,6 +190,11 @@ export const DirectorAvatar = ({ director }: DirectorAvatarProps) => {
               {director.name.charAt(0)}
             </div>
           )}
+        </Link>
+      </div>
+      <div>
+        <Link href={`/person/${director.id}`} className="text-sm hover:text-yellow-400 transition-colors">
+          {director.name}
         </Link>
       </div>
       
@@ -242,6 +247,6 @@ export const DirectorAvatar = ({ director }: DirectorAvatarProps) => {
           )}
         </div>
       )}
-    </>
+    </div>
   );
-}; 
+} 

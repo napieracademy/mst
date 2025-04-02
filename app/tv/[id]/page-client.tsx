@@ -71,7 +71,7 @@ export function TVPageClient({
           <div className="w-full lg:w-2/3">
             {/* Technical Details */}
             <FadeInSection>
-              <p className="text-gray-300 mb-6 sm:mb-8">
+              <p className="text-gray-300 mb-6 sm:mb-8 text-sm">
                 {releaseYear && `Uscita nel ${releaseYear}, `}
                 {show.name} è una serie TV {show.genres?.map((g) => g.name).join(", ") || ""}
                 {show.episode_run_time &&
@@ -124,21 +124,20 @@ export function TVPageClient({
 
             {/* JustWatch Section */}
             <FadeInSection delay={200}>
-              <div className="mb-16">
-                <div className="flex items-center justify-between gap-2 mb-6">
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-yellow-400 font-bold text-lg">JustWatch</span>
+                    <span className="text-yellow-400 font-bold text-sm">JustWatch</span>
                     <span className="sm:hidden text-sm text-gray-400">(7 servizi)</span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setIsJustWatchExpanded(!isJustWatchExpanded)}
-                    className="sm:hidden w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                    className="sm:hidden text-sm text-gray-400 hover:text-white transition-colors"
                   >
-                    <span className={`text-xl transition-transform duration-200 ${isJustWatchExpanded ? 'rotate-45' : ''}`}>+</span>
+                    {isJustWatchExpanded ? "Nascondi" : "Mostra"}
                   </button>
                 </div>
 
-                {/* Contenuto JustWatch - visibile sempre su desktop, condizionale su mobile */}
                 <div className={`sm:block ${isJustWatchExpanded ? 'block' : 'hidden'}`}>
                   {/* Noleggio */}
                   <div className="mb-8">
@@ -185,12 +184,11 @@ export function TVPageClient({
             <FadeInSection delay={150}>
               {creators.length > 0 && (
                 <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">CREATORI</h2>
                   <div className="space-y-4">
                     {creators.slice(0, 3).map((creator) => (
                       <div key={creator.id} className="flex items-center gap-4">
-                        <div
-                          className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white"
-                        >
+                        <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
                           <Link href={`/person/${creator.id}`}>
                             {creator.profile_path ? (
                               <Image
@@ -200,20 +198,16 @@ export function TVPageClient({
                                 className="object-cover transition-transform duration-300 ease-out hover:scale-110"
                               />
                             ) : (
-                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
                                 {creator.name.charAt(0)}
                               </div>
                             )}
                           </Link>
                         </div>
                         <div>
-                          <Link
-                            href={`/person/${creator.id}`}
-                            className="font-medium hover:text-gray-300 transition-colors"
-                          >
+                          <Link href={`/person/${creator.id}`} className="text-sm hover:text-yellow-400 transition-colors">
                             {creator.name}
                           </Link>
-                          <p className="text-gray-400 text-sm">Creatore</p>
                         </div>
                       </div>
                     ))}
@@ -245,31 +239,73 @@ export function TVPageClient({
             </FadeInSection>
 
             {/* Producers */}
-            <FadeInSection delay={350}>
+            <FadeInSection delay={250}>
               {producers.length > 0 && (
-                <div className="mb-8 sm:mb-12">
-                  <h3 className="font-medium mb-2">Produttori</h3>
-                  <p className="text-gray-300">
-                    {producers
-                      .slice(0, 8)
-                      .map((person) => person.name)
-                      .join(", ")}
-                  </p>
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">PRODUZIONE</h2>
+                  <div className="space-y-4">
+                    {producers.slice(0, 3).map((producer) => (
+                      <div key={producer.id} className="flex items-center gap-4">
+                        <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                          <Link href={`/person/${producer.id}`}>
+                            {producer.profile_path ? (
+                              <Image
+                                src={`https://image.tmdb.org/t/p/w185${producer.profile_path}`}
+                                alt={producer.name}
+                                fill
+                                className="object-cover transition-transform duration-300 ease-out hover:scale-110"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                                {producer.name.charAt(0)}
+                              </div>
+                            )}
+                          </Link>
+                        </div>
+                        <div>
+                          <Link href={`/person/${producer.id}`} className="text-sm hover:text-yellow-400 transition-colors">
+                            {producer.name}
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </FadeInSection>
 
             {/* Writers */}
-            <FadeInSection delay={400}>
+            <FadeInSection delay={200}>
               {writers.length > 0 && (
-                <div className="mb-8 sm:mb-12">
-                  <h3 className="font-medium mb-2">Sceneggiatura</h3>
-                  <p className="text-gray-300">
-                    {writers
-                      .slice(0, 3)
-                      .map((person) => person.name)
-                      .join(", ")}
-                  </p>
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">SCENEGGIATURA</h2>
+                  <div className="space-y-4">
+                    {writers.slice(0, 3).map((writer) => (
+                      <div key={writer.id} className="flex items-center gap-4">
+                        <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                          <Link href={`/person/${writer.id}`}>
+                            {writer.profile_path ? (
+                              <Image
+                                src={`https://image.tmdb.org/t/p/w185${writer.profile_path}`}
+                                alt={writer.name}
+                                fill
+                                className="object-cover transition-transform duration-300 ease-out hover:scale-110"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                                {writer.name.charAt(0)}
+                              </div>
+                            )}
+                          </Link>
+                        </div>
+                        <div>
+                          <Link href={`/person/${writer.id}`} className="text-sm hover:text-yellow-400 transition-colors">
+                            {writer.name}
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </FadeInSection>
@@ -288,6 +324,11 @@ export function TVPageClient({
         
         {/* Cast Section */}
         <FadeInSection delay={300} threshold={0.05}>
+          <div className="mt-12 sm:mt-16">
+            <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
+            <CastCarousel cast={show.credits?.cast || []} />
+          </div>
+        </FadeInSection>
           {show.credits?.cast && show.credits.cast.length > 0 && (
             <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-800">
               <CastCarousel cast={show.credits.cast} />

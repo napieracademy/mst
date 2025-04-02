@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import type { Movie } from "@/lib/types"
@@ -11,85 +11,100 @@ interface SimilarMoviesProps {
 }
 
 export function SimilarMovies({ movies }: SimilarMoviesProps) {
-  const carouselRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(true)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   if (!movies || movies.length === 0) return null
 
-  // Limit to 10 movies maximum
+  // Limita il numero di film a 10
   const displayMovies = movies.slice(0, 10)
 
-  const scroll = (direction: "left" | "right") => {
-    if (!carouselRef.current) return
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsDesktop(window.innerWidth >= 1024)
+    }
 
-    const { scrollLeft, clientWidth } = carouselRef.current
-    // Scroll by the width of 4 items
-    const scrollTo = direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
 
-    carouselRef.current.scrollTo({
-      left: scrollTo,
-      behavior: "smooth",
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!containerRef.current) return
+
+    const scrollAmount = direction === 'left' ? -100 : 100
+    containerRef.current.scrollBy({
+      left: scrollAmount,
+      behavior: 'smooth'
     })
   }
 
   const handleScroll = () => {
-    if (!carouselRef.current) return
+    if (!containerRef.current) return
 
-    const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current
-    setShowLeftArrow(scrollLeft > 10)
+    const { scrollLeft, scrollWidth, clientWidth } = containerRef.current
+    setShowLeftArrow(scrollLeft > 0)
     setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10)
   }
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (container) {
+      container.addEventListener('scroll', handleScroll)
+      return () => container.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   return (
     <section className="mt-24 pt-8 border-t border-gray-800">
       <h2 className="text-2xl font-bold mb-6">Film simili</h2>
 
-      <div className="relative group">
+      <div className="relative">
+        {/* Left Arrow */}
         {showLeftArrow && (
           <button
-            onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Scorri a sinistra"
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
         )}
 
-        <div ref={carouselRef} className="flex overflow-x-auto pb-4 scrollbar-hide" onScroll={handleScroll}>
+        {/* Movies Container */}
+        <div
+          ref={containerRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+        >
           {displayMovies.map((movie) => (
-            <div key={movie.id} className="flex-none relative" style={{ width: "calc(50% - 16px)" }}>
-              <Link href={`/${movie.title ? "movie" : "tv"}/${movie.id}`} className="block px-2">
-                <div className="aspect-[2/3] relative rounded-lg overflow-hidden group">
-                  {movie.poster_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                      alt={movie.title || movie.name || ""}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
-                      No Image
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
-                <div className="mt-2">
-                  <h3 className="text-sm font-medium truncate">{movie.title || movie.name}</h3>
+            <div
+              key={movie.id}
+              className="flex-none w-[calc(50%-8px)] sm:w-[calc(33.333%-16px)] lg:w-[calc(25%-12px)] group relative"
+            >
+              <Link href={`/movie/${movie.id}`}>
+                <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title || movie.name || "Locandina film"}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </Link>
             </div>
           ))}
         </div>
 
+        {/* Right Arrow */}
         {showRightArrow && (
           <button
-            onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Scorri a destra"
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="w-6 h-6" />
           </button>
         )}
       </div>

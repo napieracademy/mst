@@ -11,6 +11,7 @@ import { Footer } from "@/components/footer"
 import { Movie } from "@/lib/types"
 import { FadeInSection } from "@/components/fade-in-section"
 import { useState } from "react"
+import Image from "next/image"
 
 interface MoviePageClientProps {
   movie: Movie
@@ -44,7 +45,7 @@ export function MoviePageClient({
   return (
     <main className="min-h-screen w-full bg-black text-white sm:px-8">
       {/* Hero Section */}
-      <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh]">
+      <div className="relative w-full h-[100dvh] sm:h-[60vh] md:h-[80vh]">
         <MovieHero
           movie={movie}
           posterUrl={posterUrl}
@@ -58,10 +59,10 @@ export function MoviePageClient({
       <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
         <div className="flex flex-col lg:flex-row lg:relative gap-8 sm:gap-16">
           {/* Left Column - Movie Details */}
-          <div className="w-full lg:w-2/3">
+          <div className="w-full lg:w-2/3 pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-16">
             {/* Technical Details */}
             <FadeInSection>
-              <p className="text-gray-300 mb-6 sm:mb-8 text-lg">
+              <p className="text-gray-300 mb-6 sm:mb-8">
                 {releaseYear && `Uscito nel ${releaseYear}, `}
                 {movie.title} è un film {movie.genres?.map((g) => g.name).join(", ") || ""}
                 {movie.runtime && ` della durata di ${movie.runtime} minuti`}
@@ -89,21 +90,20 @@ export function MoviePageClient({
 
             {/* JustWatch Section */}
             <FadeInSection delay={200}>
-              <div className="mb-16">
-                <div className="flex items-center justify-between gap-2 mb-6">
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-yellow-400 font-bold text-lg">JustWatch</span>
+                    <span className="text-yellow-400 font-bold text-sm">JustWatch</span>
                     <span className="sm:hidden text-sm text-gray-400">(7 servizi)</span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setIsJustWatchExpanded(!isJustWatchExpanded)}
-                    className="sm:hidden w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                    className="sm:hidden text-sm text-gray-400 hover:text-white transition-colors"
                   >
-                    <span className={`text-xl transition-transform duration-200 ${isJustWatchExpanded ? 'rotate-45' : ''}`}>+</span>
+                    {isJustWatchExpanded ? "Nascondi" : "Mostra"}
                   </button>
                 </div>
 
-                {/* Contenuto JustWatch - visibile sempre su desktop, condizionale su mobile */}
                 <div className={`sm:block ${isJustWatchExpanded ? 'block' : 'hidden'}`}>
                   {/* Noleggio */}
                   <div className="mb-8">
@@ -145,63 +145,48 @@ export function MoviePageClient({
           </div>
 
           {/* Right Column - Production Info */}
-          <div className="w-full lg:w-1/3 lg:pl-12">
+          <div className="w-full lg:w-1/3 lg:pl-16">
             {/* Director */}
             <FadeInSection delay={150}>
               {director && (
-                <div className="mb-8 sm:mb-12">
-                  <div className="flex items-center gap-4">
-                    <DirectorAvatar director={director} />
-                    <div>
-                      <Link
-                        href={`/person/${director.id}`}
-                        className="font-medium hover:text-gray-300 transition-colors text-lg"
-                      >
-                        {director.name}
-                      </Link>
-                    </div>
-                  </div>
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">REGIA</h2>
+                  <DirectorAvatar director={director} />
                 </div>
               )}
             </FadeInSection>
 
-            {/* Production Companies */}
-            <FadeInSection delay={250}>
-              {movie.production_companies && movie.production_companies.length > 0 && (
-                <div className="mb-8 sm:mb-12">
-                  <h3 className="font-medium mb-3 text-lg">Case di produzione</h3>
-                  <p className="text-gray-300">
-                    {movie.production_companies.map((company: { name: string }) => company.name).join(", ")}
+            {/* Writers */}
+            <FadeInSection delay={200}>
+              {writers.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">SCENEGGIATURA</h2>
+                  <p className="text-sm text-gray-300">
+                    {writers.slice(0, 3).map((writer) => writer.name).join(", ")}
                   </p>
                 </div>
               )}
             </FadeInSection>
 
             {/* Producers */}
-            <FadeInSection delay={350}>
+            <FadeInSection delay={250}>
               {producers.length > 0 && (
-                <div className="mb-8 sm:mb-12">
-                  <h3 className="font-medium mb-3 text-lg">Produttori</h3>
-                  <p className="text-gray-300">
-                    {producers
-                      .slice(0, 8)
-                      .map((person) => person.name)
-                      .join(", ")}
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">PRODUZIONE</h2>
+                  <p className="text-sm text-gray-300">
+                    {producers.slice(0, 3).map((producer) => producer.name).join(", ")}
                   </p>
                 </div>
               )}
             </FadeInSection>
 
-            {/* Screenplay */}
-            <FadeInSection delay={450}>
-              {writers.length > 0 && (
-                <div className="mb-8 sm:mb-12">
-                  <h3 className="font-medium mb-3 text-lg">Sceneggiatura</h3>
-                  <p className="text-gray-300">
-                    {writers
-                      .slice(0, 3)
-                      .map((person) => person.name)
-                      .join(", ")}
+            {/* Production Companies */}
+            <FadeInSection delay={300}>
+              {movie.production_companies && movie.production_companies.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">CASE DI PRODUZIONE</h2>
+                  <p className="text-sm text-gray-300">
+                    {movie.production_companies.map((company: { name: string }) => company.name).join(", ")}
                   </p>
                 </div>
               )}
@@ -210,24 +195,25 @@ export function MoviePageClient({
         </div>
 
         {/* Cast Section */}
-        <FadeInSection delay={200} threshold={0.05}>
-          {movie.credits?.cast && movie.credits.cast.length > 0 && (
-            <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-800">
-              <CastCarousel cast={movie.credits.cast} />
-            </div>
-          )}
+        <FadeInSection delay={300} threshold={0.05}>
+          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+            <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
+            <CastCarousel cast={movie.credits?.cast || []} />
+          </div>
         </FadeInSection>
 
-        {/* Gallery */}
-        <FadeInSection delay={300} threshold={0.05}>
-          <div className="mt-12 sm:mt-16">
+        {/* Gallery Section */}
+        <FadeInSection delay={400} threshold={0.05}>
+          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+            <h2 className="text-sm text-gray-400 mb-8">GALLERIA</h2>
             <MovieGallery movieId={id} type="movie" />
           </div>
         </FadeInSection>
 
         {/* Similar Movies */}
-        <FadeInSection delay={400} threshold={0.05}>
-          <div className="mt-12 sm:mt-16">
+        <FadeInSection delay={500} threshold={0.05}>
+          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+            <h2 className="text-sm text-gray-400 mb-8">FILM SIMILI</h2>
             <SimilarMovies movies={similarMovies} />
           </div>
         </FadeInSection>
