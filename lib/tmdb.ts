@@ -3,6 +3,40 @@ import type { Movie } from "./types"
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
+const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p"
+
+// Funzione per verificare se un percorso immagine è valido
+export function isValidImagePath(path: string | null | undefined): boolean {
+  return Boolean(path && typeof path === 'string' && path.startsWith('/') && path.length > 1);
+}
+
+// Funzione per costruire URL immagine con maggiori controlli di sicurezza
+export function buildImageUrl(path: string | null | undefined, size: string = "original"): string | null {
+  // Se il percorso immagine non è valido, restituisci null
+  if (!isValidImagePath(path)) {
+    console.warn(`Invalid image path detected: ${path}`);
+    return null;
+  }
+  
+  const validSizes = ["w92", "w154", "w185", "w342", "w500", "w780", "h632", "original"];
+  
+  // Verifica che la dimensione richiesta sia valida
+  if (!validSizes.includes(size)) {
+    console.warn(`Invalid image size requested: ${size}, defaulting to "original"`);
+    size = "original";
+  }
+  
+  // Costruiamo l'URL originale TMDB
+  const tmdbUrl = `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
+  
+  // In modalità sviluppo, facciamo logging dell'URL originale per debug
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`TMDB image URL generated: ${tmdbUrl} (from path: ${path}, size: ${size})`);
+  }
+  
+  // Usiamo il proxy per evitare problemi CORB
+  return `/api/image-proxy?url=${encodeURIComponent(tmdbUrl)}`;
+}
 
 // Funzione di utilità per le chiamate API
 async function fetchFromTMDB(endpoint: string, params: Record<string, string> = {}) {
@@ -54,6 +88,20 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
       resultsCount: data.results?.length,
       keys: Object.keys(data),
     })
+    
+    // Log aggiuntivo per debug delle immagini
+    if (endpoint.includes('/person/') || endpoint.includes('/movie/') || endpoint.includes('/tv/')) {
+      const imagePaths = {
+        posterPath: data.poster_path,
+        backdropPath: data.backdrop_path,
+        profilePath: data.profile_path,
+        hasValidPosterPath: isValidImagePath(data.poster_path),
+        hasValidBackdropPath: isValidImagePath(data.backdrop_path),
+        hasValidProfilePath: isValidImagePath(data.profile_path)
+      };
+      
+      console.log(`TMDB image paths for ${endpoint}:`, imagePaths);
+    }
 
     return data
   } catch (error) {
@@ -108,6 +156,16 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
     })
 
     if (data && !data.error && !data.status_code) {
+      // Verifica e log aggiuntivo per debug delle immagini
+      if (data.poster_path || data.backdrop_path) {
+        console.log(`Movie/TV ${id} full image check:`, {
+          validPoster: isValidImagePath(data.poster_path),
+          posterUrl: data.poster_path ? buildImageUrl(data.poster_path, "w500") : null,
+          validBackdrop: isValidImagePath(data.backdrop_path),
+          backdropUrl: data.backdrop_path ? buildImageUrl(data.backdrop_path, "original") : null,
+        });
+      }
+      
       return data as Movie
     }
 
@@ -165,8 +223,29 @@ export async function getPersonDetails(id: string): Promise<any | null> {
 
   try {
     const data = await fetchFromTMDB(`/person/${id}`, {
-      append_to_response: "combined_credits",
+      append_to_response: "combined_credits,images",
     })
+    
+    // Log esteso per debug delle immagini
+    if (data && data.profile_path) {
+      console.log(`Person ${id} image details:`, {
+        profilePath: data.profile_path,
+        isValid: isValidImagePath(data.profile_path),
+        profileUrl: buildImageUrl(data.profile_path, "h632"),
+        hasImagesCollection: Boolean(data.images && data.images.profiles && data.images.profiles.length > 0),
+        alternativeImagesCount: data.images?.profiles?.length || 0
+      });
+      
+      // Verificare anche immagini alternative se disponibili
+      if (data.images && data.images.profiles && data.images.profiles.length > 0) {
+        const altImages = data.images.profiles.slice(0, 3).map((img: any) => ({
+          path: img.file_path,
+          isValid: isValidImagePath(img.file_path),
+          url: buildImageUrl(img.file_path, "w185")
+        }));
+        console.log(`Person ${id} alternative images:`, altImages);
+      }
+    }
 
     return data
   } catch (error) {
