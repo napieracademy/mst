@@ -52,9 +52,9 @@ export function TVPageClient({
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
 
   return (
-    <main className="min-h-screen w-full bg-black text-white sm:px-8">
+    <div className="min-h-screen bg-black text-white sm:px-8">
       {/* Hero Section */}
-      <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh]">
+      <div className="relative h-[100dvh] sm:h-[50vh] md:h-[70vh]">
         <TVHero
           show={show}
           posterUrl={posterUrl}
@@ -329,12 +329,6 @@ export function TVPageClient({
             <CastCarousel cast={show.credits?.cast || []} />
           </div>
         </FadeInSection>
-          {show.credits?.cast && show.credits.cast.length > 0 && (
-            <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-800">
-              <CastCarousel cast={show.credits.cast} />
-            </div>
-          )}
-        </FadeInSection>
 
         {/* Gallery */}
         <FadeInSection delay={400} threshold={0.05}>
@@ -353,6 +347,6 @@ export function TVPageClient({
 
       {/* Footer */}
       <Footer />
-    </main>
+    </div>
   )
 } 
