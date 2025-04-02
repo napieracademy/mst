@@ -56,10 +56,10 @@ export function MoviePageClient({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1300px] mx-auto px-2 sm:px-4 py-8 sm:py-16">
-        <div className="flex flex-col lg:flex-row lg:relative gap-8 sm:gap-16">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+        <div className="flex flex-col lg:flex-row lg:relative gap-4 sm:gap-8">
           {/* Left Column - Movie Details */}
-          <div className="w-full lg:w-2/3 pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-16">
+          <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
             {/* Technical Details */}
             <FadeInSection>
               <p className="text-gray-300 mb-6 sm:mb-8">
@@ -145,7 +145,7 @@ export function MoviePageClient({
           </div>
 
           {/* Right Column - Production Info */}
-          <div className="w-full lg:w-1/3 lg:pl-16">
+          <div className="w-full lg:w-[42%] lg:pl-8">
             {/* Director */}
             <FadeInSection delay={150}>
               {director && (

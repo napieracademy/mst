@@ -65,10 +65,10 @@ export function TVPageClient({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1300px] mx-auto px-2 sm:px-4 py-8 sm:py-16">
-        <div className="flex flex-col lg:flex-row gap-8 sm:gap-16">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           {/* Left Column - Show Details */}
-          <div className="w-full lg:w-2/3">
+          <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
             {/* Technical Details */}
             <FadeInSection>
               <p className="text-gray-300 mb-6 sm:mb-8 text-sm">
@@ -179,7 +179,7 @@ export function TVPageClient({
           </div>
 
           {/* Right Column - Production Info */}
-          <div className="w-full lg:w-1/3 lg:pl-12">
+          <div className="w-full lg:w-[42%] lg:pl-8">
             {/* Creators */}
             <FadeInSection delay={150}>
               {creators.length > 0 && (
