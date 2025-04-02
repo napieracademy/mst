@@ -26,20 +26,20 @@ export function buildImageUrl(path: string | null | undefined, size: string = "o
     size = "original";
   }
   
-  // Costruiamo l'URL originale TMDB
-  const tmdbUrl = `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
+  // Costruiamo l'URL TMDB diretto (senza proxy)
+  const imageUrl = `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
   
-  // In modalità sviluppo, facciamo logging dell'URL originale per debug
+  // In modalità sviluppo, facciamo logging dell'URL per debug
   if (process.env.NODE_ENV === 'development') {
-    console.log(`TMDB image URL generated: ${tmdbUrl} (from path: ${path}, size: ${size})`);
+    console.log(`TMDB image URL generated: ${imageUrl} (from path: ${path}, size: ${size})`);
   }
   
-  // Usiamo il proxy per evitare problemi CORB
-  return `/api/image-proxy?url=${encodeURIComponent(tmdbUrl)}`;
+  // Ritorniamo direttamente l'URL di TMDB, senza utilizzare il proxy
+  return imageUrl;
 }
 
 // Funzione di utilità per le chiamate API
-async function fetchFromTMDB(endpoint: string, params: Record<string, string> = {}) {
+async function fetchFromTMDB(endpoint: string, params: Record<string, string> = {}, language = "it-IT") {
   // Se le API sono disabilitate tramite configurazione, lancia un errore
   if (!config.enableTMDBApi) {
     console.error(`TMDB API disabled: request to ${endpoint} blocked`)
@@ -55,7 +55,8 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
 
   // Aggiungi l'API key e i parametri
   url.searchParams.append("api_key", TMDB_API_KEY)
-  url.searchParams.append("language", "it-IT")
+  url.searchParams.append("language", language)
+  
   Object.entries(params).forEach(([key, value]) => {
     url.searchParams.append(key, value)
   })
@@ -65,6 +66,7 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
       apiKeyPresent: !!TMDB_API_KEY,
       apiKeyLength: TMDB_API_KEY?.length || 0,
       url: url.toString().replace(TMDB_API_KEY, "API_KEY_HIDDEN"),
+      language: language
     })
 
     const response = await fetch(url.toString(), {
@@ -151,9 +153,19 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
   if (!id) return null
 
   try {
-    const data = await fetchFromTMDB(`/${type}/${id}`, {
-      append_to_response: "videos,credits,recommendations,similar",
-    })
+    // Ottieni i dettagli base in italiano
+    const baseData = await fetchFromTMDB(`/${type}/${id}`, {
+      append_to_response: "videos,recommendations,similar",
+    }, "it-IT");
+    
+    // Ottieni i crediti (cast e crew) in inglese
+    const creditsData = await fetchFromTMDB(`/${type}/${id}/credits`, {}, "en-US");
+    
+    // Combina i dati
+    const data = {
+      ...baseData,
+      credits: creditsData
+    };
 
     if (data && !data.error && !data.status_code) {
       // Verifica e log aggiuntivo per debug delle immagini
@@ -222,9 +234,19 @@ export async function getPersonDetails(id: string): Promise<any | null> {
   }
 
   try {
-    const data = await fetchFromTMDB(`/person/${id}`, {
-      append_to_response: "combined_credits,images",
-    })
+    // Ottieni i dettagli della persona in inglese per avere i nomi corretti
+    const basicData = await fetchFromTMDB(`/person/${id}`, {}, "en-US");
+    
+    // Ottieni i crediti e le immagini in italiano
+    const creditsData = await fetchFromTMDB(`/person/${id}/combined_credits`, {}, "it-IT");
+    const imagesData = await fetchFromTMDB(`/person/${id}/images`, {}, "it-IT");
+    
+    // Combina tutti i dati
+    const data = {
+      ...basicData,
+      combined_credits: creditsData,
+      images: imagesData
+    };
     
     // Log esteso per debug delle immagini
     if (data && data.profile_path) {
@@ -253,4 +275,3 @@ export async function getPersonDetails(id: string): Promise<any | null> {
     throw error // Rilancia l'errore
   }
 }
-

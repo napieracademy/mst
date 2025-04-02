@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="it">
+    <html lang="it" className="trancy-und">
       <body className={`${inter.className} bg-black text-white min-h-screen overflow-x-hidden`}>
         <Providers>{children}</Providers>
       </body>
