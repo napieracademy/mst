@@ -43,7 +43,7 @@ export function MoviePageClient({
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
 
   return (
-    <main className="min-h-screen w-full bg-black text-white sm:px-8">
+    <main className="min-h-screen w-full bg-black text-white">
       {/* Hero Section */}
       <div className="relative w-full h-[100dvh] sm:h-[60vh] md:h-[80vh]">
         <MovieHero

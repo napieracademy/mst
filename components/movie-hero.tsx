@@ -5,10 +5,13 @@ import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import { Header } from "@/components/header"
-import { Play, Share2, Heart, Bell, RefreshCw } from "lucide-react"
+import { Play } from "lucide-react"
 import { TrailerModal } from "@/components/trailer-modal"
 import { ShareMenu } from "@/components/share-menu"
+import { MovieActions } from "@/atomic/organisms/movie-actions"
+import { Button } from "@/atomic/atoms/button"
 import dynamic from 'next/dynamic'
+import { MovieInfo } from '@/atomic/molecules/movie-info'
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -298,111 +301,79 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   return (
     <>
-      <div className="relative h-[100dvh] sm:h-[60vh] md:h-[80vh] mb-[30px] sm:mb-0 pt-40 sm:pt-56">
-        {/* Backdrop Image - Solo desktop/tablet */}
-        {backdropUrl && (
-          <div className="absolute inset-0 hidden sm:block">
+      <div className="relative w-full h-[120dvh] sm:h-[70vh] md:h-[85vh] mb-0">
+        {/* Backdrop Image - Occupa tutta l'area senza restrizioni */}
+        <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full">
+          <div className="relative w-full h-full">
             <Image
-              src={backdropUrl || "/placeholder.svg"}
-              alt={movie.title || ""}
+              src={backdropUrl || posterUrl}
+              alt={movie.title}
               fill
               className="object-cover object-center"
+              style={{ width: '100%', height: '100%' }}
+              sizes="100vw"
               priority
-              quality={90}
+              quality={95}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
-            <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />
           </div>
-        )}
-
-        {/* Poster come sfondo su mobile */}
-        <div className="absolute inset-0 sm:hidden">
-          <Image
-            src={posterUrl || "/placeholder.svg"}
-            alt={movie.title || ""}
-            fill
-            className="object-cover object-center bg-black"
-            priority
-            quality={85}
-          />
-          {/* Gradiente più forte per garantire leggibilità del testo */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
         </div>
 
         {/* Header */}
         <Header />
 
-        {/* Action buttons */}
+        {/* Action buttons - posizionamento verticale coerente */}
         <div className={`fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-3 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <button className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Heart className="w-6 h-6 sm:w-5 sm:h-5" />
-          </button>
-          <button className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Bell className="w-6 h-6 sm:w-5 sm:h-5" />
-          </button>
-          <button 
-            onClick={() => setIsShareMenuOpen(true)}
-            className="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors"
-          >
-            <Share2 className="w-6 h-6 sm:w-5 sm:h-5" />
-          </button>
+          <MovieActions
+            hasTrailer={trailers && trailers.length > 0}
+            onWatchTrailer={() => setIsTrailerOpen(true)}
+            onShare={() => setIsShareMenuOpen(true)}
+            onFavorite={() => {/* TODO: Implementare */}}
+            onNotify={() => {/* TODO: Implementare */}}
+          />
         </div>
 
-        {/* Movie Info - Desktop/Tablet */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full py-12 sm:py-16 md:py-24 z-10 hidden sm:block">
-          <div className="max-w-[1100px] mx-auto px-4 sm:px-8 flex items-center gap-8">
-            {/* Poster */}
-            <div className="w-48 h-72 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl">
-              <Image
-                src={posterUrl}
-                alt={movie.title || ""}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-
-            {/* Info */}
-            <div className="flex-1">
-              {releaseDate && (
-                <div className="text-sm text-yellow-400 mb-2">
-                  Uscita: {releaseDate}
+        {/* Container principale - senza padding laterali */}
+        <div className="relative z-10 h-full w-full flex items-center">
+          <div className="w-full">
+            <div className="flex flex-col sm:flex-row items-start justify-start gap-6 sm:gap-16 px-0">
+              {/* Poster */}
+              <div className="flex items-start justify-start pl-4 sm:pl-8">
+                <div className="relative w-[200px] h-[300px] sm:w-[300px] sm:h-[450px]">
+                  <Image
+                    src={posterUrl}
+                    alt={movie.title}
+                    fill
+                    className="object-cover rounded-lg shadow-lg border-2 border-gray-800"
+                    priority
+                  />
                 </div>
-              )}
-
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">{movie.title}</h1>
-
-              {trailers.length > 0 && (
-                <button
-                  onClick={() => setIsTrailerOpen(true)}
-                  className="flex items-center gap-2 text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-black/50 transition-colors"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  Guarda trailer
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Movie Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:hidden z-10">
-          <div className="flex flex-col items-center justify-center w-full space-y-2 mb-12 px-5">
-            <h1 className="text-[47px] leading-tight font-bold text-white text-center w-full mb-2">{movie.title}</h1>
-            {releaseDate && (
-              <div className="text-sm text-yellow-400 text-center w-full mb-3">
-                Uscita: {releaseDate}
               </div>
-            )}
-            {trailers && trailers.length > 0 && (
-              <button
-                onClick={() => setIsTrailerOpen(true)}
-                className="w-[60%] mx-auto py-3 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center space-x-2 active:scale-95 transition-all"
-              >
-                <Play className="w-5 h-5" />
-                <span>Trailer</span>
-              </button>
-            )}
+
+              {/* Info - Allineato a sinistra sempre */}
+              <div className="flex flex-col text-left max-w-2xl sm:self-start pr-4 sm:pr-8">
+                <MovieInfo
+                  title={movie.title}
+                  releaseDate={releaseDate || undefined}
+                  hasTrailer={false}
+                  onWatchTrailer={() => {}}
+                />
+                
+                {/* Trailer Button - Sempre allineato a sinistra */}
+                {trailers && trailers.length > 0 && (
+                  <div className="mt-2 sm:mt-4">
+                    <button
+                      onClick={() => setIsTrailerOpen(true)}
+                      className="flex items-center gap-3 text-white bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl"
+                    >
+                      <Play className="w-6 h-6" fill="white" />
+                      <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

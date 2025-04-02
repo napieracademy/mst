@@ -20,7 +20,11 @@ export default function RootLayout({
   return (
     <html lang="it" className="trancy-und">
       <body className={`${inter.className} bg-black text-white min-h-screen overflow-x-hidden`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <main className="min-h-screen w-full bg-black text-white">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   )

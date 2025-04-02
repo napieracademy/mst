@@ -52,7 +52,7 @@ export function TVPageClient({
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
 
   return (
-    <div className="min-h-screen bg-black text-white sm:px-8">
+    <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
       <div className="relative h-[100dvh] sm:h-[50vh] md:h-[70vh]">
         <TVHero

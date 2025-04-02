@@ -1,11 +1,10 @@
-"use client"
+'use client';
 
 import { cn } from '@/atomic/utils/cn';
 import { Button } from '@/atomic/atoms/button';
 import { Container } from '@/atomic/atoms/container';
 import { Text } from '@/atomic/atoms/text';
-import { Share2, Facebook, Twitter, MessageCircle, Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { Share2, Facebook, Twitter, MessageCircle, Send } from 'lucide-react';
 
 interface ShareMenuProps {
   title: string;
@@ -14,8 +13,6 @@ interface ShareMenuProps {
 }
 
 export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
-  const [isCopied, setIsCopied] = useState(false);
-
   const shareLinks = {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
@@ -26,8 +23,7 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      // TODO: Aggiungere feedback visivo
     } catch (err) {
       console.error('Failed to copy:', err);
     }
@@ -35,26 +31,27 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <Container variant="narrow" className="bg-black/90 rounded-lg p-6 shadow-xl max-w-md">
+      <Container variant="narrow" className="bg-black/90 rounded-lg p-6 shadow-xl">
         <div className="flex items-center justify-between mb-6">
           <Text variant="h4" className="text-white">
             Condividi
           </Text>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={onClose}
             className="text-white hover:text-gray-300"
           >
-            <X className="w-5 h-5" />
+            ✕
           </Button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <Button
             variant="secondary"
+            size="lg"
+            className="flex flex-col items-center gap-2"
             onClick={() => window.open(shareLinks.facebook, '_blank')}
-            className="flex flex-col items-center gap-2 p-4 h-auto"
           >
             <Facebook className="w-6 h-6" />
             <span>Facebook</span>
@@ -62,17 +59,19 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
 
           <Button
             variant="secondary"
+            size="lg"
+            className="flex flex-col items-center gap-2"
             onClick={() => window.open(shareLinks.twitter, '_blank')}
-            className="flex flex-col items-center gap-2 p-4 h-auto"
           >
             <Twitter className="w-6 h-6" />
-            <span>X (Twitter)</span>
+            <span>Twitter</span>
           </Button>
 
           <Button
             variant="secondary"
+            size="lg"
+            className="flex flex-col items-center gap-2"
             onClick={() => window.open(shareLinks.whatsapp, '_blank')}
-            className="flex flex-col items-center gap-2 p-4 h-auto"
           >
             <MessageCircle className="w-6 h-6" />
             <span>WhatsApp</span>
@@ -80,8 +79,9 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
 
           <Button
             variant="secondary"
+            size="lg"
+            className="flex flex-col items-center gap-2"
             onClick={() => window.open(shareLinks.telegram, '_blank')}
-            className="flex flex-col items-center gap-2 p-4 h-auto"
           >
             <Send className="w-6 h-6" />
             <span>Telegram</span>
@@ -99,7 +99,7 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
             variant="primary"
             onClick={copyToClipboard}
           >
-            {isCopied ? "Copiato!" : "Copia link"}
+            Copia link
           </Button>
         </div>
       </Container>

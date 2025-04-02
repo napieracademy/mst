@@ -1,0 +1,12 @@
+.next
+node_modules
+public
+.turbo
+build
+dist
+.env
+.env.*
+!.env.example
+.vercel
+.output
+.contentlayer 
