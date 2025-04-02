@@ -65,10 +65,6 @@ export function Header() {
         </Link>
 
         <div className="flex items-center space-x-4">
-          <Link href="/search" className="p-2 hover:text-red-500 transition-colors">
-            <Search size={24} />
-          </Link>
-
           <div className="relative">
             <button className="p-2 hover:text-red-500 transition-colors" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <Menu size={24} />
@@ -82,13 +78,6 @@ export function Header() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Home
-                </Link>
-                <Link
-                  href="/search"
-                  className="block px-4 py-2 text-sm hover:bg-gray-800"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Cerca
                 </Link>
                 <Link
                   href="/login"

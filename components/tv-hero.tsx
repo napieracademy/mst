@@ -2,11 +2,12 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import { Header } from "@/components/header"
 import { Play, Share2, Heart, Bell, RefreshCw } from "lucide-react"
 import { TrailerModal } from "@/components/trailer-modal"
+import { ShareMenu } from "@/components/share-menu"
 
 interface TVHeroProps {
   show: any
@@ -18,13 +19,41 @@ interface TVHeroProps {
 
 export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: TVHeroProps) {
   const [isTrailerOpen, setIsTrailerOpen] = useState(false)
+  const [isPipTrailerActive, setIsPipTrailerActive] = useState(false)
+  const [userScrolledPastThreshold, setUserScrolledPastThreshold] = useState(false)
+  const [hasPipBeenShown, setHasPipBeenShown] = useState(false)
   const [posterSize, setPosterSize] = useState(1) // 1 is default size
   const [posterPosition, setPosterPosition] = useState({ x: 0, y: 0 }) // Position offset
   const [isResizing, setIsResizing] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [isDesktop, setIsDesktop] = useState(false)
+  const [showActionButtons, setShowActionButtons] = useState(true)
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false)
   const posterRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const scrollThreshold = 300
+  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const scrollThrottleDelay = 200
+  const prefersReducedMotion = useRef(false)
+  const hasBatteryInfo = useRef(false)
+  const isSavingBattery = useRef(false)
+  const isConnectionSlow = useRef(false)
+
+  // Determina se il PIP dovrebbe essere attivato in base alle condizioni
+  const shouldEnablePip = useCallback(() => {
+    // Non attivare il PIP se:
+    // 1. L'utente preferisce meno animazioni
+    // 2. La batteria è bassa e in modalità risparmio
+    // 3. La connessione è lenta
+    // 4. Siamo su mobile (già controllato con isDesktop)
+    return !(
+      prefersReducedMotion.current || 
+      (hasBatteryInfo.current && isSavingBattery.current) || 
+      isConnectionSlow.current || 
+      !isDesktop
+    )
+  }, [isDesktop])
 
   // Check if we're on desktop on component mount
   useEffect(() => {
@@ -122,9 +151,43 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
     }
   }, [isDragging, isResizing, isDesktop, startPoint, posterPosition, posterSize])
 
+  // Gestisce lo scroll con throttling per migliorare le performance
+  useEffect(() => {
+    const handleScrollThrottled = () => {
+      if (scrollTimerRef.current !== null) return;
+      
+      scrollTimerRef.current = setTimeout(() => {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const hasScrolledPastThreshold = scrollY > scrollThreshold;
+        
+        if (hasScrolledPastThreshold !== userScrolledPastThreshold) {
+          setUserScrolledPastThreshold(hasScrolledPastThreshold);
+          setShowActionButtons(!hasScrolledPastThreshold);
+          
+          // Attiva il PIP solo se non è mai stato mostrato prima e le condizioni lo permettono
+          if (hasScrolledPastThreshold && 
+              trailers && 
+              trailers.length > 0 && 
+              !isTrailerOpen && 
+              !hasPipBeenShown && 
+              shouldEnablePip()) {
+            setIsPipTrailerActive(true);
+            setHasPipBeenShown(true);
+          } else if (!hasScrolledPastThreshold) {
+            setIsPipTrailerActive(false);
+          }
+        }
+        
+        scrollTimerRef.current = null;
+      }, scrollThrottleDelay);
+    };
+
+    // ... existing code ...
+  }, [userScrolledPastThreshold, trailers, isTrailerOpen, hasPipBeenShown, shouldEnablePip]);
+
   return (
     <>
-      <div className="relative w-full h-[40vh] sm:h-[50vh] md:h-[70vh]">
+      <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh] mb-[30px] sm:mb-0">
         {/* Backdrop Image - Visibile solo su tablet e desktop */}
         {backdropUrl && (
           <div className="absolute inset-0 hidden sm:block">
@@ -137,7 +200,6 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
               quality={90}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
-            {/* Gradiente verticale per degradare verso il main content nero */}
             <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black to-transparent" />
           </div>
         )}
@@ -148,26 +210,30 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
             src={posterUrl || "/placeholder.svg"}
             alt={show.name || ""}
             fill
-            className="object-cover object-center"
+            className="object-cover object-center bg-black"
             priority
-            quality={90}
+            quality={85}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" />
+          {/* Gradiente più forte per garantire leggibilità del testo */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
         </div>
 
         {/* Header */}
         <Header />
 
-        {/* Action buttons on the right - Nascondi su mobile */}
-        <div className="hidden sm:flex fixed right-4 top-1/4 z-10 flex-col gap-4">
-          <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Heart className="w-5 h-5" />
+        {/* Action buttons - Desktop e Mobile */}
+        <div className={`fixed right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-4 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <button className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
+            <Heart className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
           </button>
-          <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Bell className="w-5 h-5" />
+          <button className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
+            <Bell className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
           </button>
-          <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Share2 className="w-5 h-5" />
+          <button 
+            onClick={() => setIsShareMenuOpen(true)}
+            className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors"
+          >
+            <Share2 className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
           </button>
         </div>
 
@@ -177,7 +243,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
             {/* Poster */}
             <div
               ref={posterRef}
-              className={`movie-poster-mobile w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${isDesktop ? "cursor-move" : ""} z-20`}
+              className={`w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${isDesktop ? "cursor-move" : ""} z-20`}
               style={{
                 transform: `scale(${posterSize}) translate(${posterPosition.x / posterSize}px, ${posterPosition.y / posterSize}px)`,
                 transformOrigin: "center center",
@@ -228,7 +294,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
             </div>
 
             {/* Info - Desktop e Tablet */}
-            <div className="space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[251px]">
+            <div className="space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[201px]">
               {releaseDate && <div className="text-xs sm:text-sm text-yellow-400 mb-1 sm:mb-2">Prima uscita: {releaseDate}</div>}
 
               <h1 className="text-lg sm:text-2xl md:text-5xl lg:text-6xl font-bold text-white mb-1 sm:mb-4">{show.name}</h1>
@@ -246,36 +312,44 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
           </div>
         </div>
 
-        {/* Layout Mobile - Contenuto in basso */}
-        <div className="absolute bottom-0 left-0 right-0 sm:hidden p-4 z-10">
-          <div className="w-full text-center">
-            {releaseDate && <div className="text-xs text-yellow-400 mb-1">Prima uscita: {releaseDate}</div>}
-            
-            <h1 className="text-xl font-bold text-white drop-shadow-md mb-1">
-              {show.name || ""}
-            </h1>
-            
-            {/* Pulsante trailer mobile - ottimizzato e minimalista */}
+        {/* Mobile Show Info */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:hidden z-10">
+          <div className="flex flex-col items-center justify-center w-full space-y-2 mb-12 px-5 pb-6">
+            <h1 className="text-[47px] leading-tight font-bold text-white text-center w-full mb-2">{show.name}</h1>
+            {releaseDate && (
+              <div className="text-sm text-yellow-400 text-center w-full mb-3">
+                Release: {releaseDate}
+              </div>
+            )}
             {trailers && trailers.length > 0 && (
               <button
                 onClick={() => setIsTrailerOpen(true)}
-                className="mx-auto flex items-center justify-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs text-white hover:bg-white/20 transition-colors mt-2"
+                className="w-[60%] mx-auto py-3 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center space-x-2 active:scale-95 transition-all"
               >
-                <Play className="w-3 h-3 text-red-500" />
-                Guarda trailer
+                <Play className="w-5 h-5" />
+                <span>Trailer</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
+      {/* Share Menu */}
+      {isShareMenuOpen && (
+        <ShareMenu
+          title={show.name || ""}
+          url={typeof window !== 'undefined' ? window.location.href : ''}
+          onClose={() => setIsShareMenuOpen(false)}
+        />
+      )}
+
       {/* Trailer Modal */}
-      {trailers && trailers.length > 0 && (
+      {isTrailerOpen && trailers && trailers.length > 0 && (
         <TrailerModal
           isOpen={isTrailerOpen}
           onClose={() => setIsTrailerOpen(false)}
           trailerKey={trailers[0].key}
-          trailerName={trailers[0].name}
+          trailerName={trailers[0].name || `Trailer di ${show.name || "serie TV"}`}
         />
       )}
     </>

@@ -10,6 +10,7 @@ import { MovieHero } from "@/components/movie-hero"
 import { Footer } from "@/components/footer"
 import { Movie } from "@/lib/types"
 import { FadeInSection } from "@/components/fade-in-section"
+import { useState } from "react"
 
 interface MoviePageClientProps {
   movie: Movie
@@ -38,10 +39,12 @@ export function MoviePageClient({
   writers,
   producers
 }: MoviePageClientProps) {
+  const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
+
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen w-full bg-black text-white sm:px-8">
       {/* Hero Section */}
-      <div className="relative w-full h-[70vh]">
+      <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh]">
         <MovieHero
           movie={movie}
           posterUrl={posterUrl}
@@ -52,16 +55,13 @@ export function MoviePageClient({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1100px] mx-auto px-8 py-12">
-        <div className="flex flex-col lg:flex-row lg:relative">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+        <div className="flex flex-col lg:flex-row lg:relative gap-8 sm:gap-16">
           {/* Left Column - Movie Details */}
-          <div className="w-full lg:w-2/3 lg:pr-12">
-            {/* Vertical separator line that only appears on large screens */}
-            <div className="hidden lg:block absolute right-1/3 top-0 bottom-0 w-px bg-gray-800"></div>
-            
+          <div className="w-full lg:w-2/3">
+            {/* Technical Details */}
             <FadeInSection>
-              {/* Technical Details */}
-              <p className="text-gray-300 mb-6">
+              <p className="text-gray-300 mb-6 sm:mb-8 text-lg">
                 {releaseYear && `Uscito nel ${releaseYear}, `}
                 {movie.title} è un film {movie.genres?.map((g) => g.name).join(", ") || ""}
                 {movie.runtime && ` della durata di ${movie.runtime} minuti`}
@@ -74,7 +74,7 @@ export function MoviePageClient({
 
             {/* Synopsis */}
             <FadeInSection delay={100}>
-              <div className="mb-8">
+              <div className="mb-12">
                 <EditableBio
                   initialBio={movie.overview || "Nessuna sinossi disponibile per questo film."}
                   onSave={async (newBio) => {
@@ -89,43 +89,55 @@ export function MoviePageClient({
 
             {/* JustWatch Section */}
             <FadeInSection delay={200}>
-              <div className="mb-12">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-yellow-400 font-bold">JustWatch</span>
-                </div>
-
-                {/* Noleggio */}
-                <div className="mb-6">
-                  <h3 className="text-xs text-gray-400 mb-2">NOLEGGIO</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Rakuten TV
-                    </button>
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Apple TV
-                    </button>
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Amazon Video
-                    </button>
+              <div className="mb-16">
+                <div className="flex items-center justify-between gap-2 mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-400 font-bold text-lg">JustWatch</span>
+                    <span className="sm:hidden text-sm text-gray-400">(7 servizi)</span>
                   </div>
+                  <button 
+                    onClick={() => setIsJustWatchExpanded(!isJustWatchExpanded)}
+                    className="sm:hidden w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                  >
+                    <span className={`text-xl transition-transform duration-200 ${isJustWatchExpanded ? 'rotate-45' : ''}`}>+</span>
+                  </button>
                 </div>
 
-                {/* Acquisto */}
-                <div>
-                  <h3 className="text-xs text-gray-400 mb-2">ACQUISTO</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Rakuten TV
-                    </button>
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Apple TV
-                    </button>
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Google Play Movies
-                    </button>
-                    <button className="bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded text-sm transition-colors">
-                      Amazon Video
-                    </button>
+                {/* Contenuto JustWatch - visibile sempre su desktop, condizionale su mobile */}
+                <div className={`sm:block ${isJustWatchExpanded ? 'block' : 'hidden'}`}>
+                  {/* Noleggio */}
+                  <div className="mb-8">
+                    <h3 className="text-sm text-gray-400 mb-3">NOLEGGIO</h3>
+                    <div className="flex flex-wrap gap-3">
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Rakuten TV
+                      </button>
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Apple TV
+                      </button>
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Amazon Video
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Acquisto */}
+                  <div>
+                    <h3 className="text-sm text-gray-400 mb-3">ACQUISTO</h3>
+                    <div className="flex flex-wrap gap-3">
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Rakuten TV
+                      </button>
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Apple TV
+                      </button>
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Google Play Movies
+                      </button>
+                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
+                        Amazon Video
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -137,13 +149,13 @@ export function MoviePageClient({
             {/* Director */}
             <FadeInSection delay={150}>
               {director && (
-                <div className="mb-8">
+                <div className="mb-8 sm:mb-12">
                   <div className="flex items-center gap-4">
                     <DirectorAvatar director={director} />
                     <div>
                       <Link
                         href={`/person/${director.id}`}
-                        className="font-medium hover:text-gray-300 transition-colors"
+                        className="font-medium hover:text-gray-300 transition-colors text-lg"
                       >
                         {director.name}
                       </Link>
@@ -156,8 +168,8 @@ export function MoviePageClient({
             {/* Production Companies */}
             <FadeInSection delay={250}>
               {movie.production_companies && movie.production_companies.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="font-medium mb-2">Case di produzione</h3>
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="font-medium mb-3 text-lg">Case di produzione</h3>
                   <p className="text-gray-300">
                     {movie.production_companies.map((company: { name: string }) => company.name).join(", ")}
                   </p>
@@ -168,8 +180,8 @@ export function MoviePageClient({
             {/* Producers */}
             <FadeInSection delay={350}>
               {producers.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="font-medium mb-2">Produttori</h3>
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="font-medium mb-3 text-lg">Produttori</h3>
                   <p className="text-gray-300">
                     {producers
                       .slice(0, 8)
@@ -183,8 +195,8 @@ export function MoviePageClient({
             {/* Screenplay */}
             <FadeInSection delay={450}>
               {writers.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="font-medium mb-2">Sceneggiatura</h3>
+                <div className="mb-8 sm:mb-12">
+                  <h3 className="font-medium mb-3 text-lg">Sceneggiatura</h3>
                   <p className="text-gray-300">
                     {writers
                       .slice(0, 3)
@@ -200,7 +212,7 @@ export function MoviePageClient({
         {/* Cast Section */}
         <FadeInSection delay={200} threshold={0.05}>
           {movie.credits?.cast && movie.credits.cast.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-gray-800">
+            <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-800">
               <CastCarousel cast={movie.credits.cast} />
             </div>
           )}
@@ -208,12 +220,16 @@ export function MoviePageClient({
 
         {/* Gallery */}
         <FadeInSection delay={300} threshold={0.05}>
-          <MovieGallery movieId={id} type="movie" />
+          <div className="mt-12 sm:mt-16">
+            <MovieGallery movieId={id} type="movie" />
+          </div>
         </FadeInSection>
 
         {/* Similar Movies */}
         <FadeInSection delay={400} threshold={0.05}>
-          <SimilarMovies movies={similarMovies} />
+          <div className="mt-12 sm:mt-16">
+            <SimilarMovies movies={similarMovies} />
+          </div>
         </FadeInSection>
       </div>
 

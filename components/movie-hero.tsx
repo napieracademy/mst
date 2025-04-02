@@ -7,6 +7,7 @@ import Image from "next/image"
 import { Header } from "@/components/header"
 import { Play, Share2, Heart, Bell, RefreshCw } from "lucide-react"
 import { TrailerModal } from "@/components/trailer-modal"
+import { ShareMenu } from "@/components/share-menu"
 import dynamic from 'next/dynamic'
 
 // Importazione dinamica (lazy) del TrailerModal
@@ -34,6 +35,8 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
   const [isDragging, setIsDragging] = useState(false)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [isDesktop, setIsDesktop] = useState(false)
+  const [showActionButtons, setShowActionButtons] = useState(true)
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false)
   const posterRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollThreshold = 300 // Soglia di scroll per attivare il PIP
@@ -116,7 +119,6 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   // Gestisce lo scroll con throttling per migliorare le performance
   useEffect(() => {
-    // Funzione throttled per gestire lo scroll
     const handleScrollThrottled = () => {
       if (scrollTimerRef.current !== null) return;
       
@@ -126,6 +128,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         
         if (hasScrolledPastThreshold !== userScrolledPastThreshold) {
           setUserScrolledPastThreshold(hasScrolledPastThreshold);
+          setShowActionButtons(!hasScrolledPastThreshold);
           
           // Attiva il PIP solo se non è mai stato mostrato prima e le condizioni lo permettono
           if (hasScrolledPastThreshold && 
@@ -135,9 +138,8 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
               !hasPipBeenShown && 
               shouldEnablePip()) {
             setIsPipTrailerActive(true);
-            setHasPipBeenShown(true); // Imposta che il PIP è già stato mostrato
+            setHasPipBeenShown(true);
           } else if (!hasScrolledPastThreshold) {
-            // Disattiva il PIP quando si torna sopra la soglia
             setIsPipTrailerActive(false);
           }
         }
@@ -301,7 +303,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
   return (
     <>
-      <div className="relative w-full h-[40vh] sm:h-[50vh] md:h-[70vh]" ref={containerRef}>
+      <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh] mb-[30px] sm:mb-0">
         {/* Backdrop Image - Visibile solo su tablet e desktop */}
         {backdropUrl && (
           <div className="absolute inset-0 hidden sm:block">
@@ -314,7 +316,6 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
               quality={90}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
-            {/* Gradiente verticale per degradare verso il main content nero */}
             <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black to-transparent" />
           </div>
         )}
@@ -325,37 +326,32 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
             src={posterUrl || "/placeholder.svg"}
             alt={movie.title || ""}
             fill
-            className="object-cover object-center"
+            className="object-cover object-center bg-black"
             priority
-            quality={90}
+            quality={85}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" />
+          {/* Gradiente più forte per garantire leggibilità del testo */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
         </div>
 
         {/* Header */}
         <Header />
 
-        {/* Action buttons on the right - Nascondi su mobile */}
-        <div className="hidden sm:flex fixed right-4 top-1/4 z-10 flex-col gap-4">
-          <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Heart className="w-5 h-5" />
+        {/* Action buttons - Desktop e Mobile */}
+        <div className={`fixed right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-4 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <button className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
+            <Heart className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
           </button>
-          <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Bell className="w-5 h-5" />
+          <button className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
+            <Bell className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
           </button>
-          <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors">
-            <Share2 className="w-5 h-5" />
+          <button 
+            onClick={() => setIsShareMenuOpen(true)}
+            className="w-10 h-10 sm:w-10 sm:h-10 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors"
+          >
+            <Share2 className="w-5 h-5 sm:w-5 sm:h-5 w-6 h-6" />
           </button>
         </div>
-
-        {/* Area di spostamento per il poster (invisibile ma funzionale) */}
-        <div 
-          id="poster-drag-area" 
-          className="absolute left-0 top-0 w-full h-full"
-          style={{ 
-            pointerEvents: 'none',
-          }}
-        ></div>
 
         {/* Movie Info - Desktop e Tablet */}
         <div className="absolute top-0 left-0 w-full h-full hidden sm:flex items-center p-3 sm:p-8 z-10">
@@ -363,7 +359,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
             {/* Poster */}
             <div
               ref={posterRef}
-              className={`movie-poster-mobile hidden sm:block w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all ${isDesktop ? "cursor-move" : ""} z-20`}
+              className={`hidden sm:block w-32 sm:h-48 md:w-64 md:h-96 relative rounded-lg overflow-hidden shadow-2xl transition-all ${isDesktop ? "cursor-move" : ""} z-20`}
               style={{
                 transform: `scale(${posterSize}) translate(${posterPosition.x / posterSize}px, ${posterPosition.y / posterSize}px)`,
                 transformOrigin: "center center",
@@ -414,7 +410,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
             </div>
             
             {/* Rest of content - Desktop and Tablet */}
-            <div className="sm:block hidden space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[251px]">
+            <div className="sm:block hidden space-y-2 md:space-y-4 max-w-2xl md:pt-4 md:min-h-[142px] md:relative md:top-[201px]">
               <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-md">
                 {movie.title || ""}
               </h1>
@@ -452,66 +448,44 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
           </div>
         </div>
 
-        {/* Layout Mobile - Contenuto in basso */}
-        <div className="absolute bottom-0 left-0 right-0 sm:hidden p-4 z-10">
-          <div className="w-full text-center">
-            <h1 className="text-xl font-bold text-white drop-shadow-md mb-1">
-              {movie.title || ""}
-            </h1>
-            
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
-              {movie.vote_average ? (
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="text-yellow-400 font-semibold">{Math.round(movie.vote_average * 10) / 10}</span>
-                  <span className="text-yellow-400">/</span>
-                  <span className="text-yellow-400">10</span>
-                </div>
-              ) : null}
-              
-              {releaseDate && <div className="text-xs text-gray-300">{releaseDate}</div>}
-              
-              {movie.runtime ? (
-                <div className="text-xs text-gray-300">{movie.runtime} min</div>
-              ) : null}
-            </div>
-            
-            {/* Pulsante trailer mobile - ottimizzato e minimalista */}
-            {trailers.length > 0 && (
+        {/* Mobile Movie Info */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:hidden z-10">
+          <div className="flex flex-col items-center justify-center w-full space-y-2 mb-12 px-5 pb-6">
+            <h1 className="text-[47px] leading-tight font-bold text-white text-center w-full mb-2">{movie.title}</h1>
+            {releaseDate && (
+              <div className="text-sm text-yellow-400 text-center w-full mb-3">
+                Release: {releaseDate}
+              </div>
+            )}
+            {trailers && trailers.length > 0 && (
               <button
-                onClick={() => {
-                  setIsPipTrailerActive(false);
-                  setIsTrailerOpen(true);
-                }}
-                className="mx-auto flex items-center justify-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs text-white hover:bg-white/20 transition-colors"
+                onClick={() => setIsTrailerOpen(true)}
+                className="w-[60%] mx-auto py-3 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center space-x-2 active:scale-95 transition-all"
               >
-                <Play className="w-3 h-3 text-red-500" />
-                Guarda il trailer
+                <Play className="w-5 h-5" />
+                <span>Trailer</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Trailer Modal (in modalità normale) */}
-      {isTrailerOpen && trailers.length > 0 && (
-        <TrailerModal
-          trailerKey={trailers[0].key}
-          trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
-          isOpen={isTrailerOpen}
-          onClose={() => setIsTrailerOpen(false)}
-          initialPIP={false}
+      {/* Share Menu */}
+      {isShareMenuOpen && (
+        <ShareMenu
+          title={movie.title || ""}
+          url={typeof window !== 'undefined' ? window.location.href : ''}
+          onClose={() => setIsShareMenuOpen(false)}
         />
       )}
-      
-      {/* Trailer in modalità PIP attivato dallo scroll - usando lazy loading */}
-      {isPipTrailerActive && trailers.length > 0 && !isTrailerOpen && (
-        <LazyTrailerModal
+
+      {/* Trailer Modal */}
+      {isTrailerOpen && trailers && trailers.length > 0 && (
+        <TrailerModal
+          isOpen={isTrailerOpen}
+          onClose={() => setIsTrailerOpen(false)}
           trailerKey={trailers[0].key}
           trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
-          isOpen={isPipTrailerActive}
-          onClose={() => setIsPipTrailerActive(false)}
-          initialPIP={true}
-          autoMute={true}
         />
       )}
     </>

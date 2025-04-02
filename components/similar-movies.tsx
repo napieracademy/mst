@@ -17,8 +17,8 @@ export function SimilarMovies({ movies }: SimilarMoviesProps) {
 
   if (!movies || movies.length === 0) return null
 
-  // Limit to 20 movies maximum
-  const displayMovies = movies.slice(0, 20)
+  // Limit to 10 movies maximum
+  const displayMovies = movies.slice(0, 10)
 
   const scroll = (direction: "left" | "right") => {
     if (!carouselRef.current) return
@@ -57,28 +57,28 @@ export function SimilarMovies({ movies }: SimilarMoviesProps) {
         )}
 
         <div ref={carouselRef} className="flex overflow-x-auto pb-4 scrollbar-hide" onScroll={handleScroll}>
-          {displayMovies.map((movie, index) => (
-            <div key={movie.id} className="flex-none relative" style={{ width: "calc(25% - 12px)" }}>
+          {displayMovies.map((movie) => (
+            <div key={movie.id} className="flex-none relative" style={{ width: "calc(50% - 16px)" }}>
               <Link href={`/${movie.title ? "movie" : "tv"}/${movie.id}`} className="block px-2">
-                <div className="aspect-[2/3] relative rounded-lg overflow-hidden">
+                <div className="aspect-[2/3] relative rounded-lg overflow-hidden group">
                   {movie.poster_path ? (
                     <Image
                       src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                       alt={movie.title || movie.name || ""}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
                       No Image
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <div className="mt-2">
+                  <h3 className="text-sm font-medium truncate">{movie.title || movie.name}</h3>
                 </div>
               </Link>
-              {/* Add separator line after each card except the last one */}
-              {index < displayMovies.length - 1 && (
-                <div className="absolute right-0 top-[10%] bottom-[10%] w-px bg-gray-800"></div>
-              )}
             </div>
           ))}
         </div>
