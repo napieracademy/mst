@@ -1,12 +1,14 @@
 [build]
-  command = "npm run build"
+  command = "npm install --legacy-peer-deps && npm run build"
   publish = ".next"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./app ./components ./lib"
 
 [build.environment]
-  NODE_VERSION = "20.10.0"
-  NPM_VERSION = "10.2.3"
-  NEXT_TELEMETRY_DISABLED = "1"
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
+  NPM_FLAGS = "--legacy-peer-deps"
+  NEXT_PUBLIC_TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
+  TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
 
 [functions]
   node_bundler = "esbuild"

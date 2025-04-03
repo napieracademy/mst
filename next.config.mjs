@@ -23,7 +23,7 @@ const nextConfig = {
     parallelServerCompiles: true,
   },
   outputFileTracingIncludes: {
-    '/**': ['./public/**/*', './app/globals.css', './.next/static/css/**/*']
+    '/**': ['./public/**/*', './app/globals.css', './styles/**/*', './.next/static/css/**/*']
   },
   output: 'standalone',
   poweredByHeader: false,

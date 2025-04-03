@@ -1,6 +1,36 @@
-# Mastroianni - Sito di film e serie TV
+# Mastroianni - App per film e serie TV
 
-Un sito moderno per esplorare film e serie TV, costruito con Next.js 15 e ottimizzato per SEO.
+## Setup corretto
+
+- Progetto basato su Next.js 15 + App Router
+- Si usa SOLO npm, niente pnpm
+- Installa sempre così:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+## Build manuale:
+
+```bash
+npm install --legacy-peer-deps
+npm run build
+npm run start
+```
+
+## Build Netlify:
+Il comando è già configurato in `netlify.toml`
+
+---
+
+## Extra:
+- `tsconfig.json` già pronto per TypeScript
+- `eslint.config.js` pronto per Next.js + TypeScript + Core Web Vitals
+- Lint attivo nel build
+
+## API TMDB
+- L'API key TMDB è configurata sia nel file `.env.production` che nel `netlify.toml`
+- Chiave: `c1fccb37538d185ce09b51ea97fe1da3`
 
 ## Caratteristiche
 
