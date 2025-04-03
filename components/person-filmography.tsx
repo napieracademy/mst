@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { generateSlug } from "@/lib/utils"
 
 interface Credit {
   id: number
@@ -14,6 +15,7 @@ interface Credit {
   character?: string
   job?: string
   media_type: "movie" | "tv"
+  role?: "acting" | "directing" | "both"
 }
 
 interface PersonFilmographyProps {
@@ -26,13 +28,13 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
 
   // Filtra i crediti in base al tab attivo
   const filteredCredits = credits.filter((credit) => {
-    if (activeTab === "all") return true
-    if (activeTab === "acting") return credit.character
-    if (activeTab === "directing") return credit.job === "Director"
-    if (activeTab === "movie") return credit.media_type === "movie"
-    if (activeTab === "tv") return credit.media_type === "tv"
-    return true
-  })
+    if (activeTab === "all") return true;
+    if (activeTab === "acting") return credit.role === "acting" || credit.role === "both";
+    if (activeTab === "directing") return credit.role === "directing" || credit.role === "both";
+    if (activeTab === "movie") return credit.media_type === "movie";
+    if (activeTab === "tv") return credit.media_type === "tv";
+    return true;
+  });
 
   // Ordina i crediti per data di uscita (più recenti prima)
   const sortedCredits = [...filteredCredits].sort((a, b) => {
@@ -42,8 +44,8 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
   })
 
   // Conta i crediti per tipo
-  const actingCount = credits.filter((c) => c.character).length
-  const directingCount = credits.filter((c) => c.job === "Director").length
+  const actingCount = credits.filter((c) => c.role === "acting" || c.role === "both").length
+  const directingCount = credits.filter((c) => c.role === "directing" || c.role === "both").length
   const movieCount = credits.filter((c) => c.media_type === "movie").length
   const tvCount = credits.filter((c) => c.media_type === "tv").length
 
@@ -108,18 +110,38 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
       {/* Griglia di film/serie */}
       {sortedCredits.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {sortedCredits.map((credit, index) => {
+          {sortedCredits.map((credit) => {
             const mediaType = credit.media_type;
             const title = credit.title || credit.name || "";
             const date = credit.release_date || credit.first_air_date;
             const year = date ? new Date(date).getFullYear() : null;
-            const role = credit.character || credit.job || "";
+            
+            // Determina il ruolo da mostrare
+            let roleText = "";
+            if (credit.role === "both") {
+              roleText = "Attore, Regista";
+            } else if (credit.role === "acting") {
+              roleText = credit.character || "Attore";
+            } else if (credit.role === "directing") {
+              roleText = "Regista";
+            } else {
+              roleText = credit.character || credit.job || "";
+            }
+            
             const posterPath = credit.poster_path;
+            
+            // Genera lo slug SEO-friendly per film o serie TV
+            const slug = generateSlug(title, year, credit.id);
+              
+            // Genera l'URL corretto in base al tipo di media
+            const href = mediaType === "movie" 
+              ? `/film/${slug}` 
+              : `/serie/${slug}`;
 
             return (
               <Link 
-                key={`${credit.id}-${mediaType}-${role}-${index}`} 
-                href={`/${mediaType}/${credit.id}`} 
+                key={`${credit.id}-${mediaType}`} 
+                href={href} 
                 className="group relative block overflow-hidden rounded-lg bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50"
               >
                 <div className="aspect-[2/3] relative">
@@ -141,8 +163,8 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
                       <h3 className="font-medium text-sm truncate">{title}</h3>
                       <div className="flex items-center text-xs text-gray-300">
                         {year && <span>{year}</span>}
-                        {role && year && <span className="mx-1">•</span>}
-                        {role && <span className="truncate">{role}</span>}
+                        {roleText && year && <span className="mx-1">•</span>}
+                        {roleText && <span className="truncate">{roleText}</span>}
                       </div>
                     </div>
                   </div>

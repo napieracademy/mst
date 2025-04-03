@@ -94,7 +94,7 @@ export default async function Home() {
       </section>
 
       {/* Contenuto principale */}
-      <div className="max-w-[1300px] mx-auto px-2 sm:px-4 pb-20 relative z-10 mt-[-100px]">
+      <div className="max-w-[1100px] mx-auto px-4 pb-20 relative z-10 mt-[-100px]">
         {/* Ora al Cinema - Solo qui usiamo isFirstSection={true} */}
         <MovieSectionInterattivo 
           title="Ora al Cinema" 

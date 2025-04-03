@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { generateSlug } from "@/lib/utils"
 
 interface CastMember {
   id: number
@@ -174,46 +175,51 @@ export function CastCarousel({ cast }: CastCarouselProps) {
         className="flex space-x-10 overflow-x-auto py-4 px-2 scrollbar-hide"
         onScroll={handleScroll}
       >
-        {cast.slice(0, 15).map((person) => (
-          <div
-            key={person.id}
-            className="flex-none px-2 relative"
-          >
-            <Link
-              href={`/person/${person.id}`}
-              className="block text-center"
-              onMouseEnter={(e) => handleMouseEnter(e, person.id)}
-              onMouseLeave={handleMouseLeave}
+        {cast.slice(0, 15).map((person) => {
+          // Genera lo slug SEO-friendly per l'attore
+          const actorSlug = generateSlug(person.name, null, person.id);
+          
+          return (
+            <div
+              key={person.id}
+              className="flex-none px-2 relative"
             >
-              <div className="w-24 h-24 relative mx-auto mb-2">
-                <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                  {person.profile_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
-                      alt={person.name}
-                      fill
-                      sizes="96px"
-                      className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                      style={{ borderRadius: "50%" }}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-                      {person.name.charAt(0)}
-                    </div>
-                  )}
+              <Link
+                href={`/attore/${actorSlug}`}
+                className="block text-center"
+                onMouseEnter={(e) => handleMouseEnter(e, person.id)}
+                onMouseLeave={handleMouseLeave}
+              >
+                <div className="w-24 h-24 relative mx-auto mb-2">
+                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                    {person.profile_path ? (
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                        alt={person.name}
+                        fill
+                        sizes="96px"
+                        className="object-cover transition-transform duration-300 ease-out hover:scale-110"
+                        style={{ borderRadius: "50%" }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                        {person.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="text-center">
-                <p className="font-medium text-sm truncate max-w-[100px] mx-auto hover:text-white transition-colors duration-300">
-                  {person.name}
-                </p>
-                <p className="text-gray-400 text-xs truncate max-w-[100px] mx-auto hover:text-gray-300 transition-colors duration-300">
-                  {person.character}
-                </p>
-              </div>
-            </Link>
-          </div>
-        ))}
+                <div className="text-center">
+                  <p className="font-medium text-sm truncate max-w-[100px] mx-auto hover:text-white transition-colors duration-300">
+                    {person.name}
+                  </p>
+                  <p className="text-gray-400 text-xs truncate max-w-[100px] mx-auto hover:text-gray-300 transition-colors duration-300">
+                    {person.character}
+                  </p>
+                </div>
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       {showRightArrow && (

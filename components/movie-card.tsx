@@ -3,6 +3,7 @@ import type { Movie } from "@/lib/types"
 import { MovieImage } from "@/atomic/atoms/image"
 import { Text } from "@/atomic/atoms/text"
 import { cn } from "@/atomic/utils/cn"
+import { generateSlug } from "@/lib/utils"
 
 interface MovieCardProps {
   movie: Movie
@@ -12,6 +13,17 @@ interface MovieCardProps {
 export function MovieCard({ movie, showDirector = false }: MovieCardProps) {
   const mediaType = movie.title ? "movie" : "tv"
   const title = movie.title || movie.name || "Titolo sconosciuto"
+  const year = movie.release_date ? movie.release_date.split('-')[0] : null
+  
+  // Genera lo slug SEO-friendly per i film
+  const slug = mediaType === "movie" 
+    ? generateSlug(title, year, movie.id)
+    : movie.id.toString()
+    
+  // Genera l'URL corretto in base al tipo di media
+  const href = mediaType === "movie" 
+    ? `/film/${slug}` 
+    : `/${mediaType}/${movie.id}`
 
   // Estrai il regista se disponibile
   const director = movie.credits?.crew?.find((person) => person.job === "Director")
@@ -19,7 +31,7 @@ export function MovieCard({ movie, showDirector = false }: MovieCardProps) {
   return (
     <div className="flex flex-col">
       <Link 
-        href={`/${mediaType}/${movie.id}`} 
+        href={href} 
         className={cn(
           "block relative group",
           "rounded-md overflow-hidden",

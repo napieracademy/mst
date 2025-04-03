@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { Movie } from "@/lib/types"
+import { generateSlug } from "@/lib/utils"
 
 interface MoviePosterProps {
   movie: Movie
@@ -12,12 +13,21 @@ export function MoviePoster({ movie }: MoviePosterProps) {
   const imageUrl = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : "/placeholder.svg?height=450&width=300"
+  const year = movie.release_date ? movie.release_date.split('-')[0] : null
+  
+  // Genera lo slug SEO-friendly per qualsiasi tipo di contenuto
+  const slug = generateSlug(title, year, movie.id)
+    
+  // Genera l'URL corretto in base al tipo di media
+  const href = mediaType === "movie" 
+    ? `/film/${slug}` 
+    : `/serie/${slug}`
 
   // Estrai il regista se disponibile
   const director = movie.credits?.crew?.find((person) => person.job === "Director")
 
   return (
-    <Link href={`/${mediaType}/${movie.id}`} className="flex-none relative group">
+    <Link href={href} className="flex-none relative group">
       <div className="w-[180px] h-[270px] relative rounded-md overflow-hidden">
         <Image
           src={imageUrl || "/placeholder.svg"}

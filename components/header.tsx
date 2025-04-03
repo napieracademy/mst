@@ -8,6 +8,8 @@ import { Container } from "@/atomic/atoms/container"
 import { Text } from "@/atomic/atoms/text"
 import { Button } from "@/atomic/atoms/button"
 import { cn } from "@/atomic/utils/cn"
+import { usePathname } from "next/navigation"
+import { PageGenerationIndicator } from "./page-generation-indicator"
 
 const supabase = createClient()
 
@@ -36,9 +38,9 @@ function UserProfile() {
           className="w-8 h-8 rounded-full"
         />
       )}
-      <Text variant="body" size="sm" className="text-white">
+      <span className="text-sm text-white">
         {user.user_metadata.full_name || user.email}
-      </Text>
+      </span>
     </div>
   )
 }
@@ -46,6 +48,11 @@ function UserProfile() {
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    console.log("Header montato, pathname:", pathname);
+  }, [pathname]);
 
   // Rileva lo scroll per cambiare lo sfondo dell'header
   useEffect(() => {
@@ -60,6 +67,13 @@ export function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Log per debugging
+  useEffect(() => {
+    if (pathname) {
+      console.log("Renderizzando PageGenerationIndicator con pathname:", pathname);
+    }
+  }, [pathname]);
 
   return (
     <header
@@ -77,6 +91,9 @@ export function Header() {
           </Link>
 
           <div className="flex items-center space-x-4">
+            {/* Indicatore di stato della generazione */}
+            {pathname && <PageGenerationIndicator pathname={pathname} />}
+            
             <div className="relative">
               <Button
                 variant="ghost"

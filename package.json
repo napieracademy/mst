@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "clean": "chmod +x ./fix-permissions.sh && ./fix-permissions.sh",
+    "dev:clean": "chmod +x ./dev.sh && ./dev.sh",
+    "dev:port": "PORT=3333 next dev",
     "create-migration": "ts-node scripts/create-migration.ts"
   },
   "dependencies": {
@@ -43,10 +46,12 @@
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "@types/d3": "^7.4.3",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
+    "d3": "^7.9.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "^12.6.2",

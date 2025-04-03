@@ -53,6 +53,11 @@ export function Footer() {
                   Serie TV
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/pagine-prerenderizzate" className="text-yellow-500 hover:text-yellow-400 transition-colors">
+                  Debug Prerenderizzate
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -13,7 +13,7 @@ import { useTVHeroState } from '@/hooks/useTVHeroState'
 import { Header } from "@/components/header"
 
 interface Show {
-  name: string;
+  name?: string;
   id: number;
   overview?: string;
   first_air_date?: string;
@@ -41,6 +41,9 @@ interface TVHeroProps {
 export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: TVHeroProps) {
   const [isDesktop, setIsDesktop] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Fornisce un valore predefinito per il titolo della serie
+  const showTitle = show.name || "Serie TV";
 
   // Check if we're on desktop on component mount
   useEffect(() => {
@@ -81,7 +84,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
           <div className="relative w-full h-full">
             <Image
               src={backdropUrl || posterUrl}
-              alt={show.name}
+              alt={showTitle}
               fill
               className="object-cover object-center"
               style={{ width: '100%', height: '100%' }}
@@ -106,14 +109,14 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
                 {isDesktop ? (
                   <InteractivePoster
                     posterUrl={posterUrl}
-                    title={show.name}
+                    title={showTitle}
                     isDesktop={isDesktop}
                   />
                 ) : (
                   <div className="relative w-[200px] h-[300px]">
                     <Image
                       src={posterUrl}
-                      alt={show.name}
+                      alt={showTitle}
                       fill
                       className="object-cover rounded-lg shadow-lg"
                       priority
@@ -125,7 +128,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
               {/* Info - Allineato a sinistra sempre */}
               <div className="flex flex-col text-left max-w-2xl sm:self-start pr-4 sm:pr-8">
                 <TVInfo
-                  title={show.name}
+                  title={showTitle}
                   releaseDate={releaseDate || undefined}
                   hasTrailer={false}
                   onWatchTrailer={() => {}}
@@ -161,7 +164,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
       {/* Share Menu */}
       {isShareMenuOpen && (
         <ShareMenu
-          title={show.name}
+          title={showTitle}
           url={currentUrl}
           onClose={() => setIsShareMenuOpen(false)}
         />
@@ -173,7 +176,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
           isOpen={isTrailerOpen}
           onClose={() => setIsTrailerOpen(false)}
           trailerKey={trailers[0].key}
-          trailerName={trailers[0].name || `Trailer di ${show.name}`}
+          trailerName={trailers[0].name || `Trailer di ${showTitle}`}
         />
       )}
     </>

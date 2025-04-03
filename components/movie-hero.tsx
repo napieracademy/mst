@@ -4,14 +4,15 @@ import type React from "react"
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
-import { Header } from "@/components/header"
+import { Header } from "./header"
 import { Play } from "lucide-react"
-import { TrailerModal } from "@/components/trailer-modal"
-import { ShareMenu } from "@/components/share-menu"
+import { TrailerModal } from "./trailer-modal"
+import { ShareMenu } from "./share-menu"
 import { MovieActions } from "@/atomic/organisms/movie-actions"
 import { Button } from "@/atomic/atoms/button"
 import dynamic from 'next/dynamic'
 import { MovieInfo } from '@/atomic/molecules/movie-info'
+import { Container } from "@/atomic/atoms/container"
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -32,15 +33,9 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
   const [isPipTrailerActive, setIsPipTrailerActive] = useState(false)
   const [userScrolledPastThreshold, setUserScrolledPastThreshold] = useState(false)
   const [hasPipBeenShown, setHasPipBeenShown] = useState(false)
-  const [posterSize, setPosterSize] = useState(1)
-  const [posterPosition, setPosterPosition] = useState({ x: 0, y: 0 })
-  const [isResizing, setIsResizing] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [isDesktop, setIsDesktop] = useState(false)
   const [showActionButtons, setShowActionButtons] = useState(true)
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false)
-  const posterRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollThreshold = 300
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -189,119 +184,9 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
     shouldEnablePip
   ]);
 
-  // Reset poster to original state
-  const resetPoster = () => {
-    setPosterSize(1)
-    setPosterPosition({ x: 0, y: 0 })
-  }
-
-  // Handle mouse down for dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!isDesktop) return
-    e.preventDefault()
-    setIsDragging(true)
-    setStartPoint({ x: e.clientX - posterPosition.x, y: e.clientY - posterPosition.y })
-  }
-
-  // Handle resize start
-  const handleResizeStart = (e: React.MouseEvent) => {
-    if (!isDesktop) return
-    e.preventDefault()
-    e.stopPropagation()
-    setIsResizing(true)
-    setStartPoint({ x: e.clientX, y: e.clientY })
-  }
-
-  // Handle mouse move for both dragging and resizing
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDesktop) return
-
-    if (isDragging) {
-      // Calcola nuova posizione
-      const newX = e.clientX - startPoint.x
-      const newY = e.clientY - startPoint.y
-
-      // Limiti fissi semplici - non ci saranno calcoli complessi che possono causare errori
-      // Valori ampi ma ragionevoli per evitare lo scroll orizzontale
-      const maxX = 500
-      const minX = -500
-      const maxY = 300
-      const minY = -300
-      
-      // Applica i limiti
-      const constrainedX = Math.max(minX, Math.min(maxX, newX))
-      const constrainedY = Math.max(minY, Math.min(maxY, newY))
-      
-      // Applica la posizione
-      setPosterPosition({ x: constrainedX, y: constrainedY })
-      
-      // Controllo esplicito anti-scroll: se il posterRef è disponibile, verifichiamo se causa scroll
-      if (posterRef.current) {
-        const rect = posterRef.current.getBoundingClientRect()
-        // Se il poster sta uscendo dallo schermo a destra, resettiamo la posizione
-        if (rect.right > window.innerWidth + 5) { // +5 per un po' di margine
-          setPosterPosition(prev => ({ ...prev, x: prev.x - 50 })) // Sposta indietro di 50px
-        }
-      }
-    } else if (isResizing) {
-      const deltaX = e.clientX - startPoint.x
-      const deltaY = e.clientY - startPoint.y
-      const maxDelta = Math.max(Math.abs(deltaX), Math.abs(deltaY))
-      const direction = Math.abs(deltaX) > Math.abs(deltaY) ? (deltaX > 0 ? 1 : -1) : deltaY > 0 ? 1 : -1
-
-      // Adjust size based on drag direction while maintaining aspect ratio
-      const newSize = Math.max(0.5, Math.min(2.5, posterSize + direction * maxDelta * 0.01))
-      setPosterSize(newSize)
-      setStartPoint({ x: e.clientX, y: e.clientY })
-    }
-  }
-
-  // Handle mouse up to stop dragging/resizing
-  const handleMouseUp = () => {
-    setIsDragging(false)
-    setIsResizing(false)
-  }
-
-  // Gestisce i click fuori dal poster
-  const handleOutsideClick = (e: MouseEvent) => {
-    // Verifica che il poster sia stato ridimensionato o spostato
-    if ((posterSize !== 1 || posterPosition.x !== 0 || posterPosition.y !== 0) && 
-        posterRef.current && 
-        !posterRef.current.contains(e.target as Node)) {
-      // Reset solo se non stiamo trascinando o ridimensionando
-      if (!isDragging && !isResizing) {
-        resetPoster();
-      }
-    }
-  };
-
-  // Add and remove event listeners
-  useEffect(() => {
-    if (isDesktop && (isDragging || isResizing)) {
-      window.addEventListener("mousemove", handleMouseMove)
-      window.addEventListener("mouseup", handleMouseUp)
-    }
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
-    }
-  }, [isDragging, isResizing, isDesktop, startPoint, posterPosition, posterSize])
-
-  // Aggiungi l'event listener per il click fuori dal poster
-  useEffect(() => {
-    if (isDesktop) {
-      window.addEventListener("click", handleOutsideClick)
-    }
-    
-    return () => {
-      window.removeEventListener("click", handleOutsideClick)
-    }
-  }, [isDesktop, posterSize, posterPosition, isDragging, isResizing])
-
   return (
     <>
-      <div className="relative w-full h-[120dvh] sm:h-[70vh] md:h-[85vh] mb-0">
+      <div ref={containerRef} className="relative w-full h-[120dvh] sm:h-[70vh] md:h-[85vh] mb-0">
         {/* Backdrop Image - Occupa tutta l'area senza restrizioni */}
         <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full">
           <div className="relative w-full h-full">
@@ -337,43 +222,34 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         {/* Container principale - senza padding laterali */}
         <div className="relative z-10 h-full w-full flex items-center">
           <div className="w-full">
-            <div className="flex flex-col sm:flex-row items-start justify-start gap-6 sm:gap-16 px-0">
-              {/* Poster */}
-              <div className="flex items-start justify-start pl-4 sm:pl-8">
-                <div className="relative w-[200px] h-[300px] sm:w-[300px] sm:h-[450px]">
-                  <Image
-                    src={posterUrl}
-                    alt={movie.title}
-                    fill
-                    className="object-cover rounded-lg shadow-lg border-2 border-gray-800"
-                    priority
+            <Container>
+              <div className="flex flex-col sm:flex-row items-start justify-start gap-6 sm:gap-16">
+                {/* Poster rimosso */}
+
+                {/* Info - Allineato a sinistra sempre */}
+                <div className="flex flex-col text-left max-w-2xl">
+                  <MovieInfo
+                    title={movie.title}
+                    releaseDate={releaseDate || undefined}
+                    hasTrailer={false}
+                    onWatchTrailer={() => {}}
                   />
+                  
+                  {/* Trailer Button - Sempre allineato a sinistra */}
+                  {trailers && trailers.length > 0 && (
+                    <div className="mt-2 sm:mt-4">
+                      <button
+                        onClick={() => setIsTrailerOpen(true)}
+                        className="flex items-center gap-3 text-white bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl"
+                      >
+                        <Play className="w-6 h-6" fill="white" />
+                        <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Info - Allineato a sinistra sempre */}
-              <div className="flex flex-col text-left max-w-2xl sm:self-start pr-4 sm:pr-8">
-                <MovieInfo
-                  title={movie.title}
-                  releaseDate={releaseDate || undefined}
-                  hasTrailer={false}
-                  onWatchTrailer={() => {}}
-                />
-                
-                {/* Trailer Button - Sempre allineato a sinistra */}
-                {trailers && trailers.length > 0 && (
-                  <div className="mt-2 sm:mt-4">
-                    <button
-                      onClick={() => setIsTrailerOpen(true)}
-                      className="flex items-center gap-3 text-white bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl"
-                    >
-                      <Play className="w-6 h-6" fill="white" />
-                      <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            </Container>
           </div>
         </div>
       </div>

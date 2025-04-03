@@ -12,6 +12,8 @@ import { Movie } from "@/lib/types"
 import { FadeInSection } from "@/components/fade-in-section"
 import { useState } from "react"
 import Image from "next/image"
+import { Container } from "@/components/container"
+import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 
 interface MoviePageClientProps {
   movie: Movie
@@ -53,10 +55,15 @@ export function MoviePageClient({
           releaseDate={releaseDate}
           trailers={trailers || []}
         />
+        
+        {/* Indicatore di prerenderizzazione */}
+        <div className="absolute bottom-4 right-4 z-50">
+          <PreRenderizzazioneCheck />
+        </div>
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+      <Container className="py-8 sm:py-16">
         <div className="flex flex-col lg:flex-row lg:relative gap-4 sm:gap-8">
           {/* Left Column - Movie Details */}
           <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
@@ -217,7 +224,7 @@ export function MoviePageClient({
             <SimilarMovies movies={similarMovies} />
           </div>
         </FadeInSection>
-      </div>
+      </Container>
 
       {/* Footer */}
       <Footer />

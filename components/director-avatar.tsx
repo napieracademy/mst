@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { isValidImagePath, buildImageUrl } from "@/lib/tmdb"
+import { generateSlug } from "@/lib/utils"
 
 // Interfaccia per i dettagli del regista
 interface PersonDetails {
@@ -40,6 +41,9 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
   const [finalImagePath, setFinalImagePath] = useState<string | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
+  
+  // Genera lo slug SEO-friendly per il regista
+  const directorSlug = generateSlug(director.name, null, director.id);
 
   // Verifica se il percorso dell'immagine è valido usando la funzione centralizzata
   const hasValidProfilePath = isValidImagePath(director.profile_path);
@@ -175,7 +179,7 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Link href={`/person/${director.id}`} className="block w-full h-full">
+        <Link href={`/regista/${directorSlug}`} className="block w-full h-full">
           {hasImage && !imageError ? (
             <Image
               src={getImageUrl()}
@@ -193,7 +197,7 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
         </Link>
       </div>
       <div>
-        <Link href={`/person/${director.id}`} className="text-sm hover:text-yellow-400 transition-colors">
+        <Link href={`/regista/${directorSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
           {director.name}
         </Link>
       </div>

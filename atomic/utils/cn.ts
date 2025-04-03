@@ -1,6 +1,10 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+/**
+ * Unisce classi CSS con supporto per Tailwind CSS
+ * Combina clsx e tailwind-merge per gestire efficacemente le classi in conflitto
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

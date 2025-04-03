@@ -22,6 +22,7 @@ export function SearchBar() {
   const [showResults, setShowResults] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [isFocused, setIsFocused] = useState(false)
+  const [networkError, setNetworkError] = useState(false)
   const router = useRouter()
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -60,6 +61,9 @@ export function SearchBar() {
       } catch (error) {
         console.error("Error fetching autocomplete results:", error)
         setResults([])
+        if (error instanceof Error && error.message.includes('ENOTFOUND')) {
+          setNetworkError(true)
+        }
       } finally {
         setIsLoading(false)
       }
@@ -222,6 +226,11 @@ export function SearchBar() {
                   </Link>
                 </li>
               ))
+            ) : networkError ? (
+              <li className="p-6 text-center text-gray-400">
+                <p>Errore di connessione al servizio di ricerca</p>
+                <p className="text-sm mt-1">Verifica la tua connessione internet e riprova</p>
+              </li>
             ) : (
               <li className="p-6 text-center text-gray-400">Nessun risultato trovato per "{query}"</li>
             )}

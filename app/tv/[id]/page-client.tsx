@@ -12,6 +12,18 @@ import { SeasonsTable } from "@/components/seasons-table"
 import { Movie } from "@/lib/types"
 import { FadeInSection } from "@/components/fade-in-section"
 import { useState } from "react"
+import { generateSlug } from "@/lib/utils"
+import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
+
+// Interfaccia compatibile con quella del TVHero
+interface Show {
+  name?: string;
+  id: number;
+  overview?: string;
+  first_air_date?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+}
 
 interface TVShow extends Movie {
   name?: string;
@@ -51,17 +63,32 @@ export function TVPageClient({
 }: TVPageClientProps) {
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
 
+  // Compatibilità con l'interfaccia Show - converto null in undefined
+  const heroShow: Show = {
+    id: show.id,
+    name: show.name,
+    overview: show.overview,
+    first_air_date: show.first_air_date,
+    poster_path: show.poster_path ? show.poster_path : undefined,
+    backdrop_path: show.backdrop_path ? show.backdrop_path : undefined
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
       <div className="relative h-[100dvh] sm:h-[50vh] md:h-[70vh]">
         <TVHero
-          show={show}
+          show={heroShow}
           posterUrl={posterUrl}
           backdropUrl={backdropUrl}
           releaseDate={releaseDate}
           trailers={trailers || []}
         />
+        
+        {/* Indicatore di prerenderizzazione */}
+        <div className="absolute bottom-4 right-4 z-50">
+          <PreRenderizzazioneCheck />
+        </div>
       </div>
 
       {/* Content Section */}
@@ -186,31 +213,34 @@ export function TVPageClient({
                 <div className="mb-8">
                   <h2 className="text-sm text-gray-400 mb-4">CREATORI</h2>
                   <div className="space-y-4">
-                    {creators.slice(0, 3).map((creator) => (
-                      <div key={creator.id} className="flex items-center gap-4">
-                        <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                          <Link href={`/person/${creator.id}`}>
-                            {creator.profile_path ? (
-                              <Image
-                                src={`https://image.tmdb.org/t/p/w185${creator.profile_path}`}
-                                alt={creator.name}
-                                fill
-                                className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-                                {creator.name.charAt(0)}
-                              </div>
-                            )}
-                          </Link>
+                    {creators.slice(0, 3).map((creator) => {
+                      const creatorSlug = generateSlug(creator.name, null, creator.id);
+                      return (
+                        <div key={creator.id} className="flex items-center gap-4">
+                          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                            <Link href={`/regista/${creatorSlug}`}>
+                              {creator.profile_path ? (
+                                <Image
+                                  src={`https://image.tmdb.org/t/p/w185${creator.profile_path}`}
+                                  alt={creator.name}
+                                  fill
+                                  className="object-cover transition-transform duration-300 ease-out hover:scale-110"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                                  {creator.name.charAt(0)}
+                                </div>
+                              )}
+                            </Link>
+                          </div>
+                          <div>
+                            <Link href={`/regista/${creatorSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
+                              {creator.name}
+                            </Link>
+                          </div>
                         </div>
-                        <div>
-                          <Link href={`/person/${creator.id}`} className="text-sm hover:text-yellow-400 transition-colors">
-                            {creator.name}
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -244,31 +274,34 @@ export function TVPageClient({
                 <div className="mb-8">
                   <h2 className="text-sm text-gray-400 mb-4">PRODUZIONE</h2>
                   <div className="space-y-4">
-                    {producers.slice(0, 3).map((producer) => (
-                      <div key={producer.id} className="flex items-center gap-4">
-                        <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                          <Link href={`/person/${producer.id}`}>
-                            {producer.profile_path ? (
-                              <Image
-                                src={`https://image.tmdb.org/t/p/w185${producer.profile_path}`}
-                                alt={producer.name}
-                                fill
-                                className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-                                {producer.name.charAt(0)}
-                              </div>
-                            )}
-                          </Link>
+                    {producers.slice(0, 3).map((producer) => {
+                      const producerSlug = generateSlug(producer.name, null, producer.id);
+                      return (
+                        <div key={producer.id} className="flex items-center gap-4">
+                          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                            <Link href={`/regista/${producerSlug}`}>
+                              {producer.profile_path ? (
+                                <Image
+                                  src={`https://image.tmdb.org/t/p/w185${producer.profile_path}`}
+                                  alt={producer.name}
+                                  fill
+                                  className="object-cover transition-transform duration-300 ease-out hover:scale-110"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                                  {producer.name.charAt(0)}
+                                </div>
+                              )}
+                            </Link>
+                          </div>
+                          <div>
+                            <Link href={`/regista/${producerSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
+                              {producer.name}
+                            </Link>
+                          </div>
                         </div>
-                        <div>
-                          <Link href={`/person/${producer.id}`} className="text-sm hover:text-yellow-400 transition-colors">
-                            {producer.name}
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -280,31 +313,34 @@ export function TVPageClient({
                 <div className="mb-8">
                   <h2 className="text-sm text-gray-400 mb-4">SCENEGGIATURA</h2>
                   <div className="space-y-4">
-                    {writers.slice(0, 3).map((writer) => (
-                      <div key={writer.id} className="flex items-center gap-4">
-                        <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                          <Link href={`/person/${writer.id}`}>
-                            {writer.profile_path ? (
-                              <Image
-                                src={`https://image.tmdb.org/t/p/w185${writer.profile_path}`}
-                                alt={writer.name}
-                                fill
-                                className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-                                {writer.name.charAt(0)}
-                              </div>
-                            )}
-                          </Link>
+                    {writers.slice(0, 3).map((writer) => {
+                      const writerSlug = generateSlug(writer.name, null, writer.id);
+                      return (
+                        <div key={writer.id} className="flex items-center gap-4">
+                          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                            <Link href={`/attore/${writerSlug}`}>
+                              {writer.profile_path ? (
+                                <Image
+                                  src={`https://image.tmdb.org/t/p/w185${writer.profile_path}`}
+                                  alt={writer.name}
+                                  fill
+                                  className="object-cover transition-transform duration-300 ease-out hover:scale-110"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                                  {writer.name.charAt(0)}
+                                </div>
+                              )}
+                            </Link>
+                          </div>
+                          <div>
+                            <Link href={`/attore/${writerSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
+                              {writer.name}
+                            </Link>
+                          </div>
                         </div>
-                        <div>
-                          <Link href={`/person/${writer.id}`} className="text-sm hover:text-yellow-400 transition-colors">
-                            {writer.name}
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

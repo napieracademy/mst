@@ -1,0 +1,55 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./app ./components ./lib"
+
+[build.environment]
+  NODE_VERSION = "20.10.0"
+  NPM_VERSION = "10.2.3"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = [".next/server/**/*", ".next/standalone/**/*"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Impostazioni per il deployment incrementale
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.css]
+  bundle = false
+  minify = false
+
+[build.processing.js]
+  bundle = false
+  minify = false
+
+[build.processing.images]
+  compress = false
+
+# Configurazione per immagini remote da TMDB
+[images]
+  remote_images = ["^(?:http(?:s)?:\\/\\/image\\.tmdb\\.org(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)|$))$"]
+
+# Cache per file statici
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects per gestire immagini ottimizzate
+[[redirects]]
+  from = "/_next/image"
+  to = "/.netlify/images"
+  status = 200
+  force = true
+  [redirects.query]
+    url = ":url"
+    w = ":width"
+    q = ":quality" 
