@@ -4,6 +4,7 @@ import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows } fro
 import { TVPageClient } from '@/app/tv/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
+import SerieSEO from '@/app/components/seo/serie-seo';
 
 export async function generateStaticParams() {
   try {
@@ -166,19 +167,30 @@ export default async function SeriePage({ params }: { params: { slug: string } }
     }
 
     return (
-      <TVPageClient
-        show={show}
-        posterUrl={posterUrl}
-        backdropUrl={backdropUrl}
-        releaseDate={releaseDate}
-        releaseYear={releaseYear}
-        trailers={trailers}
-        similarShows={similarShows}
-        id={id}
-        creators={creators}
-        writers={writers}
-        producers={producers}
-      />
+      <>
+        <SerieSEO 
+          title={show.name || 'Serie TV'}
+          overview={show.overview || ''}
+          posterUrl={posterUrl}
+          firstAirDate={show.first_air_date}
+          creators={creators}
+          genres={show.genres}
+          numberOfSeasons={show.number_of_seasons}
+        />
+        <TVPageClient
+          show={show}
+          posterUrl={posterUrl}
+          backdropUrl={backdropUrl}
+          releaseDate={releaseDate}
+          releaseYear={releaseYear}
+          trailers={trailers}
+          similarShows={similarShows}
+          id={id}
+          creators={creators}
+          writers={writers}
+          producers={producers}
+        />
+      </>
     );
   } catch (error) {
     console.error("Error rendering serie page:", error);

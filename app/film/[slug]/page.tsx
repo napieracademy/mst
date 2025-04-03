@@ -4,6 +4,7 @@ import { getMovieDetails, getTrailers, getSimilarMovies, getPopularMovies } from
 import { MoviePageClient } from '@/app/movie/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
+import FilmSEO from '@/app/components/seo/film-seo';
 
 export async function generateStaticParams() {
   try {
@@ -160,19 +161,29 @@ export default async function FilmPage({ params }: { params: { slug: string } })
     }
 
     return (
-      <MoviePageClient
-        movie={movie}
-        posterUrl={posterUrl}
-        backdropUrl={backdropUrl}
-        releaseDate={releaseDate}
-        releaseYear={releaseYear}
-        trailers={trailers}
-        similarMovies={similarMovies}
-        id={id}
-        director={director}
-        writers={writers}
-        producers={producers}
-      />
+      <>
+        <FilmSEO 
+          title={movie.title || 'Film'}
+          overview={movie.overview || ''}
+          posterUrl={posterUrl}
+          releaseDate={movie.release_date}
+          director={director}
+          genres={movie.genres}
+        />
+        <MoviePageClient
+          movie={movie}
+          posterUrl={posterUrl}
+          backdropUrl={backdropUrl}
+          releaseDate={releaseDate}
+          releaseYear={releaseYear}
+          trailers={trailers}
+          similarMovies={similarMovies}
+          id={id}
+          director={director}
+          writers={writers}
+          producers={producers}
+        />
+      </>
     );
   } catch (error) {
     console.error("Error rendering film page:", error);
