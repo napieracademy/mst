@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
+import { slugify } from "@/lib/utils"
 
 interface SearchResult {
   id: number
@@ -13,6 +14,8 @@ interface SearchResult {
   media_type: "movie" | "tv" | "person"
   poster_path: string | null
   profile_path: string | null
+  release_date?: string
+  first_air_date?: string
 }
 
 export function FloatingSearch() {
@@ -103,12 +106,25 @@ export function FloatingSearch() {
   }
 
   const getHref = (result: SearchResult) => {
+    // Per persone, manteniamo il path originale
     if (result.media_type === "person") {
       return `/person/${result.id}`
-    } else if (result.media_type === "movie") {
-      return `/movie/${result.id}`
-    } else {
-      return `/tv/${result.id}`
+    } 
+    
+    // Per film, usiamo il nuovo formato con slug
+    else if (result.media_type === "movie") {
+      const title = result.title || "Film";
+      const year = result.release_date ? result.release_date.split('-')[0] : "";
+      const slug = `${slugify(title)}-${year}-${result.id}`;
+      return `/film/${slug}`;
+    } 
+    
+    // Per serie TV, usiamo il nuovo formato con slug
+    else {
+      const title = result.name || "Serie";
+      const year = result.first_air_date ? result.first_air_date.split('-')[0] : "";
+      const slug = `${slugify(title)}-${year}-${result.id}`;
+      return `/serie/${slug}`;
     }
   }
 

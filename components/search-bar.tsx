@@ -6,6 +6,7 @@ import { Search, X, Film, Tv } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
+import { slugify, generateSlug } from "@/lib/utils"
 
 interface AutocompleteResult {
   id: number
@@ -101,7 +102,19 @@ export function SearchBar() {
       e.preventDefault()
       if (selectedIndex >= 0) {
         const selected = results[selectedIndex]
-        router.push(`/${selected.media_type}/${selected.id}`)
+        if (selected.media_type === "movie") {
+          // Usa il nuovo formato per i film
+          const title = selected.title;
+          const year = selected.year || "";
+          const slug = `${slugify(title)}-${year}-${selected.id}`;
+          router.push(`/film/${slug}`);
+        } else {
+          // Usa il nuovo formato per le serie TV
+          const title = selected.title;
+          const year = selected.year || "";
+          const slug = `${slugify(title)}-${year}-${selected.id}`;
+          router.push(`/serie/${slug}`);
+        }
         setShowResults(false)
         setQuery("")
       } else {
@@ -180,7 +193,9 @@ export function SearchBar() {
               results.map((result, index) => (
                 <li key={`${result.media_type}-${result.id}`}>
                   <Link
-                    href={`/${result.media_type}/${result.id}`}
+                    href={result.media_type === "movie" 
+                      ? `/film/${slugify(result.title)}-${result.year || ""}-${result.id}` 
+                      : `/serie/${slugify(result.title)}-${result.year || ""}-${result.id}`}
                     className={`flex items-center p-4 hover:bg-gray-800/50 transition-colors ${
                       index === selectedIndex ? "bg-gray-800/70" : ""
                     }`}

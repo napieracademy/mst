@@ -145,7 +145,27 @@ export async function getPopularTVShows(): Promise<Movie[]> {
 // Cerca film o serie TV
 export async function searchMovies(query: string): Promise<Movie[]> {
   const data = await fetchFromTMDB("/search/multi", { query })
-  return (data?.results || []).filter((item: any) => item.media_type === "movie" || item.media_type === "tv")
+  // Filtra per avere solo film e serie TV
+  const filteredResults = (data?.results || [])
+    .filter((item: any) => item.media_type === "movie" || item.media_type === "tv");
+  
+  // Arricchisci i risultati per renderli compatibili con la nostra interfaccia di Movie
+  // Ciò è importante per generare correttamente gli slug
+  return filteredResults.map((item: any) => {
+    if (item.media_type === "movie") {
+      return {
+        ...item,
+        title: item.title || "Film senza titolo",
+        release_date: item.release_date || "",
+      };
+    } else { // tv
+      return {
+        ...item,
+        name: item.name || "Serie TV senza titolo",
+        first_air_date: item.first_air_date || "",
+      };
+    }
+  });
 }
 
 // Ottieni dettagli di un film o serie TV
