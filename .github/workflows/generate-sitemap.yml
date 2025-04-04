@@ -79,7 +79,10 @@ jobs:
           ls -la public/sitemap.xml
           echo "Sitemap size: $(du -h public/sitemap.xml | cut -f1)"
           # Verifica conteggio URL
-          echo "URL count: $(grep -o "<url>" public/sitemap.xml | wc -l)"
+          URL_COUNT=$(grep -o "<url>" public/sitemap.xml | wc -l)
+          echo "URL count: $URL_COUNT"
+          # Salva il conteggio come variabile di output
+          echo "URL_COUNT=$URL_COUNT" >> $GITHUB_ENV
 
       # Verifica il file generato
       - name: Verify generated sitemap
@@ -95,60 +98,29 @@ jobs:
           echo "Sitemap generated successfully"
           head -n 10 public/sitemap.xml
           # Assicura che la sitemap contenga almeno 1000 URL (se in modalità fallback ne ha solo 24)
-          URL_COUNT=$(grep -o "<url>" public/sitemap.xml | wc -l)
-          if [ "$URL_COUNT" -lt 1000 ]; then
-            echo "Warning: Sitemap contains only $URL_COUNT URLs. Expected at least 1000."
+          if [ "${{ env.URL_COUNT }}" -lt 1000 ]; then
+            echo "Warning: Sitemap contains only ${{ env.URL_COUNT }} URLs. Expected at least 1000."
             echo "This indicates a potential connection issue with the database."
             # Non considerarlo un errore, ma solo un avviso
           else
-            echo "Sitemap contains $URL_COUNT URLs, which looks correct!"
+            echo "Sitemap contains ${{ env.URL_COUNT }} URLs, which looks correct!"
           fi
 
-      # Commit e push delle modifiche con token GitHub
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "GitHub Actions"
-          
-          # Verifica se ci sono cambiamenti da committare
-          git add public/sitemap.xml
-          if git diff --staged --quiet; then
-            echo "No changes to sitemap.xml, skipping commit and push"
-            exit 0
-          fi
-          
-          # Ottieni i cambiamenti più recenti dal repository per evitare conflitti
-          echo "Pulling latest changes from repository..."
-          git pull --rebase
-          
-          # Prova con il commit e push fino a 3 volte in caso di errore
-          MAX_ATTEMPTS=3
-          ATTEMPT=1
-          
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS to commit and push..."
+      # Commit la sitemap generata usando un'action specifica
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Aggiorna sitemap.xml [skip ci]"
+          commit_options: "--no-verify"
+          file_pattern: "public/sitemap.xml"
+          commit_user_name: GitHub Action
+          commit_user_email: actions@github.com
+          commit_author: GitHub Action <actions@github.com>
+          status_options: "--untracked-files=no"
+          add_options: "--force"
+          skip_dirty_check: false # Verifica se ci sono modifiche
+          commit_body: |
+            Generato automaticamente dall'azione GitHub
             
-            # Fai il commit con messaggio contenente il conteggio URL
-            git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub con $URL_COUNT URL"
-            
-            # Prova a fare push
-            if git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main; then
-              echo "Successfully pushed changes on attempt $ATTEMPT"
-              break
-            else
-              echo "Push failed on attempt $ATTEMPT"
-              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-                echo "Retrying after pulling latest changes..."
-                git pull --rebase
-              fi
-              ATTEMPT=$((ATTEMPT+1))
-            fi
-          done
-          
-          # Se abbiamo raggiunto il numero massimo di tentativi senza successo, esci con codice 0 comunque
-          # per non far fallire l'azione (non è critico se il push fallisce)
-          if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-            echo "Failed to push after $MAX_ATTEMPTS attempts, but continuing anyway..."
-            echo "The sitemap has been generated successfully, but not committed to the repository."
-          fi
-          exit 0 
+            Conteggio URL: ${{ env.URL_COUNT }}
+            Dimensione file: $(du -h public/sitemap.xml | cut -f1) 
