@@ -5,6 +5,18 @@ import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
+// Logging migliorato per debug in GitHub Actions
+function log(message) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${message}`);
+}
+
+// Verifica delle variabili d'ambiente
+log('Verifica variabili d\'ambiente:');
+log(`NEXT_PUBLIC_SITE_URL: ${process.env.NEXT_PUBLIC_SITE_URL ? 'impostato' : 'MANCANTE'}`);
+log(`NEXT_PUBLIC_SUPABASE_URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'impostato' : 'MANCANTE'}`);
+log(`NEXT_PUBLIC_SUPABASE_ANON_KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'impostato (lunghezza: ' + process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length + ')' : 'MANCANTE'}`);
+
 // Funzione per normalizzare un testo in uno slug (copiata da lib/utils.ts)
 function slugify(text) {
   return text
@@ -19,6 +31,11 @@ function slugify(text) {
 
 // Crea client Supabase (copiato da lib/supabase-server.ts)
 function createApiSupabaseClient() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error('Variabili d\'ambiente NEXT_PUBLIC_SUPABASE_URL e/o NEXT_PUBLIC_SUPABASE_ANON_KEY mancanti');
+  }
+  
+  log(`Creazione client Supabase con URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -28,7 +45,7 @@ function createApiSupabaseClient() {
 // Recupera tutti i record dal database, adattato per Node.js
 async function getAllDatabaseRecords() {
   try {
-    console.log('SITEMAP STATIC: Recupero tutti i record dal database...');
+    log('SITEMAP STATIC: Recupero tutti i record dal database...');
     const supabase = createApiSupabaseClient();
     
     const { count: totalCount, error: countError } = await supabase
@@ -45,19 +62,19 @@ async function getAllDatabaseRecords() {
       return { filmRecords: [], serieRecords: [], totalCount: 0 };
     }
     
-    console.log(`SITEMAP STATIC: Trovati ${totalCount} record totali nel database`);
+    log(`SITEMAP STATIC: Trovati ${totalCount} record totali nel database`);
     
     let allRecords = [];
     const batchSize = 1000;
     const pages = Math.ceil((totalCount || 0) / batchSize);
     
-    console.log(`SITEMAP STATIC: Iniziando recupero in ${pages} pagine (${batchSize} record per pagina)`);
+    log(`SITEMAP STATIC: Iniziando recupero in ${pages} pagine (${batchSize} record per pagina)`);
     
     for (let page = 0; page < pages; page++) {
       const from = page * batchSize;
       const to = from + batchSize - 1;
       
-      console.log(`SITEMAP STATIC: Recupero pagina ${page + 1}/${pages} (record ${from} - ${to})`);
+      log(`SITEMAP STATIC: Recupero pagina ${page + 1}/${pages} (record ${from} - ${to})`);
       
       try {
         const { data, error } = await supabase
@@ -75,7 +92,7 @@ async function getAllDatabaseRecords() {
           continue;
         }
         
-        console.log(`SITEMAP STATIC: Recuperati ${data.length} record nella pagina ${page + 1}`);
+        log(`SITEMAP STATIC: Recuperati ${data.length} record nella pagina ${page + 1}`);
         allRecords = [...allRecords, ...data];
       } catch (batchError) {
         console.error(`SITEMAP STATIC: Errore critico nel recupero batch ${page + 1}:`, batchError);
@@ -83,12 +100,12 @@ async function getAllDatabaseRecords() {
       }
     }
     
-    console.log(`SITEMAP STATIC: Totale record recuperati: ${allRecords.length} di ${totalCount} attesi`);
+    log(`SITEMAP STATIC: Totale record recuperati: ${allRecords.length} di ${totalCount} attesi`);
     
     const filmRecords = allRecords.filter(record => record.page_type === 'film');
     const serieRecords = allRecords.filter(record => record.page_type === 'serie');
     
-    console.log(`SITEMAP STATIC: Record film: ${filmRecords.length}, serie: ${serieRecords.length}`);
+    log(`SITEMAP STATIC: Record film: ${filmRecords.length}, serie: ${serieRecords.length}`);
     
     return {
       filmRecords,
@@ -104,25 +121,25 @@ async function getAllDatabaseRecords() {
 // Generazione della sitemap statica
 async function generateStaticSitemap() {
   try {
-    console.log('Generazione sitemap.xml statica in corso...');
+    log('Generazione sitemap.xml statica in corso...');
     const startTime = Date.now();
     
     // 1. Recupera tutti i film e serie direttamente dal database
     const { filmRecords, serieRecords, totalCount } = await getAllDatabaseRecords();
-    console.log(`SITEMAP STATIC: Recuperati dal database ${filmRecords.length} film e ${serieRecords.length} serie (totale DB: ${totalCount})`);
+    log(`SITEMAP STATIC: Recuperati dal database ${filmRecords.length} film e ${serieRecords.length} serie (totale DB: ${totalCount})`);
     
     // 2. Estrai gli slug dai record
     const filmSlugs = filmRecords.map(record => record.slug).filter(slug => slug && slug.trim() !== '');
     const serieSlugs = serieRecords.map(record => record.slug).filter(slug => slug && slug.trim() !== '');
     
-    console.log(`SITEMAP STATIC: Slug validi - ${filmSlugs.length} film e ${serieSlugs.length} serie`);
+    log(`SITEMAP STATIC: Slug validi - ${filmSlugs.length} film e ${serieSlugs.length} serie`);
     
     // 3. Definisci l'URL base e le rotte statiche
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
     const staticRoutes = ['', '/search', '/login', '/about'];
     
-    console.log(`SITEMAP STATIC: Rotte statiche ${staticRoutes.length}`);
-    console.log(`SITEMAP STATIC: Conteggio totale URL nella sitemap: ${staticRoutes.length + filmSlugs.length + serieSlugs.length}`);
+    log(`SITEMAP STATIC: Rotte statiche ${staticRoutes.length}`);
+    log(`SITEMAP STATIC: Conteggio totale URL nella sitemap: ${staticRoutes.length + filmSlugs.length + serieSlugs.length}`);
     
     // 4. Genera il file XML
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -153,8 +170,15 @@ async function generateStaticSitemap() {
       `).join('')}
     </urlset>`;
     
-    // 5. Scrivi il file nella cartella public (accessibile direttamente)
-    const filePath = path.join(process.cwd(), 'public', 'sitemap.xml');
+    // 5. Verifica che la directory esista
+    const publicDir = path.join(process.cwd(), 'public');
+    if (!fs.existsSync(publicDir)) {
+      log(`Creazione directory public: ${publicDir}`);
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    
+    // 6. Scrivi il file nella cartella public
+    const filePath = path.join(publicDir, 'sitemap.xml');
     fs.writeFileSync(filePath, xml);
     
     const endTime = Date.now();
@@ -164,10 +188,10 @@ async function generateStaticSitemap() {
     const fileSize = fs.statSync(filePath).size;
     const fileSizeKB = Math.round(fileSize / 1024);
     
-    console.log(`SITEMAP STATIC: File sitemap.xml generato e salvato in ${filePath}`);
-    console.log(`SITEMAP STATIC: Dimensione file: ${fileSizeKB} KB`);
-    console.log(`SITEMAP STATIC: Tempo di elaborazione: ${processingTime} secondi`);
-    console.log(`SITEMAP STATIC: Generazione completata con successo`);
+    log(`SITEMAP STATIC: File sitemap.xml generato e salvato in ${filePath}`);
+    log(`SITEMAP STATIC: Dimensione file: ${fileSizeKB} KB`);
+    log(`SITEMAP STATIC: Tempo di elaborazione: ${processingTime} secondi`);
+    log(`SITEMAP STATIC: Generazione completata con successo`);
     
     return {
       success: true,
@@ -185,7 +209,7 @@ async function generateStaticSitemap() {
 generateStaticSitemap()
   .then(result => {
     if (result.success) {
-      console.log('✅ Generazione sitemap statica completata');
+      log('✅ Generazione sitemap statica completata');
       process.exit(0);
     } else {
       console.error('❌ Errore durante la generazione sitemap statica:', result.error);
