@@ -7,7 +7,7 @@ export async function GET() {
 User-agent: *
 Allow: /
 
-# Sitemaps
+# Sitemaps - Versione statica
 Sitemap: ${baseUrl}/sitemap.xml
 
 # Disallow

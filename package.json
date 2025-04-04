@@ -14,7 +14,8 @@
     "create-migration": "ts-node scripts/create-migration.ts",
     "test-sitemap": "ts-node scripts/test-sitemap.ts",
     "regenerate-sitemap": "node scripts/regenerate-sitemap.js",
-    "regenerate-sitemap:prod": "node scripts/regenerate-sitemap.js production"
+    "regenerate-sitemap:prod": "node scripts/regenerate-sitemap.js production",
+    "generate-static-sitemap": "node scripts/generate-static-sitemap.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

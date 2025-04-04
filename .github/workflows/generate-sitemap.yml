@@ -1,0 +1,51 @@
+name: Generate Static Sitemap
+
+on:
+  # Esecuzione manuale dal dashboard di GitHub
+  workflow_dispatch:
+  
+  # Esecuzione automatica ogni notte
+  schedule:
+    # Esegue ogni notte alle 2:00 UTC (4:00 CEST) - La sintassi è "minuti ore * * giorno(0-6, dove 0=domenica)"
+    - cron: '0 2 * * *'
+  
+  # Esegui anche dopo ogni push sul main (opzionale)
+  push:
+    branches:
+      - main
+    paths:
+      # Esegui solo se sono stati modificati file rilevanti per la sitemap
+      - 'app/sitemap.xml/**'
+      - 'scripts/generate-static-sitemap.js'
+      - '.github/workflows/generate-sitemap.yml'
+
+jobs:
+  generate-sitemap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate static sitemap
+        run: npm run generate-static-sitemap
+        env:
+          # Passa le variabili d'ambiente necessarie
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Commit sitemap file
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Aggiorna sitemap.xml statica"
+          file_pattern: "public/sitemap.xml" 
