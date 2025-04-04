@@ -57,25 +57,80 @@ async function getAllPages(): Promise<MappedPage[]> {
       return []; // Restituisci un array vuoto invece di dati fake
     }
     
-    // Costruisci la query in base alle colonne disponibili
-    let query = supabase.from('generated_pages').select('slug');
+    // Prima otteniamo il conteggio totale dei record
+    const { count, error: countError } = await supabase
+      .from('generated_pages')
+      .select('*', { count: 'exact', head: true });
     
-    // Se esiste una colonna timestamp, la includiamo nella query e ordiniamo per essa
-    if (timestampColumn) {
-      query = supabase.from('generated_pages').select(`slug, ${timestampColumn}`);
-      query = query.order(timestampColumn, { ascending: false });
-    }
-    
-    // Esegui la query
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Errore nel recupero pagine da Supabase:', error);
+    if (countError) {
+      console.error('Errore nel conteggio dei record:', countError);
       return []; // Restituisci un array vuoto invece di dati fake
     }
     
+    console.log(`Totale record nella tabella: ${count}`);
+    
+    // Se non ci sono record, restituisci un array vuoto
+    if (!count || count === 0) {
+      return [];
+    }
+    
+    // Implementa la paginazione per recuperare tutti i record
+    const pageSize = 1000; // Dimensione massima di ogni pagina
+    const totalPages = Math.ceil(count / pageSize);
+    const allResults: Array<PageData> = [];
+    
+    console.log(`Recupero dati in ${totalPages} pagine (${pageSize} record per pagina)`);
+    
+    // Selezioniamo i campi in base a quelli disponibili
+    let selectString = 'slug';
+    if (timestampColumn) {
+      selectString += `, ${timestampColumn}`;
+    }
+    
+    // Recupera i dati pagina per pagina
+    for (let page = 0; page < totalPages; page++) {
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+      
+      console.log(`Recupero pagina ${page + 1}/${totalPages} (record ${from} - ${to})`);
+      
+      let query = supabase
+        .from('generated_pages')
+        .select(selectString)
+        .range(from, to);
+      
+      // Ordina per timestamp se disponibile
+      if (timestampColumn) {
+        query = query.order(timestampColumn, { ascending: false });
+      }
+      
+      const { data: pageData, error: pageError } = await query;
+      
+      if (pageError) {
+        console.error(`Errore nel recupero della pagina ${page + 1}:`, pageError);
+        continue; // Salta questa pagina e continua con la successiva
+      }
+      
+      if (!pageData) {
+        console.warn(`Nessun dato nella pagina ${page + 1}`);
+        continue;
+      }
+      
+      console.log(`Recuperati ${pageData.length} record dalla pagina ${page + 1}`);
+      
+      // Aggiungi i risultati di questa pagina all'array totale
+      // Assicuriamoci che ogni elemento sia di tipo PageData
+      pageData.forEach((item: any) => {
+        if (item && item.slug) {
+          allResults.push(item as PageData);
+        }
+      });
+    }
+    
+    console.log(`Totale record recuperati: ${allResults.length} di ${count}`);
+    
     // Mappa i risultati nel formato richiesto
-    return data.map((page: PageData) => ({
+    return allResults.map((page: PageData) => ({
       slug: page.slug,
       updatedAt: (timestampColumn && page[timestampColumn]) 
         ? page[timestampColumn] 
@@ -115,6 +170,9 @@ export async function GET() {
       { path: 'login', priority: '0.7' },
       { path: 'about', priority: '0.7' }
     ];
+    
+    // Log del numero totale di URL nella sitemap
+    console.log(`Generando sitemap con ${staticPages.length} pagine statiche e ${dynamicPages.length} pagine dinamiche (totale: ${staticPages.length + dynamicPages.length})`);
     
     // Crea la sitemap XML
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
