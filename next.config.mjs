@@ -35,10 +35,10 @@ const nextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        // Gestione file statici in public/ con precedenza assoluta
+        // Reindirizza /sitemap.xml verso la route API
         {
           source: '/sitemap.xml',
-          destination: '/sitemap.xml', // Mantenuta per servire il file statico in /public
+          destination: '/api/sitemap',
         },
       ],
     };
