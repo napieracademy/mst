@@ -17,6 +17,7 @@ interface Credit {
   media_type: "movie" | "tv"
   role?: "acting" | "directing" | "both"
   is_known_for?: boolean
+  credit_id?: number
 }
 
 interface PersonFilmographyProps {
@@ -146,7 +147,7 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
       {/* Griglia di film/serie */}
       {sortedCredits.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {sortedCredits.map((credit) => {
+          {sortedCredits.map((credit, index) => {
             const mediaType = credit.media_type;
             const title = credit.title || credit.name || "";
             const date = credit.release_date || credit.first_air_date;
@@ -176,7 +177,7 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
 
             return (
               <Link 
-                key={`${credit.id}-${mediaType}`} 
+                key={`${credit.id}-${mediaType}-${credit.credit_id || credit.character || index}`} 
                 href={href} 
                 className={`group relative block overflow-hidden rounded-lg bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50`}
               >
