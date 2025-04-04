@@ -36,40 +36,82 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     // Recupera la sitemap
     const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
     const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : sitemapUrl;
-    const response = await fetch(`${baseUrl}/sitemap.xml`, { cache: 'no-store' });
+    
+    console.log(`SITEMAP ANALYZER: Ricerca sitemap su ${baseUrl}/sitemap.xml`);
+    
+    // Configura la richiesta con un timeout più lungo (30 secondi)
+    const fetchOptions = { 
+      cache: 'no-store' as RequestCache,
+      // @ts-ignore - l'opzione next esiste ma TypeScript potrebbe non riconoscerla
+      next: { revalidate: 0 }, // Disabilita la cache di Next.js
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+      signal: AbortSignal.timeout(30000) // 30 secondi di timeout
+    };
+    
+    // Esegui la richiesta HTTP per ottenere la sitemap
+    const response = await fetch(`${baseUrl}/sitemap.xml`, fetchOptions);
+    if (!response.ok) {
+      console.error(`SITEMAP ANALYZER: Errore nel recupero della sitemap: ${response.status} ${response.statusText}`);
+      throw new Error(`Errore nel recupero della sitemap: ${response.status}`);
+    }
+    
+    // Ottieni il contenuto completo della sitemap
     const sitemapXml = await response.text();
     
-    console.log('Sitemap XML content sample (first 200 chars):', sitemapXml.substring(0, 200));
-    console.log(`SITEMAP ANALYZER: Dimensione della sitemap recuperata: ${Math.round(sitemapXml.length/1024)} KB`);
+    console.log(`SITEMAP ANALYZER: Dimensione sitemap recuperata: ${Math.round(sitemapXml.length/1024)} KB`);
+    console.log('SITEMAP ANALYZER: Prime 200 caratteri:', sitemapXml.substring(0, 200));
     
-    // Conta gli URL nella sitemap - correzione per catturare qualsiasi dominio
-    // Nota: Cerca qualsiasi URL che contenga /film/ o /serie/ seguito da qualsiasi carattere eccetto spazi e tag XML
-    const filmUrlPattern = /<loc>([^<]+\/film\/[^<]+)<\/loc>/g;
-    const serieUrlPattern = /<loc>([^<]+\/serie\/[^<]+)<\/loc>/g;
+    // Conta gli URL nella sitemap con regex più affidabili
+    const urlPattern = /<url>\s*<loc>([^<]+)<\/loc>/g;
+    const filmUrlPattern = /<url>\s*<loc>([^<]+\/film\/[^<]+)<\/loc>/g;
+    const serieUrlPattern = /<url>\s*<loc>([^<]+\/serie\/[^<]+)<\/loc>/g;
     
-    // Pattern per contare tutte le URL nella sitemap
-    const allUrlPattern = /<loc>([^<]+)<\/loc>/g;
+    // Estrai tutti gli URL dalla sitemap
+    let allUrls = [];
+    let match;
+    while (match = urlPattern.exec(sitemapXml)) {
+      allUrls.push(match[1]);
+    }
     
-    const filmUrlMatches = sitemapXml.match(filmUrlPattern) || [];
-    const serieUrlMatches = sitemapXml.match(serieUrlPattern) || [];
-    const allUrlMatches = sitemapXml.match(allUrlPattern) || [];
+    // Estrai URL film e serie
+    let filmUrls = [];
+    while (match = filmUrlPattern.exec(sitemapXml)) {
+      filmUrls.push(match[1]);
+    }
     
-    console.log('Film URL matches found:', filmUrlMatches.length);
-    console.log('Serie URL matches found:', serieUrlMatches.length);
-    console.log('Total URL matches found in sitemap:', allUrlMatches.length);
+    let serieUrls = [];
+    while (match = serieUrlPattern.exec(sitemapXml)) {
+      serieUrls.push(match[1]);
+    }
     
-    if (filmUrlMatches.length > 0) {
-      console.log('Sample film URL:', filmUrlMatches[0]);
+    console.log(`SITEMAP ANALYZER: Totale URL trovati: ${allUrls.length}`);
+    console.log(`SITEMAP ANALYZER: URL film trovati: ${filmUrls.length}`);
+    console.log(`SITEMAP ANALYZER: URL serie trovati: ${serieUrls.length}`);
+    console.log(`SITEMAP ANALYZER: URL altri (non film/serie): ${allUrls.length - filmUrls.length - serieUrls.length}`);
+    
+    if (allUrls.length > 0) {
+      console.log('SITEMAP ANALYZER: Primi 5 URL:', allUrls.slice(0, 5));
+    }
+    
+    if (filmUrls.length > 0) {
+      console.log('SITEMAP ANALYZER: Primi 3 URL film:', filmUrls.slice(0, 3));
+    }
+    
+    if (serieUrls.length > 0) {
+      console.log('SITEMAP ANALYZER: Primi 3 URL serie:', serieUrls.slice(0, 3));
     }
     
     // Estrai gli slug dalla sitemap
-    const filmSlugs = filmUrlMatches.map(url => {
-      const matches = url.match(/<loc>.*\/film\/([^<]+)<\/loc>/);
+    const filmSlugs = filmUrls.map(url => {
+      const matches = url.match(/\/film\/([^/]+)(?:\/)?$/);
       return matches ? matches[1] : '';
     }).filter(Boolean);
     
-    const serieSlugs = serieUrlMatches.map(url => {
-      const matches = url.match(/<loc>.*\/serie\/([^<]+)<\/loc>/);
+    const serieSlugs = serieUrls.map(url => {
+      const matches = url.match(/\/serie\/([^/]+)(?:\/)?$/);
       return matches ? matches[1] : '';
     }).filter(Boolean);
     
@@ -214,7 +256,7 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
       
       return {
         totalDbRecords: totalCount || dbRecords.length,
-        totalSitemapUrls: allUrlMatches.length, // Conteggio corretto di tutte le URL
+        totalSitemapUrls: allUrls.length, // Utilizziamo il conteggio esatto di tutti gli URL
         filmDbRecords: filmDbRecords.length,
         serieDbRecords: serieDbRecords.length,
         filmSitemapUrls: filmSlugs.length,
@@ -225,11 +267,11 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     
     return {
       totalDbRecords: 0,
-      totalSitemapUrls: 0,
+      totalSitemapUrls: allUrls.length,
       filmDbRecords: 0,
       serieDbRecords: 0,
-      filmSitemapUrls: 0,
-      serieSitemapUrls: 0,
+      filmSitemapUrls: filmSlugs.length,
+      serieSitemapUrls: serieSlugs.length,
       invalidSlugs: []
     };
     
