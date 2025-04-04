@@ -41,6 +41,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Ottieni più storia per permettere il rebase
+          fetch-depth: 0
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v3
@@ -106,6 +109,46 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
+          
+          # Verifica se ci sono cambiamenti da committare
           git add public/sitemap.xml
-          git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub con $URL_COUNT URL"
-          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main 
+          if git diff --staged --quiet; then
+            echo "No changes to sitemap.xml, skipping commit and push"
+            exit 0
+          fi
+          
+          # Ottieni i cambiamenti più recenti dal repository per evitare conflitti
+          echo "Pulling latest changes from repository..."
+          git pull --rebase
+          
+          # Prova con il commit e push fino a 3 volte in caso di errore
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS to commit and push..."
+            
+            # Fai il commit con messaggio contenente il conteggio URL
+            git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub con $URL_COUNT URL"
+            
+            # Prova a fare push
+            if git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main; then
+              echo "Successfully pushed changes on attempt $ATTEMPT"
+              break
+            else
+              echo "Push failed on attempt $ATTEMPT"
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                echo "Retrying after pulling latest changes..."
+                git pull --rebase
+              fi
+              ATTEMPT=$((ATTEMPT+1))
+            fi
+          done
+          
+          # Se abbiamo raggiunto il numero massimo di tentativi senza successo, esci con codice 0 comunque
+          # per non far fallire l'azione (non è critico se il push fallisce)
+          if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+            echo "Failed to push after $MAX_ATTEMPTS attempts, but continuing anyway..."
+            echo "The sitemap has been generated successfully, but not committed to the repository."
+          fi
+          exit 0 
