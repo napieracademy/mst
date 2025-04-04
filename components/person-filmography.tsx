@@ -50,7 +50,10 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
   // Filtra i crediti in base al tab attivo
   const filteredCredits = allCredits.filter((credit) => {
     if (activeTab === "all") return true;
-    if (activeTab === "known_for") return credit.is_known_for;
+    if (activeTab === "known_for") {
+      // Mostriamo SOLO i film presenti in knownForCredits
+      return knownForCredits.some(kfc => kfc.id === credit.id && kfc.media_type === credit.media_type);
+    }
     if (activeTab === "acting") return credit.role === "acting" || credit.role === "both";
     if (activeTab === "directing") return credit.role === "directing" || credit.role === "both";
     if (activeTab === "movie") return credit.media_type === "movie";
