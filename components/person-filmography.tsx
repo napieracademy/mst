@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { generateSlug } from "@/lib/utils"
@@ -26,9 +26,17 @@ interface PersonFilmographyProps {
 }
 
 export function PersonFilmography({ credits, name, knownForCredits = [] }: PersonFilmographyProps) {
-  const [activeTab, setActiveTab] = useState<"all" | "known_for" | "acting" | "directing" | "movie" | "tv">(
-    knownForCredits.length > 0 ? "known_for" : "all"
-  )
+  console.log("PersonFilmography - knownForCredits:", knownForCredits.length, knownForCredits);
+
+  const [activeTab, setActiveTab] = useState<"all" | "known_for" | "acting" | "directing" | "movie" | "tv">("all")
+  
+  // Set the initial active tab to "known_for" if there are known_for credits
+  useEffect(() => {
+    if (knownForCredits && knownForCredits.length > 0) {
+      setActiveTab("known_for");
+      console.log("Tab iniziale impostata su 'known_for' perché ci sono", knownForCredits.length, "crediti");
+    }
+  }, [knownForCredits]);
 
   // Marca i crediti che sono "known_for"
   const allCredits = credits.map(credit => {
@@ -76,7 +84,7 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
                 activeTab === "known_for" ? "border-b-2 border-white text-white" : "text-gray-400 hover:text-white"
               }`}
             >
-              Conosciuto per ({knownForCount})
+              Più noto per ({knownForCount})
             </button>
           )}
           <button

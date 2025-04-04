@@ -257,45 +257,96 @@ export async function getPersonDetails(id: string): Promise<any | null> {
     // Ottieni i dettagli della persona in inglese per avere i nomi corretti
     const basicData = await fetchFromTMDB(`/person/${id}`, {}, "en-US");
     
-    // Ottieni i known_for dalla persona
-    const knownForData = await fetchFromTMDB(`/person/${id}`, {}, "it-IT");
-    
-    // Ottieni i crediti e le immagini in italiano
-    const creditsData = await fetchFromTMDB(`/person/${id}/combined_credits`, {}, "it-IT");
-    const imagesData = await fetchFromTMDB(`/person/${id}/images`, {}, "it-IT");
+    // Ottieni i dettagli della persona in italiano (che includono i known_for)
+    const localizedData = await fetchFromTMDB(`/person/${id}`, {
+      append_to_response: "combined_credits,images,movie_credits,tv_credits"
+    }, "it-IT");
     
     // Combina tutti i dati
     const data = {
       ...basicData,
-      known_for: knownForData.known_for || [],
-      combined_credits: creditsData,
-      images: imagesData,
-      // Aggiungiamo una proprietà per filtrare i crediti in base a known_for
+      biography: localizedData.biography || basicData.biography,
+      combined_credits: localizedData.combined_credits || {},
+      movie_credits: localizedData.movie_credits || {},
+      tv_credits: localizedData.tv_credits || {},
+      images: localizedData.images || {},
+      // Inizializza l'array dei known_for_credits
       known_for_credits: []
     };
     
-    // Prepariamo i known_for_credits estraendo i film e le serie in known_for
-    if (knownForData.known_for && Array.isArray(knownForData.known_for)) {
-      // Estrai gli ID dei film/serie per cui la persona è nota
-      const knownForIds = knownForData.known_for.map((item: any) => item.id);
+    // Ottieni direttamente i known_for attraverso l'endpoint person/popular
+    // Nota: questo è un workaround dato che non c'è un endpoint diretto per known_for
+    try {
+      const popularPersons = await fetchFromTMDB(`/person/popular`, {}, "it-IT");
+      const personInPopular = popularPersons.results?.find((p: any) => p.id === parseInt(id, 10));
       
-      // Filtra i crediti per includere solo known_for
-      if (data.combined_credits?.cast) {
-        const knownForCast = data.combined_credits.cast.filter((item: any) => 
-          knownForIds.includes(item.id)
-        );
-        data.known_for_credits.push(...knownForCast);
+      if (personInPopular && personInPopular.known_for && Array.isArray(personInPopular.known_for)) {
+        console.log(`Person ${id} trovato nei popolari con ${personInPopular.known_for.length} known_for`);
+        
+        // Estrai gli ID dei film/serie per cui la persona è nota
+        const knownForIds = personInPopular.known_for.map((item: any) => item.id);
+        console.log(`Person ${id} known_for IDs:`, knownForIds);
+        
+        // Filtra i crediti per includere solo known_for
+        let knownForCredits: any[] = [];
+        
+        if (data.combined_credits?.cast) {
+          const knownForCast = data.combined_credits.cast.filter((item: any) => 
+            knownForIds.includes(item.id)
+          );
+          knownForCredits.push(...knownForCast);
+        }
+        
+        if (data.combined_credits?.crew) {
+          const knownForCrew = data.combined_credits.crew.filter((item: any) => 
+            knownForIds.includes(item.id) && item.job === "Director"
+          );
+          knownForCredits.push(...knownForCrew);
+        }
+        
+        // Assegna i crediti filtrati
+        data.known_for_credits = knownForCredits;
+        
+        console.log(`Person ${id} known for ${knownForIds.length} titles, extracted ${data.known_for_credits.length} matching credits`);
+        console.log(`Known for credits sample:`, data.known_for_credits.slice(0, 2));
+      } else {
+        // Se la persona non è tra i popolari, usa un approccio alternativo
+        // Seleziona i film/serie con più voti o più popolari dai crediti
+        console.log(`Person ${id} non trovato nei popolari, utilizzo metodo alternativo`);
+        
+        const allCredits = [];
+        if (data.combined_credits?.cast) allCredits.push(...data.combined_credits.cast);
+        if (data.combined_credits?.crew) {
+          const directorCredits = data.combined_credits.crew.filter((c: any) => c.job === "Director");
+          allCredits.push(...directorCredits);
+        }
+        
+        // Ordina per popolarità e prendi i primi 5
+        const topCredits = [...allCredits]
+          .sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
+          .slice(0, 5);
+        
+        data.known_for_credits = topCredits;
+        console.log(`Person ${id} alternate method: found ${topCredits.length} top credits`);
       }
-      
+    } catch (error) {
+      console.error(`Error fetching known_for for person ${id}:`, error);
+      // In caso di errore nell'ottenere i known_for, utilizziamo un approccio di fallback
+      // Basato sui credits più popolari che abbiamo già
+      const allCredits = [];
+      if (data.combined_credits?.cast) allCredits.push(...data.combined_credits.cast);
       if (data.combined_credits?.crew) {
-        const knownForCrew = data.combined_credits.crew.filter((item: any) => 
-          knownForIds.includes(item.id)
-        );
-        data.known_for_credits.push(...knownForCrew);
+        const directorCredits = data.combined_credits.crew.filter((c: any) => c.job === "Director");
+        allCredits.push(...directorCredits);
       }
       
-      // Log dei known_for
-      console.log(`Person ${id} known for ${knownForIds.length} titles, extracted ${data.known_for_credits.length} matching credits`);
+      // Ordina per popolarità e prendi i primi 5
+      const topCredits = [...allCredits]
+        .sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
+        .slice(0, 5);
+      
+      data.known_for_credits = topCredits;
+      console.log(`Person ${id} fallback: found ${topCredits.length} top credits`);
     }
     
     // Log esteso per debug delle immagini
