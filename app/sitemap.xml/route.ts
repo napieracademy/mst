@@ -5,38 +5,97 @@ import { createApiSupabaseClient } from '../../lib/supabase-server';
 
 /**
  * Ottiene gli slug delle pagine tracciate dal database Supabase
+ * utilizzando la paginazione per superare il limite di 1000 record
  */
 export async function getTrackedPageSlugs() {
   try {
     console.log('Recupero pagine tracciate da Supabase per la sitemap...');
     const supabase = createApiSupabaseClient();
     
-    // Utilizzando direttamente RPC per ottenere il conteggio
+    // Utilizzando direttamente RPC per ottenere il conteggio totale
     const { data: countData } = await supabase
       .rpc('get_page_stats')
       .select('*')
       .single();
       
     console.log('Statistiche pagine recuperate:', countData);
-      
-    const { data, error } = await supabase
-      .from('generated_pages')
-      .select('slug, page_type')
-      .order('visit_count', { ascending: false });
+    console.log(`SITEMAP LOG: Totale pagine nel database: ${countData?.total_pages || 'N/A'}`);
     
-    if (error) {
-      console.error('Errore nel recupero delle pagine tracciate:', error);
-      return { filmSlugs: [], serieSlugs: [] };
+    // IMPLEMENTAZIONE PAGINAZIONE
+    // Recupera i record in batch di 1000 alla volta
+    const batchSize = 1000;
+    const totalPages = Math.ceil((countData?.total_pages || 0) / batchSize);
+    console.log(`SITEMAP LOG: Necessarie ${totalPages} pagine di query per recuperare tutti i dati`);
+    
+    let allRecords: { slug: string; page_type: string }[] = [];
+    
+    // Recupera i record in batch successivi
+    for (let page = 0; page < totalPages; page++) {
+      console.log(`SITEMAP LOG: Recupero batch ${page + 1} di ${totalPages}`);
+      const offset = page * batchSize;
+      
+      const { data: batchData, error } = await supabase
+        .from('generated_pages')
+        .select('slug, page_type')
+        .order('first_generated_at', { ascending: false })
+        .range(offset, offset + batchSize - 1);
+      
+      if (error) {
+        console.error(`Errore nel recupero del batch ${page + 1}:`, error);
+        continue;
+      }
+      
+      console.log(`SITEMAP LOG: Recuperati ${batchData?.length || 0} record nel batch ${page + 1}`);
+      
+      if (batchData && batchData.length > 0) {
+        allRecords = [...allRecords, ...batchData];
+      } else {
+        // Se non ci sono più dati, interrompi il ciclo
+        break;
+      }
     }
     
-    // Separa gli slug per tipo (film e serie)
-    const filmSlugs = data
-      .filter((page: { page_type: string }) => page.page_type === 'film')
-      .map((page: { slug: string }) => page.slug);
+    console.log(`SITEMAP LOG: Totale record recuperati dopo paginazione: ${allRecords.length}`);
     
-    const serieSlugs = data
-      .filter((page: { page_type: string }) => page.page_type === 'serie')
-      .map((page: { slug: string }) => page.slug);
+    // Verifica della validità degli slug
+    const invalidSlugs = allRecords.filter(page => {
+      // Controlla slug nulli o vuoti
+      if (!page.slug) {
+        console.log(`SITEMAP DEBUG: Trovato slug nullo o vuoto per tipo: ${page.page_type}`);
+        return true;
+      }
+      
+      // Controlla caratteri non validi (controllare caratteri non alfanumerici escluso trattino)
+      if (/[^\w\-]/g.test(page.slug)) {
+        console.log(`SITEMAP DEBUG: Slug con caratteri non validi: ${page.slug} (tipo: ${page.page_type})`);
+        return true;
+      }
+      
+      // Controlla lunghezza eccessiva
+      if (page.slug.length > 200) {
+        console.log(`SITEMAP DEBUG: Slug troppo lungo (${page.slug.length} caratteri): ${page.slug.substring(0, 50)}... (tipo: ${page.page_type})`);
+        return true;
+      }
+      
+      // Controlla slug che iniziano con trattino
+      if (page.slug.startsWith('-')) {
+        console.log(`SITEMAP DEBUG: Slug inizia con trattino: ${page.slug} (tipo: ${page.page_type})`);
+        return true;
+      }
+      
+      return false;
+    }) || [];
+    
+    console.log(`SITEMAP DEBUG: Trovati ${invalidSlugs.length} slug potenzialmente problematici`);
+    
+    // Separa gli slug per tipo (film e serie)
+    const filmSlugs = allRecords
+      .filter((page) => page.page_type === 'film')
+      .map((page) => page.slug);
+    
+    const serieSlugs = allRecords
+      .filter((page) => page.page_type === 'serie')
+      .map((page) => page.slug);
     
     console.log(`Recuperate pagine tracciate: ${filmSlugs.length} film, ${serieSlugs.length} serie`);
     
@@ -105,6 +164,18 @@ export async function GET() {
   console.log(`Recuperati ${trackedFilmSlugs.length} film tracciati da Supabase`);
   console.log(`Recuperate ${trackedSerieSlugs.length} serie tracciate da Supabase`);
   
+  // Logging di alcuni esempi di slug problematici
+  if (trackedFilmSlugs.length > 0) {
+    const sampleFilms = trackedFilmSlugs.slice(0, 5);
+    console.log('SITEMAP DEBUG: Esempi di slug film recuperati:', sampleFilms);
+    
+    // Verifica se ci sono slug con caratteri problematici in XML
+    const problematicSlugs = sampleFilms.filter(slug => /[<>&'"]/g.test(slug));
+    if (problematicSlugs.length > 0) {
+      console.log('SITEMAP DEBUG: Trovati slug film con caratteri problematici XML:', problematicSlugs);
+    }
+  }
+  
   // Unisci gli slug (rimuovendo i duplicati)
   const filmSlugs = [...new Set([...tmdbFilmSlugs, ...trackedFilmSlugs])];
   const serieSlugs = [...new Set([...tmdbSerieSlugs, ...trackedSerieSlugs])];
@@ -118,6 +189,15 @@ export async function GET() {
     '/login',
     '/about'
   ];
+
+  // Calcola la dimensione approssimativa dell'XML prima di generarlo
+  const estimatedXmlSize = 
+    (staticRoutes.length * 150) + 
+    (filmSlugs.length * 150) + 
+    (serieSlugs.length * 150) + 
+    1000; // overhead per header XML ecc.
+    
+  console.log(`SITEMAP DEBUG: Dimensione stimata dell'XML: ${Math.round(estimatedXmlSize/1024)} KB`);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -147,6 +227,7 @@ export async function GET() {
     </urlset>`;
 
   console.log('Generazione sitemap.xml completata');
+  console.log(`SITEMAP DEBUG: Dimensione effettiva XML: ${Math.round(xml.length/1024)} KB`);
   
   return new NextResponse(xml, { 
     headers: { 
