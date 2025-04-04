@@ -22,14 +22,11 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
-    appDir: true,
-    excludeRoutes: ['/sitemap.xml', '/robots.txt'],
   },
   outputFileTracingIncludes: {
     '/**': ['./public/**/*', './app/globals.css', './styles/**/*', './.next/static/css/**/*']
   },
   output: 'standalone',
-  poweredByHeader: false,
   reactStrictMode: true,
   swcMinify: true,
   webpack: (config, { dev, isServer }) => {
@@ -76,14 +73,6 @@ const nextConfig = {
         source: '/api/sitemap.xml',
         destination: '/sitemap.xml',
         permanent: true,
-      },
-    ]
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/sitemap.xml',
-        destination: '/sitemap.xml',
       },
     ]
   },

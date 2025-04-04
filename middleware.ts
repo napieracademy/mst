@@ -1,8 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getMovieDetails } from './lib/tmdb'
-import { generateSlug, extractIdFromSlug } from './lib/utils'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -26,88 +24,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/wines", request.url))
     }
 
-    // Ottieni il percorso della richiesta
-    const { pathname } = request.nextUrl;
-
-    // Verifica se il percorso è un vecchio URL con solo ID per film, attori, registi
-    // movie/123 -> film/titolo-anno-123
-    // person/123 -> attore/nome-123 o regista/nome-123
-    // tv/123 -> serie/titolo-anno-123
-    
-    const movieIdRegex = /^\/movie\/(\d+)$/;
-    const movieSlugRegex = /^\/movie\/(.+)$/;
-    const personRegex = /^\/person\/(\d+)$/;
-    const tvRegex = /^\/tv\/(\d+)$/;
-    
-    let match;
-
-    // Reindirizza /movie/:id a /film/:slug
-    if ((match = pathname.match(movieIdRegex))) {
-      const id = match[1];
-      try {
-        // Ottieni i dettagli del film per generare lo slug
-        const movie = await getMovieDetails(id, "movie");
-        if (movie && movie.title) {
-          const year = movie.release_date ? movie.release_date.split('-')[0] : null;
-          const slug = generateSlug(movie.title, year, id);
-          
-          // Reindirizzamento permanente (301) alla nuova URL SEO-friendly
-          return NextResponse.redirect(new URL(`/film/${slug}`, request.url), 301);
-        }
-      } catch (error) {
-        console.error(`Errore nel reindirizzamento del film ${id}:`, error);
-      }
-    }
-    
-    // Reindirizza /movie/:slug a /film/:slug (per vecchi URL che già contenevano uno slug)
-    if ((match = pathname.match(movieSlugRegex))) {
-      const slug = match[1];
-      // Se lo slug non contiene solo un ID ma è già in formato slug
-      if (!/^\d+$/.test(slug)) {
-        // Reindirizzamento permanente (301) mantenendo lo stesso slug
-        return NextResponse.redirect(new URL(`/film/${slug}`, request.url), 301);
-      }
-    }
-    
-    // Reindirizza /tv/:id a /serie/:slug
-    if ((match = pathname.match(tvRegex))) {
-      const id = match[1];
-      try {
-        // Ottieni i dettagli della serie TV per generare lo slug
-        const show = await getMovieDetails(id, "tv");
-        if (show && show.name) {
-          const year = show.first_air_date ? show.first_air_date.split('-')[0] : null;
-          const slug = generateSlug(show.name, year, id);
-          
-          // Reindirizzamento permanente (301) alla nuova URL SEO-friendly
-          return NextResponse.redirect(new URL(`/serie/${slug}`, request.url), 301);
-        }
-      } catch (error) {
-        console.error(`Errore nel reindirizzamento della serie ${id}:`, error);
-      }
-    }
-    
-    // Reindirizza /person/:id a /attore/:slug o /regista/:slug
-    // Per semplicità, reindirizzamo tutti a /attore/:slug
-    if ((match = pathname.match(personRegex))) {
-      const id = match[1];
-      try {
-        // Ottieni i dettagli della persona per generare lo slug
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.themoviedb.org/3'}/person/${id}?api_key=${process.env.TMDB_API_KEY}`);
-        if (response.ok) {
-          const person = await response.json();
-          if (person && person.name) {
-            const slug = generateSlug(person.name, null, id);
-            
-            // Reindirizzamento permanente (301) alla nuova URL SEO-friendly
-            return NextResponse.redirect(new URL(`/attore/${slug}`, request.url), 301);
-          }
-        }
-      } catch (error) {
-        console.error(`Errore nel reindirizzamento della persona ${id}:`, error);
-      }
-    }
-
     return NextResponse.next()
   } catch (error) {
     console.error("Middleware error:", error)
@@ -119,9 +35,6 @@ export const config = {
   matcher: [
     "/wines/:path*", 
     "/login", 
-    "/register",
-    "/movie/:path*",
-    "/person/:id*",
-    "/tv/:id*"
+    "/register"
   ],
 } 
