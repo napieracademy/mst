@@ -218,9 +218,10 @@ export function MoviePageClient({
         <FadeInSection delay={300} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
             <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
-            {/* Mostriamo sempre i known_for_credits se disponibili, altrimenti usiamo CastCarousel */}
-            {hasKnownForCredits ? (
-              <div>
+            
+            {/* Mostriamo prima i "Più noti per questo film" se disponibili */}
+            {hasKnownForCredits && (
+              <div className="mb-12">
                 <h3 className="text-sm font-medium text-yellow-500 mb-6">Più noti per questo film</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                   {knownForCredits.map((credit: any) => {
@@ -284,9 +285,13 @@ export function MoviePageClient({
                   })}
                 </div>
               </div>
-            ) : (
-              <CastCarousel cast={movie.credits?.cast || []} />
             )}
+            
+            {/* Mostriamo sempre il cast completo subito dopo */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-300 mb-6">Cast completo</h3>
+              <CastCarousel cast={movie.credits?.cast || []} />
+            </div>
           </div>
         </FadeInSection>
 
