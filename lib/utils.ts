@@ -127,3 +127,12 @@ export function isValidShow(show: any): boolean {
   );
 }
 
+/**
+ * Verifica se un percorso immagine è valido
+ * @param path Il percorso dell'immagine da verificare
+ * @returns true se il percorso è valido, false altrimenti
+ */
+export function checkImagePath(path: string | null | undefined): boolean {
+  return !!path && typeof path === 'string' && path.startsWith('/');
+}
+
