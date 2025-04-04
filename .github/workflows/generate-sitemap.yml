@@ -26,6 +26,10 @@ jobs:
     # Impedisci l'esecuzione se il repository è forkato (sicurezza)
     if: github.repository == 'napieracademy/mst'
 
+    # Richiedi permessi espliciti per il token
+    permissions:
+      contents: write
+
     env:
       # Definisci direttamente le variabili d'ambiente necessarie
       NEXT_PUBLIC_SITE_URL: 'https://mastroianni.app'
@@ -81,11 +85,11 @@ jobs:
           echo "Sitemap generated successfully"
           head -n 10 public/sitemap.xml
 
-      # Commit e push delle modifiche
+      # Commit e push delle modifiche con token GitHub
       - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
           git add public/sitemap.xml
           git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub"
-          git push 
+          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main 
