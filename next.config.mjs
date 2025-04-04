@@ -28,6 +28,23 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
+  // Escludi i percorsi di routing che entrano in conflitto con file statici nella directory public
+  skipMiddlewareUrlNormalize: true,
+  skipTrailingSlashRedirect: true,
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
+  async headers() {
+    return [
+      {
+        source: '/sitemap.xml',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/xml',
+          },
+        ],
+      },
+    ];
+  },
   webpack: (config, { dev, isServer }) => {
     // Risolve i problemi con vendor-chunks in modalità sviluppo
     if (dev) {
