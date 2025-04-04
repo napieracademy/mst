@@ -175,7 +175,7 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
               <Link 
                 key={`${credit.id}-${mediaType}`} 
                 href={href} 
-                className={`group relative block overflow-hidden rounded-lg ${credit.is_known_for ? 'ring-2 ring-yellow-500' : 'bg-black/30'} backdrop-blur-sm transition-all hover:bg-black/50`}
+                className={`group relative block overflow-hidden rounded-lg bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50`}
               >
                 <div className="aspect-[2/3] relative">
                   {posterPath ? (
@@ -198,12 +198,6 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
                         {year && <span>{year}</span>}
                         {roleText && year && <span className="mx-1">•</span>}
                         {roleText && <span className="truncate">{roleText}</span>}
-                        {credit.is_known_for && (
-                          <>
-                            <span className="mx-1">•</span>
-                            <span className="text-yellow-500">Top</span>
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>
