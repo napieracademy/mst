@@ -18,14 +18,21 @@ on:
       - 'app/sitemap.xml/**'
       - 'scripts/generate-static-sitemap.js'
       - '.github/workflows/generate-sitemap.yml'
+      - 'public/sitemap.xml'
 
 jobs:
   generate-sitemap:
     runs-on: ubuntu-latest
+    
+    # Impedisci l'esecuzione se il repository è forkato (sicurezza)
+    if: github.repository == 'napieracademy/mst'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -35,11 +42,17 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        
-      - name: Debug package installation
+
+      - name: Verify environment
         run: |
-          echo "Installed packages:"
-          npm list --depth=0
+          echo "Node.js version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "Working directory: $(pwd)"
+          echo "Repository: ${{ github.repository }}"
+          echo "NEXT_PUBLIC_SITE_URL is set: ${{ secrets.NEXT_PUBLIC_SITE_URL != '' }}"
+          echo "NEXT_PUBLIC_SUPABASE_URL is set: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' }}"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY is set: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}"
+          ls -la public/ || mkdir -p public && echo "Created public directory"
 
       - name: Generate static sitemap
         run: npm run generate-static-sitemap
@@ -49,8 +62,18 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
+      - name: Verify sitemap
+        run: |
+          echo "Verifying sitemap.xml..."
+          ls -la public/
+          wc -l public/sitemap.xml
+          grep -c "<url>" public/sitemap.xml || echo "No URLs found in sitemap"
+
       - name: Commit sitemap file
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Aggiorna sitemap.xml statica"
-          file_pattern: "public/sitemap.xml" 
+          commit_message: "Aggiorna sitemap.xml statica [skip ci]"
+          file_pattern: "public/sitemap.xml"
+          commit_user_name: GitHub Action
+          commit_user_email: actions@github.com
+          commit_author: GitHub Action <actions@github.com> 
