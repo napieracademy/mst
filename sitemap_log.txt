@@ -1,0 +1,433 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.44:3000
+   - Environments: .env
+   - Experiments (use with caution):
+     ✓ webpackBuildWorker
+     ✓ parallelServerCompiles
+     ✓ parallelServerBuildTraces
+
+ ✓ Starting...
+ ✓ Ready in 1034ms
+ ○ Compiling /sitemap.xml ...
+ ✓ Compiled /sitemap.xml in 602ms (477 modules)
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1497,
+  total_film: 1142,
+  total_serie: 355,
+  total_visits: 1855
+}
+SITEMAP LOG: Totale pagine nel database: 1497
+SITEMAP LOG: Record effettivamente recuperati: 1000
+SITEMAP LOG: ATTENZIONE - 497 record non recuperati a causa del limite (1000)
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Trovati 10 slug potenzialmente problematici
+Recuperate pagine tracciate: 805 film, 195 serie
+Recuperati 805 film tracciati da Supabase
+Recuperate 195 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426',
+  'all-hallows-eve-1987-1297859'
+]
+Totale film nella sitemap: 821
+Totale serie nella sitemap: 207
+SITEMAP DEBUG: Dimensione stimata dell'XML: 152 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 199 KB
+ GET /sitemap.xml 200 in 920ms
+ ○ Compiling /admin/statistiche-pagine ...
+ ✓ Compiled /admin/statistiche-pagine in 1171ms (1864 modules)
+Error: Route "/admin/statistiche-pagine" used `searchParams.page`. `searchParams` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at StatsDashboard (app/admin/statistiche-pagine/page.tsx:264:44)
+  262 |   
+  263 |   // Parametri di paginazione
+> 264 |   const currentPage = parseInt(searchParams.page || '1', 10);
+      |                                            ^
+  265 |   const pageSize = 50;
+  266 |   const offset = (currentPage - 1) * pageSize;
+  267 |   
+Supabase URL: https://gbynhfiqlacmlwpjcxmp.supabase.co
+Supabase Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdieW5oZmlxbGFjbWx3cGpjeG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxOTI3NzcsImV4cCI6MjA1NTc2ODc3N30.gFiM3yc82ID61fVPAt6fpFvOoHheAS7zS5Ns3iMsQ7I
+ ✓ Compiled in 354ms (807 modules)
+ ✓ Compiled in 32ms (793 modules)
+SITEMAP ANALYZER: Recuperati 1000 record dal database
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1497,
+  total_film: 1142,
+  total_serie: 355,
+  total_visits: 1855
+}
+SITEMAP LOG: Totale pagine nel database: 1497
+SITEMAP LOG: Record effettivamente recuperati: 1000
+SITEMAP LOG: ATTENZIONE - 497 record non recuperati a causa del limite (1000)
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Trovati 10 slug potenzialmente problematici
+Recuperate pagine tracciate: 805 film, 195 serie
+Recuperati 805 film tracciati da Supabase
+Recuperate 195 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426',
+  'all-hallows-eve-1987-1297859'
+]
+Totale film nella sitemap: 821
+Totale serie nella sitemap: 207
+SITEMAP DEBUG: Dimensione stimata dell'XML: 152 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 199 KB
+ GET /sitemap.xml 200 in 231ms
+Sitemap XML content sample (first 200 chars): <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      
+        <url>
+          <loc>https://mastroianni.app</loc>
+          <changefreq>weekly</
+SITEMAP ANALYZER: Dimensione della sitemap recuperata: 199 KB
+Film URL matches found: 821
+Serie URL matches found: 207
+Sample film URL: <loc>https://mastroianni.app/film/carjackers-ladri-ad-alta-velocita-2025-1229730</loc>
+SITEMAP ANALYZER: Estratti 821 slug film dalla sitemap
+SITEMAP ANALYZER: Estratti 207 slug serie dalla sitemap
+SITEMAP ANALYZER: Record film nel DB: 742
+SITEMAP ANALYZER: Record serie nel DB: 258
+SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 37, XML invalidi: 0, Sconosciuti: 288
+SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 26, XML invalidi: 0, Sconosciuti: 124
+SITEMAP ANALYZER: Totale record non inclusi nella sitemap: 475
+SITEMAP ANALYZER: Esempi di slug con esclusione "Sconosciuto": [
+  'next-gen-2018-523777',
+  'masterminds-i-geni-della-truffa-2016-213681',
+  'ninety-five-senses-2022-1040371',
+  'thelma-lunicorno-2024-739547',
+  'the-unexpected-race-2018-558910',
+  'the-insufferable-groo-2018-530964',
+  'le-ali-della-liberta-1994-278',
+  'il-padrino-1972-238',
+  'la-parola-ai-giurati-1957-389',
+  'il-padrino-parte-ii-1974-240'
+]
+ GET /admin/statistiche-pagine 200 in 2070ms
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1497,
+  total_film: 1142,
+  total_serie: 355,
+  total_visits: 1855
+}
+SITEMAP LOG: Totale pagine nel database: 1497
+SITEMAP LOG: Record effettivamente recuperati: 1000
+SITEMAP LOG: ATTENZIONE - 497 record non recuperati a causa del limite (1000)
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Trovati 10 slug potenzialmente problematici
+Recuperate pagine tracciate: 805 film, 195 serie
+Recuperati 805 film tracciati da Supabase
+Recuperate 195 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'superman-ii-1980-8536',
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426'
+]
+Totale film nella sitemap: 821
+Totale serie nella sitemap: 207
+SITEMAP DEBUG: Dimensione stimata dell'XML: 152 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 199 KB
+ GET /sitemap.xml 200 in 403ms
+Error: Route "/admin/statistiche-pagine" used `searchParams.page`. `searchParams` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at StatsDashboard (app/admin/statistiche-pagine/page.tsx:264:44)
+  262 |   
+  263 |   // Parametri di paginazione
+> 264 |   const currentPage = parseInt(searchParams.page || '1', 10);
+      |                                            ^
+  265 |   const pageSize = 50;
+  266 |   const offset = (currentPage - 1) * pageSize;
+  267 |   
+SITEMAP ANALYZER: Recuperati 1000 record dal database
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1498,
+  total_film: 1143,
+  total_serie: 355,
+  total_visits: 1856
+}
+SITEMAP LOG: Totale pagine nel database: 1498
+SITEMAP LOG: Record effettivamente recuperati: 1000
+SITEMAP LOG: ATTENZIONE - 498 record non recuperati a causa del limite (1000)
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Trovati 10 slug potenzialmente problematici
+Recuperate pagine tracciate: 805 film, 195 serie
+Recuperati 805 film tracciati da Supabase
+Recuperate 195 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'superman-ii-1980-8536',
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426'
+]
+Totale film nella sitemap: 821
+Totale serie nella sitemap: 207
+SITEMAP DEBUG: Dimensione stimata dell'XML: 152 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 199 KB
+ GET /sitemap.xml 200 in 320ms
+Sitemap XML content sample (first 200 chars): <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      
+        <url>
+          <loc>https://mastroianni.app</loc>
+          <changefreq>weekly</
+SITEMAP ANALYZER: Dimensione della sitemap recuperata: 199 KB
+Film URL matches found: 821
+Serie URL matches found: 207
+Sample film URL: <loc>https://mastroianni.app/film/carjackers-ladri-ad-alta-velocita-2025-1229730</loc>
+SITEMAP ANALYZER: Estratti 821 slug film dalla sitemap
+SITEMAP ANALYZER: Estratti 207 slug serie dalla sitemap
+SITEMAP ANALYZER: Record film nel DB: 742
+SITEMAP ANALYZER: Record serie nel DB: 258
+SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 37, XML invalidi: 0, Sconosciuti: 289
+SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 26, XML invalidi: 0, Sconosciuti: 124
+SITEMAP ANALYZER: Totale record non inclusi nella sitemap: 476
+SITEMAP ANALYZER: Esempi di slug con esclusione "Sconosciuto": [
+  'next-gen-2018-523777',
+  'masterminds-i-geni-della-truffa-2016-213681',
+  'ninety-five-senses-2022-1040371',
+  'thelma-lunicorno-2024-739547',
+  'the-unexpected-race-2018-558910',
+  'the-insufferable-groo-2018-530964',
+  'le-ali-della-liberta-1994-278',
+  'il-padrino-1972-238',
+  'la-parola-ai-giurati-1957-389',
+  'il-padrino-parte-ii-1974-240'
+]
+ GET /admin/statistiche-pagine 200 in 787ms
+ ✓ Compiled in 259ms (1864 modules)
+[?25h

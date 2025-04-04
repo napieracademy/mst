@@ -1,0 +1,675 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.44:3000
+   - Environments: .env
+   - Experiments (use with caution):
+     ✓ webpackBuildWorker
+     ✓ parallelServerCompiles
+     ✓ parallelServerBuildTraces
+
+ ✓ Starting...
+ ✓ Ready in 983ms
+ ✓ Compiled /sitemap.xml in 424ms (477 modules)
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1498,
+  total_film: 1143,
+  total_serie: 355,
+  total_visits: 1856
+}
+SITEMAP LOG: Totale pagine nel database: 1498
+SITEMAP LOG: Necessarie 2 pagine di query per recuperare tutti i dati
+SITEMAP LOG: Recupero batch 1 di 2
+SITEMAP LOG: Recuperati 1000 record nel batch 1
+SITEMAP LOG: Recupero batch 2 di 2
+SITEMAP LOG: Recuperati 498 record nel batch 2
+SITEMAP LOG: Totale record recuperati dopo paginazione: 1498
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -250699 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --233105 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --158137 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --134085 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -1448224 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --762960 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1259230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1273694 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1168200 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-130645 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2011-232500 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-154787 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-95896 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-1168210 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-140070 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-55886 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2013-79472 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-64336 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-925923 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-72686 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-83438 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-233115 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-82446 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-66855 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-68659 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-68133 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-338942 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-246631 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2015-233117 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-462092 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2017-116221 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-563718 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-76789 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-497722 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-697395 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-562236 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-565469 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617586 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617587 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-520024 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-748063 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-563230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2019-517034 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2020-102359 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2020-575121 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-586384 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-766428 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2022-713174 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-211219 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-1037568 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-818621 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-275145 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-1142871 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-1162745 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-877917 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-154790 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2024-1267167 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1168197 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1008445 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1290205 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2024-1273948 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-1061317 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-358913 (tipo: film)
+SITEMAP DEBUG: Trovati 73 slug potenzialmente problematici
+Recuperate pagine tracciate: 1143 film, 355 serie
+Recuperati 1143 film tracciati da Supabase
+Recuperate 355 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'superman-ii-1980-8536',
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426'
+]
+Totale film nella sitemap: 1147
+Totale serie nella sitemap: 359
+SITEMAP DEBUG: Dimensione stimata dell'XML: 222 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 289 KB
+ GET /sitemap.xml 200 in 1039ms
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1498,
+  total_film: 1143,
+  total_serie: 355,
+  total_visits: 1856
+}
+SITEMAP LOG: Totale pagine nel database: 1498
+SITEMAP LOG: Necessarie 2 pagine di query per recuperare tutti i dati
+SITEMAP LOG: Recupero batch 1 di 2
+SITEMAP LOG: Recuperati 1000 record nel batch 1
+SITEMAP LOG: Recupero batch 2 di 2
+SITEMAP LOG: Recuperati 498 record nel batch 2
+SITEMAP LOG: Totale record recuperati dopo paginazione: 1498
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -250699 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --233105 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --158137 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --134085 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -1448224 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --762960 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1259230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1273694 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1168200 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-130645 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2011-232500 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-154787 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-95896 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-1168210 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-140070 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-55886 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2013-79472 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-64336 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-925923 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-72686 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-83438 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-233115 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-82446 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-66855 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-68659 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-68133 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-338942 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-246631 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2015-233117 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-462092 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2017-116221 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-563718 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-76789 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-497722 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-697395 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-562236 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-565469 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617586 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617587 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-520024 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-748063 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-563230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2019-517034 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2020-102359 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2020-575121 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-586384 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-766428 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2022-713174 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-211219 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-1037568 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-818621 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-275145 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-1142871 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-1162745 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-877917 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-154790 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2024-1267167 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1168197 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1008445 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1290205 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2024-1273948 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-1061317 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-358913 (tipo: film)
+SITEMAP DEBUG: Trovati 73 slug potenzialmente problematici
+Recuperate pagine tracciate: 1143 film, 355 serie
+Recuperati 1143 film tracciati da Supabase
+Recuperate 355 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'superman-ii-1980-8536',
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426'
+]
+Totale film nella sitemap: 1147
+Totale serie nella sitemap: 359
+SITEMAP DEBUG: Dimensione stimata dell'XML: 222 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 289 KB
+ GET /sitemap.xml 200 in 226ms
+ ○ Compiling /admin/statistiche-pagine ...
+ ✓ Compiled /admin/statistiche-pagine in 1175ms (1864 modules)
+Error: Route "/admin/statistiche-pagine" used `searchParams.page`. `searchParams` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at StatsDashboard (app/admin/statistiche-pagine/page.tsx:264:44)
+  262 |   
+  263 |   // Parametri di paginazione
+> 264 |   const currentPage = parseInt(searchParams.page || '1', 10);
+      |                                            ^
+  265 |   const pageSize = 50;
+  266 |   const offset = (currentPage - 1) * pageSize;
+  267 |   
+Supabase URL: https://gbynhfiqlacmlwpjcxmp.supabase.co
+Supabase Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdieW5oZmlxbGFjbWx3cGpjeG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxOTI3NzcsImV4cCI6MjA1NTc2ODc3N30.gFiM3yc82ID61fVPAt6fpFvOoHheAS7zS5Ns3iMsQ7I
+ ✓ Compiled in 339ms (807 modules)
+ ✓ Compiled in 120ms (807 modules)
+SITEMAP ANALYZER: Recuperati 1000 record dal database
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1498,
+  total_film: 1143,
+  total_serie: 355,
+  total_visits: 1856
+}
+SITEMAP LOG: Totale pagine nel database: 1498
+SITEMAP LOG: Necessarie 2 pagine di query per recuperare tutti i dati
+SITEMAP LOG: Recupero batch 1 di 2
+SITEMAP LOG: Recuperati 1000 record nel batch 1
+SITEMAP LOG: Recupero batch 2 di 2
+SITEMAP LOG: Recuperati 498 record nel batch 2
+SITEMAP LOG: Totale record recuperati dopo paginazione: 1498
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -250699 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --233105 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --158137 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --134085 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -1448224 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --762960 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1259230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1273694 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1168200 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-130645 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2011-232500 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-154787 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-95896 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-1168210 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-140070 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-55886 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2013-79472 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-64336 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-925923 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-72686 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-83438 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-233115 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-82446 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-66855 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-68659 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-68133 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-338942 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-246631 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2015-233117 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-462092 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2017-116221 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-563718 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-76789 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-497722 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-697395 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-562236 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-565469 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617586 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617587 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-520024 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-748063 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-563230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2019-517034 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2020-102359 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2020-575121 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-586384 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-766428 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2022-713174 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-211219 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-1037568 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-818621 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-275145 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-1142871 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-1162745 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-877917 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-154790 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2024-1267167 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1168197 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1008445 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1290205 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2024-1273948 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-1061317 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-358913 (tipo: film)
+SITEMAP DEBUG: Trovati 73 slug potenzialmente problematici
+Recuperate pagine tracciate: 1143 film, 355 serie
+Recuperati 1143 film tracciati da Supabase
+Recuperate 355 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'superman-ii-1980-8536',
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426'
+]
+Totale film nella sitemap: 1147
+Totale serie nella sitemap: 359
+SITEMAP DEBUG: Dimensione stimata dell'XML: 222 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 289 KB
+ GET /sitemap.xml 200 in 312ms
+Sitemap XML content sample (first 200 chars): <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      
+        <url>
+          <loc>https://mastroianni.app</loc>
+          <changefreq>weekly</
+SITEMAP ANALYZER: Dimensione della sitemap recuperata: 289 KB
+Film URL matches found: 1147
+Serie URL matches found: 359
+Sample film URL: <loc>https://mastroianni.app/film/carjackers-ladri-ad-alta-velocita-2025-1229730</loc>
+SITEMAP ANALYZER: Estratti 1147 slug film dalla sitemap
+SITEMAP ANALYZER: Estratti 359 slug serie dalla sitemap
+SITEMAP ANALYZER: Record film nel DB: 742
+SITEMAP ANALYZER: Record serie nel DB: 258
+SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 0, XML invalidi: 0, Sconosciuti: 0
+SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 0, XML invalidi: 0, Sconosciuti: 0
+SITEMAP ANALYZER: Totale record non inclusi nella sitemap: 0
+ GET /admin/statistiche-pagine 200 in 2118ms
+Error: Route "/admin/statistiche-pagine" used `searchParams.page`. `searchParams` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at StatsDashboard (app/admin/statistiche-pagine/page.tsx:264:44)
+  262 |   
+  263 |   // Parametri di paginazione
+> 264 |   const currentPage = parseInt(searchParams.page || '1', 10);
+      |                                            ^
+  265 |   const pageSize = 50;
+  266 |   const offset = (currentPage - 1) * pageSize;
+  267 |   
+SITEMAP ANALYZER: Recuperati 1000 record dal database
+Generazione sitemap.xml in corso...
+Recupero film popolari da TMDB per la sitemap...
+Fetching from TMDB: /movie/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/movie/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /movie/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /movie/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperati 20 film da TMDB
+Recuperati 20 film da TMDB
+Recupero serie TV popolari da TMDB per la sitemap...
+Fetching from TMDB: /tv/popular {
+  apiKeyPresent: true,
+  apiKeyLength: 32,
+  url: 'https://api.themoviedb.org/3/tv/popular?api_key=API_KEY_HIDDEN&language=it-IT',
+  language: 'it-IT'
+}
+TMDB API response for /tv/popular: {
+  hasResults: true,
+  resultsCount: 20,
+  keys: [ 'page', 'results', 'total_pages', 'total_results' ]
+}
+TMDB image paths for /tv/popular: {
+  posterPath: undefined,
+  backdropPath: undefined,
+  profilePath: undefined,
+  hasValidPosterPath: false,
+  hasValidBackdropPath: false,
+  hasValidProfilePath: false
+}
+Recuperate 20 serie da TMDB
+Recuperate 20 serie da TMDB
+Recupero pagine tracciate da Supabase per la sitemap...
+Statistiche pagine recuperate: {
+  total_pages: 1498,
+  total_film: 1143,
+  total_serie: 355,
+  total_visits: 1856
+}
+SITEMAP LOG: Totale pagine nel database: 1498
+SITEMAP LOG: Necessarie 2 pagine di query per recuperare tutti i dati
+SITEMAP LOG: Recupero batch 1 di 2
+SITEMAP LOG: Recuperati 1000 record nel batch 1
+SITEMAP LOG: Recupero batch 2 di 2
+SITEMAP LOG: Recuperati 498 record nel batch 2
+SITEMAP LOG: Totale record recuperati dopo paginazione: 1498
+SITEMAP DEBUG: Slug inizia con trattino: -2025-276880 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-560964 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2005-33081 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1940-421354 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2010-250930 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2008-250883 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1979-421287 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-108433 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-231931 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-228540 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -250699 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --233105 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --158137 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --134085 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -1448224 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --762960 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1259230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --1273694 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -1168200 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-130645 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2011-232500 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-154787 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2012-95896 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2010-1168210 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-140070 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-55886 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2013-79472 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2013-64336 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2012-925923 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-72686 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-83438 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-233115 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2014-82446 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-66855 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-68659 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2016-68133 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-338942 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-246631 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2015-233117 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-462092 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2017-116221 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2017-563718 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-76789 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-497722 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-697395 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2018-562236 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2018-565469 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617586 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-617587 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-520024 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-748063 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2019-563230 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2019-517034 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2020-102359 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2020-575121 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-586384 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-766428 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2022-713174 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-211219 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2022-1037568 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-818621 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-275145 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-1142871 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-1162745 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2023-877917 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2023-154790 (tipo: serie)
+SITEMAP DEBUG: Slug inizia con trattino: --2024-1267167 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1168197 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1008445 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2025-1290205 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: -2024-1273948 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2021-1061317 (tipo: film)
+SITEMAP DEBUG: Slug inizia con trattino: --2015-358913 (tipo: film)
+SITEMAP DEBUG: Trovati 73 slug potenzialmente problematici
+Recuperate pagine tracciate: 1143 film, 355 serie
+Recuperati 1143 film tracciati da Supabase
+Recuperate 355 serie tracciate da Supabase
+SITEMAP DEBUG: Esempi di slug film recuperati: [
+  'superman-ii-1980-8536',
+  'red-eye-2017-423415',
+  'pearl-2022-949423',
+  'haunt-season-2024-1294496',
+  'babysitter-massacre-2013-248426'
+]
+Totale film nella sitemap: 1147
+Totale serie nella sitemap: 359
+SITEMAP DEBUG: Dimensione stimata dell'XML: 222 KB
+Generazione sitemap.xml completata
+SITEMAP DEBUG: Dimensione effettiva XML: 289 KB
+ GET /sitemap.xml 200 in 277ms
+Sitemap XML content sample (first 200 chars): <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      
+        <url>
+          <loc>https://mastroianni.app</loc>
+          <changefreq>weekly</
+SITEMAP ANALYZER: Dimensione della sitemap recuperata: 289 KB
+Film URL matches found: 1147
+Serie URL matches found: 359
+Sample film URL: <loc>https://mastroianni.app/film/carjackers-ladri-ad-alta-velocita-2025-1229730</loc>
+SITEMAP ANALYZER: Estratti 1147 slug film dalla sitemap
+SITEMAP ANALYZER: Estratti 359 slug serie dalla sitemap
+SITEMAP ANALYZER: Record film nel DB: 742
+SITEMAP ANALYZER: Record serie nel DB: 258
+SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 0, XML invalidi: 0, Sconosciuti: 0
+SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: 0, Vuoti: 0, Troppo lunghi: 0, Iniziano con trattino: 0, XML invalidi: 0, Sconosciuti: 0
+SITEMAP ANALYZER: Totale record non inclusi nella sitemap: 0
+ GET /admin/statistiche-pagine 200 in 546ms
+[?25h
