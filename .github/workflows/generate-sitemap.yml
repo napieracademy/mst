@@ -40,6 +40,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Scarica l'intera history per gestire meglio i conflitti
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v3
@@ -85,11 +87,26 @@ jobs:
           echo "Sitemap generated successfully"
           head -n 10 public/sitemap.xml
 
-      # Commit e push delle modifiche con token GitHub
+      # Commit e push delle modifiche con token GitHub e gestione dei conflitti
       - name: Commit and push changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
+          
+          # Aggiungiamo solo il file sitemap.xml
           git add public/sitemap.xml
-          git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub"
+          
+          # Verifichiamo se ci sono modifiche da committare
+          if git diff --staged --quiet; then
+            echo "No changes to commit for sitemap.xml"
+            exit 0
+          fi
+          
+          # Committiamo le modifiche
+          git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub"
+          
+          # Pull prima di push per gestire eventuali conflitti
+          git pull --rebase origin main
+          
+          # Push con le modifiche integrate
           git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
