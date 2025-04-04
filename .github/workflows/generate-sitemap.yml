@@ -30,13 +30,6 @@ jobs:
     permissions:
       contents: write
 
-    env:
-      # Definisci direttamente le variabili d'ambiente necessarie
-      NEXT_PUBLIC_SITE_URL: 'https://mastroianni.app'
-      # Utilizzare i secrets di GitHub per le credenziali Supabase
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -76,10 +69,13 @@ jobs:
           npm list dotenv @supabase/supabase-js fs-extra
           ls -la public/
 
-      # Genera la sitemap
+      # Genera la sitemap passando i secrets direttamente allo script
       - name: Generate static sitemap
         run: |
           mkdir -p public
+          NEXT_PUBLIC_SITE_URL=https://mastroianni.app \
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
           node scripts/generate-static-sitemap.js
           ls -la public/sitemap.xml
           echo "Sitemap size: $(du -h public/sitemap.xml | cut -f1)"
