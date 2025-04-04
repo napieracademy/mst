@@ -42,24 +42,6 @@ jobs:
           node-version: 20.x
           cache: 'npm'
 
-      # DEBUG - Mostra le variabili d'ambiente (mascherate per sicurezza)
-      - name: Debug - Environment Variables
-        run: |
-          echo "NEXT_PUBLIC_SITE_URL exists: ${{ env.NEXT_PUBLIC_SITE_URL != '' }}"
-          echo "NEXT_PUBLIC_SUPABASE_URL exists: ${{ env.NEXT_PUBLIC_SUPABASE_URL != '' }}"
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY exists: ${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}"
-          
-          # Verifica che le credenziali non siano vuote
-          if [ -z "${{ env.NEXT_PUBLIC_SUPABASE_URL }}" ]; then
-            echo "Error: NEXT_PUBLIC_SUPABASE_URL is empty"
-            exit 1
-          fi
-          
-          if [ -z "${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" ]; then
-            echo "Error: NEXT_PUBLIC_SUPABASE_ANON_KEY is empty"
-            exit 1
-          fi
-
       - name: Install dependencies
         run: npm install
 
