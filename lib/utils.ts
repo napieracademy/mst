@@ -40,21 +40,13 @@ export function slugify(text: string): string {
 
 /**
  * Genera uno slug SEO-friendly
- * @param title Titolo del contenuto
- * @param year Anno di uscita
- * @param id ID univoco
- * @returns Slug normalizzato
+ * @param title Titolo del film
+ * @param year Anno di uscita (o null se non disponibile)
+ * @param id ID univoco del film
+ * @returns Slug completo con titolo, anno e id
  */
-export function generateSlug(title: string, year: string | number | null, id: number | string): string {
-  // Normalizza il titolo usando la funzione slugify
-  const normalizedTitle = slugify(title);
-  
-  // Se non abbiamo l'anno, usa solo titolo-id
-  if (!year) {
-    return `${normalizedTitle}-${id}`;
-  }
-  
-  return `${normalizedTitle}-${year}-${id}`;
+export function generateSlug(title: string, year: string | null, id: number | string): string {
+  return `${slugify(title)}${year ? `-${year}` : ""}-${id}`
 }
 
 /**
@@ -69,23 +61,37 @@ export function generateFilmSlug(title: string, year: number, id: number): strin
 }
 
 /**
- * Estrae l'ID da uno slug
- * @param slug Lo slug completo
- * @returns L'ID estratto, o null se non trovato
+ * Estrae l'ID numerico da uno slug
+ * @param slug Lo slug completo (es. "titolo-film-2021-12345")
+ * @returns L'ID numerico estratto dallo slug, o null se non trovato
  */
 export function extractIdFromSlug(slug: string): string | null {
-  // Cerca un ID alla fine dello slug
-  // Gestisce sia slug con formato titolo-id che titolo-anno-id
-  const matchEnd = slug.match(/[-](\d+)$/);
-  if (matchEnd) return matchEnd[1];
-  
-  // Se non lo trova alla fine, cerca un ID ovunque nello slug
-  const matchAnywhere = slug.match(/(\d{5,})/);
-  if (matchAnywhere) return matchAnywhere[1];
-  
-  // Nessun ID trovato
-  console.error(`Nessun ID trovato nello slug: ${slug}`);
-  return null;
+  // Cerca il numero alla fine dello slug dopo l'ultimo trattino
+  const match = slug.match(/-(\d+)$/)
+  return match ? match[1] : null
+}
+
+/**
+ * Recupera i dettagli di un film dal suo slug
+ * @param slug Lo slug del film da cercare
+ * @returns I dettagli del film o null se non trovato
+ */
+export async function getMovieBySlug(slug: string) {
+  try {
+    // Estrai l'ID dallo slug
+    const id = extractIdFromSlug(slug);
+    if (!id) return null;
+    
+    // Importa dinamicamente per evitare dipendenze circolari
+    const { getMovieDetails } = await import('./tmdb');
+    
+    // Recupera i dettagli del film usando l'ID
+    const movie = await getMovieDetails(id, "movie");
+    return movie;
+  } catch (error) {
+    console.error("Errore nel recupero del film per slug:", error);
+    return null;
+  }
 }
 
 // Definizione del tipo per i membri della troupe
