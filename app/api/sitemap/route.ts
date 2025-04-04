@@ -20,8 +20,8 @@ async function getAllPages(): Promise<MappedPage[]> {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseKey) {
-      console.warn('Credenziali Supabase mancanti, utilizzo pagine di esempio');
-      return getFallbackPages();
+      console.warn('Credenziali Supabase mancanti');
+      return []; // Restituisci un array vuoto invece di dati fake
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -35,13 +35,13 @@ async function getAllPages(): Promise<MappedPage[]> {
     
     if (sampleError) {
       console.error('Errore nel verificare la struttura della tabella:', sampleError);
-      return getFallbackPages();
+      return []; // Restituisci un array vuoto invece di dati fake
     }
     
     // Se non ci sono dati, usa il fallback
     if (!sampleData || sampleData.length === 0) {
       console.warn('Nessun dato trovato nella tabella generated_pages');
-      return getFallbackPages();
+      return []; // Restituisci un array vuoto invece di dati fake
     }
     
     // Estrai le colonne disponibili dal campione
@@ -54,7 +54,7 @@ async function getAllPages(): Promise<MappedPage[]> {
     
     if (!hasSlug) {
       console.error('La colonna "slug" non esiste nella tabella generated_pages');
-      return getFallbackPages();
+      return []; // Restituisci un array vuoto invece di dati fake
     }
     
     // Costruisci la query in base alle colonne disponibili
@@ -71,7 +71,7 @@ async function getAllPages(): Promise<MappedPage[]> {
     
     if (error) {
       console.error('Errore nel recupero pagine da Supabase:', error);
-      return getFallbackPages();
+      return []; // Restituisci un array vuoto invece di dati fake
     }
     
     // Mappa i risultati nel formato richiesto
@@ -83,14 +83,14 @@ async function getAllPages(): Promise<MappedPage[]> {
     }));
   } catch (error) {
     console.error('Errore nel recupero delle pagine:', error);
-    return getFallbackPages();
+    return []; // Restituisci un array vuoto invece di dati fake
   }
 }
 
 // Funzione per trovare una possibile colonna timestamp
 function findTimestampColumn(columns: string[]): string | null {
   // Cerca colonne comuni per timestamp
-  const timestampColumns = ['updated_at', 'created_at', 'timestamp', 'modified_at', 'date', 'last_updated'];
+  const timestampColumns = ['updated_at', 'created_at', 'timestamp', 'modified_at', 'date', 'last_updated', 'first_generated_at', 'last_visited_at'];
   
   for (const col of timestampColumns) {
     if (columns.includes(col)) {
@@ -102,21 +102,9 @@ function findTimestampColumn(columns: string[]): string | null {
   return null;
 }
 
-// Funzione di fallback per ottenere pagine di esempio
-function getFallbackPages(): MappedPage[] {
-  console.log('Utilizzo pagine di fallback');
-  return [
-    { slug: 'film/dune-2021-438631', updatedAt: new Date().toISOString() },
-    { slug: 'film/oppenheimer-2023-872585', updatedAt: new Date().toISOString() },
-    { slug: 'film/barbie-2023-346698', updatedAt: new Date().toISOString() },
-    { slug: 'serie/breaking-bad-2008-1396', updatedAt: new Date().toISOString() },
-    { slug: 'serie/stranger-things-2016-66732', updatedAt: new Date().toISOString() }
-  ];
-}
-
 export async function GET() {
   try {
-    const pages = await getAllPages();
+    const dynamicPages = await getAllPages();
     
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
     
@@ -138,7 +126,7 @@ export async function GET() {
     <priority>${page.priority}</priority>
   </url>`).join('')}
   
-  ${pages.map(page => `
+  ${dynamicPages.map(page => `
   <url>
     <loc>${baseUrl}/${page.slug}</loc>
     <lastmod>${new Date(page.updatedAt).toISOString()}</lastmod>
