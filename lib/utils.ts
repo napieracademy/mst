@@ -104,11 +104,13 @@ interface CrewMember {
 export function isValidFilm(film: any): boolean {
   return Boolean(
     film &&
-    film.title &&
-    film.release_date &&
-    film.poster_path &&
-    film.credits?.crew?.find((person: CrewMember) => person.job === "Director") &&
-    film.overview
+    film.id &&
+    film.title
+    // I seguenti campi sono ora opzionali:
+    // film.release_date
+    // film.poster_path
+    // film.credits?.crew?.find((person: CrewMember) => person.job === "Director")
+    // film.overview
   );
 }
 
@@ -120,10 +122,12 @@ export function isValidFilm(film: any): boolean {
 export function isValidShow(show: any): boolean {
   return Boolean(
     show &&
-    show.name &&
-    show.first_air_date &&
-    show.poster_path &&
-    show.overview
+    show.id &&
+    show.name
+    // I seguenti campi sono ora opzionali:
+    // show.first_air_date
+    // show.poster_path
+    // show.overview
   );
 }
 
@@ -134,5 +138,21 @@ export function isValidShow(show: any): boolean {
  */
 export function checkImagePath(path: string | null | undefined): boolean {
   return !!path && typeof path === 'string' && path.startsWith('/');
+}
+
+/**
+ * Verifica se un oggetto persona contiene tutti i campi necessari
+ * @param person Oggetto persona da validare
+ * @returns true se la persona è valida, false altrimenti
+ */
+export function isValidPerson(person: any): boolean {
+  return Boolean(
+    person &&
+    person.id &&
+    person.name
+    // I seguenti campi sono ora opzionali:
+    // person.profile_path
+    // person.biography
+  );
 }
 

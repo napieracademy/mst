@@ -1,10 +1,11 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidShow, slugify } from '@/lib/utils';
 import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows } from "@/lib/tmdb";
 import { TVPageClient } from '@/app/tv/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
 import SerieSEO from '@/app/components/seo/serie-seo';
+import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
 
 export async function generateStaticParams() {
   try {
@@ -121,11 +122,52 @@ export default async function SeriePage({ params }: { params: { slug: string } }
   }
 
   const id = extractIdFromSlug(slug);
-  if (!id) notFound();
+  if (!id) {
+    const errorUrl = generateErrorUrl({
+      title: "Serie TV non trovata",
+      message: "L'ID della serie TV non è stato trovato nell'URL",
+      redirectPath: "/"
+    });
+    redirect(errorUrl);
+  }
 
   try {
     const show = await getMovieDetails(id, "tv");
-    if (!show) notFound();
+    
+    // Verifica che la serie abbia i dati necessari
+    if (!show) {
+      const errorUrl = generateErrorUrl({
+        title: "Dati serie TV insufficienti",
+        message: "I dati della serie TV sono completamente mancanti",
+        redirectPath: "/",
+        missingFields: ['entire_object']
+      });
+      return redirect(errorUrl);
+    }
+    
+    // Definiamo i campi richiesti per una serie TV (solo id e name)
+    const requiredFields = ['id', 'name'] as (keyof typeof show)[];
+    const { isValid, missingFields } = hasRequiredData(show, requiredFields);
+    
+    if (!isValid) {
+      console.log("DATI SERIE MANCANTI (ID: " + id + "):", missingFields);
+      console.log("Dettagli serie disponibili:", {
+        id: show.id,
+        name: show.name || "(mancante)", 
+        first_air_date: show.first_air_date || "(mancante)",
+        overview: show.overview ? (show.overview.substring(0, 50) + "...") : "(mancante)",
+        poster_path: show.poster_path || "(mancante)",
+        backdrop_path: show.backdrop_path || "(mancante)"
+      });
+      
+      const errorUrl = generateErrorUrl({
+        title: "Dati serie TV insufficienti",
+        message: "I dati della serie TV sono incompleti o non disponibili",
+        redirectPath: "/",
+        missingFields
+      });
+      return redirect(errorUrl);
+    }
 
     // Ottieni dati correlati
     const trailers = await getTrailers(id, "tv").catch(() => []) || [];
@@ -194,7 +236,12 @@ export default async function SeriePage({ params }: { params: { slug: string } }
     );
   } catch (error) {
     console.error("Error rendering serie page:", error);
-    notFound();
+    const errorUrl = generateErrorUrl({
+      title: "Errore di sistema",
+      message: "Si è verificato un errore durante il caricamento della pagina della serie TV",
+      redirectPath: "/"
+    });
+    redirect(errorUrl);
   }
 }
 

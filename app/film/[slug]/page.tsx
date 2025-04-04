@@ -1,10 +1,11 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidFilm, slugify } from '@/lib/utils';
 import { getMovieDetails, getTrailers, getSimilarMovies, getPopularMovies } from "@/lib/tmdb";
 import { MoviePageClient } from '@/app/movie/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
 import FilmSEO from '@/app/components/seo/film-seo';
+import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
 
 export async function generateStaticParams() {
   try {
@@ -121,12 +122,40 @@ export default async function FilmPage({ params }: { params: { slug: string } })
   }
 
   const id = extractIdFromSlug(slug);
-  if (!id) notFound();
+  if (!id) {
+    console.log("ID film non trovato, reindirizzamento...");
+    return redirect("/data-error?title=Film%20non%20trovato&message=ID%20non%20trovato&redirectPath=/");
+  }
 
   try {
     const movie = await getMovieDetails(id, "movie");
-    if (!movie || !isValidFilm(movie)) notFound();
-
+    
+    // Verifica che il film abbia tutti i dati necessari
+    if (!movie) {
+      console.log("Oggetto film mancante, reindirizzamento...");
+      return redirect("/data-error?title=Film%20non%20trovato&message=Dati%20film%20mancanti&redirectPath=/");
+    }
+    
+    // Definiamo i campi richiesti per un film (solo id e title)
+    const requiredFields = ['id', 'title'] as (keyof typeof movie)[];
+    const { isValid, missingFields } = hasRequiredData(movie, requiredFields);
+    
+    if (!isValid) {
+      console.log("DATI FILM MANCANTI (ID: " + id + "):", missingFields);
+      console.log("Dettagli film disponibili:", {
+        id: movie.id,
+        title: movie.title || "(mancante)",
+        release_date: movie.release_date || "(mancante)",
+        overview: movie.overview ? (movie.overview.substring(0, 50) + "...") : "(mancante)",
+        poster_path: movie.poster_path || "(mancante)", 
+        backdrop_path: movie.backdrop_path || "(mancante)"
+      });
+      
+      // URL hardcoded per semplicità
+      const errorUrl = "/data-error?title=Dati%20film%20insufficienti&message=Dati%20film%20incompleti&redirectPath=/";
+      return redirect(errorUrl);
+    }
+    
     // Ottieni dati correlati
     const trailers = await getTrailers(id, "movie").catch(() => []) || [];
     const similarMovies = await getSimilarMovies(id, "movie").catch(() => []) || [];
@@ -187,7 +216,7 @@ export default async function FilmPage({ params }: { params: { slug: string } })
     );
   } catch (error) {
     console.error("Error rendering film page:", error);
-    notFound();
+    return redirect("/data-error?title=Errore&message=Errore%20durante%20il%20caricamento&redirectPath=/");
   }
 }
 

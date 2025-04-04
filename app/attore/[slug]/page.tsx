@@ -1,7 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getPersonDetails } from '@/lib/tmdb';
 import { extractIdFromSlug } from '@/lib/utils';
 import ActorDetails from '@/components/actor-details';
+import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
 
 export async function generateStaticParams() {
   // Non implementato - verrebbe aggiunto quando si ha un endpoint per ottenere gli attori popolari
@@ -44,16 +45,58 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function ActorPage({ params }: { params: { slug: string } }) {
   const slug = params.slug;
   const id = extractIdFromSlug(slug);
-  if (!id) notFound();
+  if (!id) {
+    const errorUrl = generateErrorUrl({
+      title: "Attore non trovato",
+      message: "L'ID dell'attore non è stato trovato nell'URL",
+      redirectPath: "/"
+    });
+    redirect(errorUrl);
+  }
 
   try {
     const actorDetails = await getPersonDetails(id);
-    if (!actorDetails) notFound();
+    if (!actorDetails) {
+      const errorUrl = generateErrorUrl({
+        title: "Dati attore insufficienti",
+        message: "I dati dell'attore sono completamente mancanti",
+        redirectPath: "/",
+        missingFields: ['entire_object']
+      });
+      redirect(errorUrl);
+    }
+    
+    // Definiamo i campi richiesti per un attore (solo id e name)
+    const requiredFields = ['id', 'name'] as (keyof typeof actorDetails)[];
+    const { isValid, missingFields } = hasRequiredData(actorDetails, requiredFields);
+    
+    if (!isValid) {
+      console.log("DATI ATTORE MANCANTI (ID: " + id + "):", missingFields);
+      console.log("Dettagli attore disponibili:", {
+        id: actorDetails.id,
+        name: actorDetails.name || "(mancante)",
+        profile_path: actorDetails.profile_path || "(mancante)",
+        biography: actorDetails.biography ? (actorDetails.biography.substring(0, 50) + "...") : "(mancante)"
+      });
+      
+      const errorUrl = generateErrorUrl({
+        title: "Dati attore insufficienti",
+        message: "I dati dell'attore sono incompleti o non disponibili",
+        redirectPath: "/",
+        missingFields
+      });
+      return redirect(errorUrl);
+    }
     
     return <ActorDetails actor={actorDetails} />;
   } catch (error) {
     console.error("Error fetching actor details:", error);
-    notFound();
+    const errorUrl = generateErrorUrl({
+      title: "Errore di sistema",
+      message: "Si è verificato un errore durante il caricamento della pagina dell'attore",
+      redirectPath: "/"
+    });
+    redirect(errorUrl);
   }
 }
 

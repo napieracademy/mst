@@ -1,7 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getPersonDetails } from '@/lib/tmdb';
 import { extractIdFromSlug } from '@/lib/utils';
 import DirectorDetails from '@/components/director-details';
+import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
 
 export async function generateStaticParams() {
   // Non implementato - verrebbe aggiunto quando si ha un endpoint per ottenere i registi popolari
@@ -44,16 +45,58 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function DirectorPage({ params }: { params: { slug: string } }) {
   const slug = params.slug;
   const id = extractIdFromSlug(slug);
-  if (!id) notFound();
+  if (!id) {
+    const errorUrl = generateErrorUrl({
+      title: "Regista non trovato",
+      message: "L'ID del regista non è stato trovato nell'URL",
+      redirectPath: "/"
+    });
+    redirect(errorUrl);
+  }
 
   try {
     const directorDetails = await getPersonDetails(id);
-    if (!directorDetails) notFound();
+    if (!directorDetails) {
+      const errorUrl = generateErrorUrl({
+        title: "Dati regista insufficienti",
+        message: "I dati del regista sono completamente mancanti",
+        redirectPath: "/",
+        missingFields: ['entire_object']
+      });
+      redirect(errorUrl);
+    }
+    
+    // Definiamo i campi richiesti per un regista (solo id e name)
+    const requiredFields = ['id', 'name'] as (keyof typeof directorDetails)[];
+    const { isValid, missingFields } = hasRequiredData(directorDetails, requiredFields);
+    
+    if (!isValid) {
+      console.log("DATI REGISTA MANCANTI (ID: " + id + "):", missingFields);
+      console.log("Dettagli regista disponibili:", {
+        id: directorDetails.id,
+        name: directorDetails.name || "(mancante)",
+        profile_path: directorDetails.profile_path || "(mancante)",
+        biography: directorDetails.biography ? (directorDetails.biography.substring(0, 50) + "...") : "(mancante)"
+      });
+      
+      const errorUrl = generateErrorUrl({
+        title: "Dati regista insufficienti",
+        message: "I dati del regista sono incompleti o non disponibili",
+        redirectPath: "/",
+        missingFields
+      });
+      return redirect(errorUrl);
+    }
     
     return <DirectorDetails director={directorDetails} />;
   } catch (error) {
     console.error("Error fetching director details:", error);
-    notFound();
+    const errorUrl = generateErrorUrl({
+      title: "Errore di sistema",
+      message: "Si è verificato un errore durante il caricamento della pagina del regista",
+      redirectPath: "/"
+    });
+    redirect(errorUrl);
   }
 }
 
