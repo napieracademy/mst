@@ -15,7 +15,6 @@ on:
       - main
     paths:
       # Esegui solo se sono stati modificati file rilevanti per la sitemap
-      - 'app/sitemap.xml/**'
       - 'scripts/generate-static-sitemap.js'
       - '.github/workflows/generate-sitemap.yml'
       - 'public/sitemap.xml'
@@ -27,53 +26,66 @@ jobs:
     # Impedisci l'esecuzione se il repository è forkato (sicurezza)
     if: github.repository == 'napieracademy/mst'
 
+    env:
+      # Definisci direttamente le variabili d'ambiente necessarie
+      NEXT_PUBLIC_SITE_URL: 'https://mastroianni.app'
+      # Per Supabase utilizziamo un meccanismo di fallback nello script (non servono le credenziali effettive)
+      NEXT_PUBLIC_SUPABASE_URL: 'fallback'
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fallback'
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          ref: main
-          fetch-depth: 1
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20.x
           cache: 'npm'
+
+      # DEBUG - Mostra le variabili d'ambiente (mascherate per sicurezza)
+      - name: Debug - Environment Variables
+        run: |
+          echo "NEXT_PUBLIC_SITE_URL exists: ${{ env.NEXT_PUBLIC_SITE_URL != '' }}"
+          echo "NEXT_PUBLIC_SUPABASE_URL exists: ${{ env.NEXT_PUBLIC_SUPABASE_URL != '' }}"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY exists: ${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}"
 
       - name: Install dependencies
         run: npm install
 
-      - name: Verify environment
+      # DEBUG - Verifica pacchetti installati
+      - name: Debug - Check installed packages
         run: |
-          echo "Node.js version: $(node -v)"
-          echo "NPM version: $(npm -v)"
-          echo "Working directory: $(pwd)"
-          echo "Repository: ${{ github.repository }}"
-          echo "NEXT_PUBLIC_SITE_URL is set: ${{ secrets.NEXT_PUBLIC_SITE_URL != '' }}"
-          echo "NEXT_PUBLIC_SUPABASE_URL is set: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' }}"
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY is set: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}"
-          ls -la public/ || mkdir -p public && echo "Created public directory"
-
-      - name: Generate static sitemap
-        run: npm run generate-static-sitemap
-        env:
-          # Passa le variabili d'ambiente necessarie
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
-      - name: Verify sitemap
-        run: |
-          echo "Verifying sitemap.xml..."
+          npm list dotenv @supabase/supabase-js fs-extra
           ls -la public/
-          wc -l public/sitemap.xml
-          grep -c "<url>" public/sitemap.xml || echo "No URLs found in sitemap"
 
-      - name: Commit sitemap file
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Aggiorna sitemap.xml statica [skip ci]"
-          file_pattern: "public/sitemap.xml"
-          commit_user_name: GitHub Action
-          commit_user_email: actions@github.com
-          commit_author: GitHub Action <actions@github.com> 
+      # Genera la sitemap
+      - name: Generate static sitemap
+        run: |
+          mkdir -p public
+          node scripts/generate-static-sitemap.js
+          ls -la public/sitemap.xml
+          echo "Sitemap size: $(du -h public/sitemap.xml | cut -f1)"
+
+      # Verifica il file generato
+      - name: Verify generated sitemap
+        run: |
+          if [ ! -f "public/sitemap.xml" ]; then
+            echo "Error: sitemap.xml was not generated!"
+            exit 1
+          fi
+          if [ ! -s "public/sitemap.xml" ]; then
+            echo "Error: sitemap.xml is empty!"
+            exit 1
+          fi
+          echo "Sitemap generated successfully"
+          head -n 10 public/sitemap.xml
+
+      # Commit e push delle modifiche
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/sitemap.xml
+          git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub"
+          git push 
