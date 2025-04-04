@@ -17,6 +17,22 @@ log(`NEXT_PUBLIC_SITE_URL: ${process.env.NEXT_PUBLIC_SITE_URL ? 'impostato' : 'M
 log(`NEXT_PUBLIC_SUPABASE_URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'impostato' : 'MANCANTE'}`);
 log(`NEXT_PUBLIC_SUPABASE_ANON_KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'impostato (lunghezza: ' + process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length + ')' : 'MANCANTE'}`);
 
+// Verifica obbligatoria delle variabili d'ambiente
+if (!process.env.NEXT_PUBLIC_SITE_URL) {
+  console.error('Errore: NEXT_PUBLIC_SITE_URL non impostato');
+  process.exit(1);
+}
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  console.error('Errore: NEXT_PUBLIC_SUPABASE_URL non impostato');
+  process.exit(1);
+}
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  console.error('Errore: NEXT_PUBLIC_SUPABASE_ANON_KEY non impostato');
+  process.exit(1);
+}
+
 // Funzione per normalizzare un testo in uno slug (copiata da lib/utils.ts)
 function slugify(text) {
   return text
@@ -31,11 +47,6 @@ function slugify(text) {
 
 // Crea client Supabase (copiato da lib/supabase-server.ts)
 function createApiSupabaseClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    log('ATTENZIONE: Variabili d\'ambiente Supabase mancanti, utilizzo dati di fallback');
-    return null;
-  }
-  
   log(`Creazione client Supabase con URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -49,24 +60,18 @@ async function getAllDatabaseRecords() {
     log('SITEMAP STATIC: Recupero tutti i record dal database...');
     const supabase = createApiSupabaseClient();
     
-    // Se non è stato possibile creare il client Supabase, usa dati di fallback
-    if (!supabase) {
-      log('SITEMAP STATIC: Nessun client Supabase disponibile, utilizzo dati di fallback');
-      return { filmRecords: [], serieRecords: [], totalCount: 0 };
-    }
-    
     const { count: totalCount, error: countError } = await supabase
       .from('generated_pages')
       .select('*', { count: 'exact', head: true });
     
     if (countError) {
       console.error('SITEMAP STATIC: Errore nel conteggio record:', countError);
-      return { filmRecords: [], serieRecords: [], totalCount: 0 };
+      throw new Error(`Errore nel conteggio record: ${countError.message}`);
     }
     
     if (!totalCount || totalCount === 0) {
       console.warn('SITEMAP STATIC: Nessun record trovato nel database');
-      return { filmRecords: [], serieRecords: [], totalCount: 0 };
+      throw new Error('Nessun record trovato nel database');
     }
     
     log(`SITEMAP STATIC: Trovati ${totalCount} record totali nel database`);
@@ -91,7 +96,7 @@ async function getAllDatabaseRecords() {
         
         if (error) {
           console.error(`SITEMAP STATIC: Errore nel recupero batch ${page + 1}:`, error);
-          continue;
+          throw new Error(`Errore nel recupero batch ${page + 1}: ${error.message}`);
         }
         
         if (!data || data.length === 0) {
@@ -103,11 +108,15 @@ async function getAllDatabaseRecords() {
         allRecords = [...allRecords, ...data];
       } catch (batchError) {
         console.error(`SITEMAP STATIC: Errore critico nel recupero batch ${page + 1}:`, batchError);
-        continue;
+        throw batchError;
       }
     }
     
     log(`SITEMAP STATIC: Totale record recuperati: ${allRecords.length} di ${totalCount} attesi`);
+    
+    if (allRecords.length === 0) {
+      throw new Error('Nessun record recuperato dal database');
+    }
     
     const filmRecords = allRecords.filter(record => record.page_type === 'film');
     const serieRecords = allRecords.filter(record => record.page_type === 'serie');
@@ -121,49 +130,8 @@ async function getAllDatabaseRecords() {
     };
   } catch (error) {
     console.error('SITEMAP STATIC: Errore critico nel recupero dati:', error);
-    return { filmRecords: [], serieRecords: [], totalCount: 0 };
+    throw error;
   }
-}
-
-// Genera dati di fallback per la sitemap in caso di errori
-function generateFallbackData() {
-  log('SITEMAP STATIC: Generazione dati di fallback...');
-  
-  // Film popolari (dati di esempio)
-  const filmRecords = [
-    { slug: 'dune-2021-438631', page_type: 'film' },
-    { slug: 'oppenheimer-2023-872585', page_type: 'film' },
-    { slug: 'barbie-2023-346698', page_type: 'film' },
-    { slug: 'il-gladiatore-2000-98', page_type: 'film' },
-    { slug: 'il-padrino-1972-238', page_type: 'film' },
-    { slug: 'pulp-fiction-1994-680', page_type: 'film' },
-    { slug: 'la-vita-e-bella-1997-637', page_type: 'film' },
-    { slug: 'avatar-2009-19995', page_type: 'film' },
-    { slug: 'titanic-1997-597', page_type: 'film' },
-    { slug: 'inception-2010-27205', page_type: 'film' }
-  ];
-  
-  // Serie TV popolari (dati di esempio)
-  const serieRecords = [
-    { slug: 'breaking-bad-2008-1396', page_type: 'serie' },
-    { slug: 'stranger-things-2016-66732', page_type: 'serie' },
-    { slug: 'the-office-2005-2316', page_type: 'serie' },
-    { slug: 'game-of-thrones-2011-1399', page_type: 'serie' },
-    { slug: 'the-crown-2016-65494', page_type: 'serie' },
-    { slug: 'friends-1994-1668', page_type: 'serie' },
-    { slug: 'the-walking-dead-2010-1402', page_type: 'serie' },
-    { slug: 'the-mandalorian-2019-82856', page_type: 'serie' },
-    { slug: 'the-queen-s-gambit-2020-87739', page_type: 'serie' },
-    { slug: 'the-witcher-2019-71912', page_type: 'serie' }
-  ];
-  
-  log(`SITEMAP STATIC: Generati ${filmRecords.length} film e ${serieRecords.length} serie di fallback`);
-  
-  return {
-    filmRecords,
-    serieRecords,
-    totalCount: filmRecords.length + serieRecords.length
-  };
 }
 
 // Generazione della sitemap statica
@@ -173,13 +141,7 @@ async function generateStaticSitemap() {
     const startTime = Date.now();
     
     // 1. Recupera tutti i film e serie direttamente dal database
-    let { filmRecords, serieRecords, totalCount } = await getAllDatabaseRecords();
-    
-    // Se non ci sono dati, usa il fallback
-    if (filmRecords.length === 0 && serieRecords.length === 0) {
-      log('SITEMAP STATIC: Nessun dato dal database, utilizzo dati di fallback');
-      ({ filmRecords, serieRecords, totalCount } = generateFallbackData());
-    }
+    const { filmRecords, serieRecords, totalCount } = await getAllDatabaseRecords();
     
     log(`SITEMAP STATIC: Recuperati dal database ${filmRecords.length} film e ${serieRecords.length} serie (totale DB: ${totalCount})`);
     

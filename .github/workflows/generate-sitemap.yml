@@ -33,9 +33,9 @@ jobs:
     env:
       # Definisci direttamente le variabili d'ambiente necessarie
       NEXT_PUBLIC_SITE_URL: 'https://mastroianni.app'
-      # Per Supabase utilizziamo un meccanismo di fallback nello script (non servono le credenziali effettive)
-      NEXT_PUBLIC_SUPABASE_URL: 'fallback'
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fallback'
+      # Utilizzare i secrets di GitHub per le credenziali Supabase
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
     steps:
       - name: Checkout repository
@@ -55,6 +55,17 @@ jobs:
           echo "NEXT_PUBLIC_SITE_URL exists: ${{ env.NEXT_PUBLIC_SITE_URL != '' }}"
           echo "NEXT_PUBLIC_SUPABASE_URL exists: ${{ env.NEXT_PUBLIC_SUPABASE_URL != '' }}"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY exists: ${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}"
+          
+          # Verifica che le credenziali non siano vuote
+          if [ -z "${{ env.NEXT_PUBLIC_SUPABASE_URL }}" ]; then
+            echo "Error: NEXT_PUBLIC_SUPABASE_URL is empty"
+            exit 1
+          fi
+          
+          if [ -z "${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" ]; then
+            echo "Error: NEXT_PUBLIC_SUPABASE_ANON_KEY is empty"
+            exit 1
+          fi
 
       - name: Install dependencies
         run: npm install

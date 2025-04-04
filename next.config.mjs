@@ -32,6 +32,17 @@ const nextConfig = {
   skipMiddlewareUrlNormalize: true,
   skipTrailingSlashRedirect: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
+  async rewrites() {
+    return {
+      beforeFiles: [
+        // Gestione file statici in public/ con precedenza assoluta
+        {
+          source: '/sitemap.xml',
+          destination: '/sitemap.xml', // Mantenuta per servire il file statico in /public
+        },
+      ],
+    };
+  },
   async headers() {
     return [
       {
@@ -40,6 +51,10 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'application/xml',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600', // Cache per un'ora
           },
         ],
       },
