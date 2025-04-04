@@ -33,6 +33,39 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     
     console.log(`SITEMAP ANALYZER: Recuperati ${dbRecords?.length || 0} record dal database`);
     
+    // In ambiente di sviluppo, utilizziamo i dati dal database direttamente
+    // invece di analizzare la sitemap XML
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`SITEMAP ANALYZER: Utilizzo conteggio diretto dal database in ambiente di sviluppo`);
+      
+      if (dbRecords) {
+        const filmDbRecords = dbRecords.filter(record => record.page_type === 'film');
+        const serieDbRecords = dbRecords.filter(record => record.page_type === 'serie');
+        
+        console.log(`SITEMAP ANALYZER: Record film nel DB: ${filmDbRecords.length}`);
+        console.log(`SITEMAP ANALYZER: Record serie nel DB: ${serieDbRecords.length}`);
+        
+        // Calcola gli slug invalidi (es: slug duplicati)
+        const allSlugs = dbRecords.map(r => `${r.page_type}:${r.slug}`);
+        const uniqueSlugs = new Set(allSlugs);
+        const duplicates = allSlugs.length - uniqueSlugs.size;
+        console.log(`SITEMAP ANALYZER: Trovati ${duplicates} slug duplicati`);
+        
+        // Per ora consideriamo gli stessi valori per sitemap e DB
+        // Questo è solo per l'ambiente di sviluppo
+        return {
+          totalDbRecords: totalCount || dbRecords.length,
+          totalSitemapUrls: dbRecords.length + 4, // + 4 per le rotte statiche
+          filmDbRecords: filmDbRecords.length,
+          serieDbRecords: serieDbRecords.length,
+          filmSitemapUrls: filmDbRecords.length,
+          serieSitemapUrls: serieDbRecords.length,
+          invalidSlugs: []
+        };
+      }
+    }
+    
+    // In produzione o se non ci sono dati nel DB, continua con l'analisi della sitemap
     // Recupera la sitemap
     const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
     const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : sitemapUrl;
