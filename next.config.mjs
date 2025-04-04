@@ -15,12 +15,15 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: ['image.tmdb.org'],
+    domains: ['image.tmdb.org', 'gbynhfiqlacmlwpjcxmp.supabase.co'],
+    formats: ['image/avif', 'image/webp'],
   },
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    appDir: true,
+    excludeRoutes: ['/sitemap.xml', '/robots.txt'],
   },
   outputFileTracingIncludes: {
     '/**': ['./public/**/*', './app/globals.css', './styles/**/*', './.next/static/css/**/*']
@@ -28,6 +31,7 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
+  swcMinify: true,
   webpack: (config, { dev, isServer }) => {
     // Risolve i problemi con vendor-chunks in modalità sviluppo
     if (dev) {
@@ -65,6 +69,17 @@ const nextConfig = {
     
     return config;
   },
+  async redirects() {
+    return [
+      // Per sitemap.xml dinamica, reindirizza a statica
+      {
+        source: '/api/sitemap.xml',
+        destination: '/sitemap.xml',
+        permanent: true,
+      },
+    ]
+  },
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
 }
 
 mergeConfig(nextConfig, userConfig)
