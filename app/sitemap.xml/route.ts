@@ -202,6 +202,9 @@ export async function GET() {
     '/about'
   ];
 
+  console.log(`Rotte statiche nella sitemap: ${staticRoutes.length}`);
+  console.log(`Conteggio totale URL nella sitemap: ${staticRoutes.length + filmSlugs.length + serieSlugs.length}`);
+
   // Calcola la dimensione approssimativa dell'XML prima di generarlo
   const estimatedXmlSize = 
     (staticRoutes.length * 150) + 
@@ -238,6 +241,9 @@ export async function GET() {
       `).join('')}
     </urlset>`;
 
+  // Conteggio finale delle URL
+  const urlCount = (xml.match(/<url>/g) || []).length;
+  console.log(`SITEMAP DEBUG: Numero effettivo di URL trovati nell'XML: ${urlCount}`);
   console.log('Generazione sitemap.xml completata');
   console.log(`SITEMAP DEBUG: Dimensione effettiva XML: ${Math.round(xml.length/1024)} KB`);
   
