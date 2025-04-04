@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import SerieSEO from '@/app/components/seo/serie-seo';
 import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
+import { trackGeneratedPage } from '@/lib/page-tracking';
 
 export async function generateStaticParams() {
   try {
@@ -42,6 +43,10 @@ export async function generateStaticParams() {
         
         console.log(`Generazione parametri per: ${slug}`);
         params.push({ slug });
+        
+        // Registra la pagina come generata staticamente
+        // Il try/catch è interno alla funzione, quindi non bloccherà in caso di errore
+        trackGeneratedPage(slug, 'serie', true);
       } catch (error) {
         console.error(`Errore durante il recupero dettagli della serie ID ${id}:`, error);
         continue; // Salta questa serie e passa alla successiva
@@ -90,10 +95,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function SeriePage({ params }: { params: { slug: string } }) {
+  // Traccia la visita alla pagina (non bloccante)
+  const slug = params.slug;
+  trackGeneratedPage(slug, 'serie', false).catch(() => {
+    // Non blocca il rendering in caso di errore
+    console.debug(`Errore tracciamento per ${slug} (non bloccante)`);
+  });
+  
   // Verifica se la pagina è stata già generata fisicamente
   // Nota: questo funziona solo in produzione, non in sviluppo
   const isProduction = process.env.NODE_ENV === 'production';
-  const slug = params.slug;
   let pageWasPrerendered = false;
   
   if (isProduction) {

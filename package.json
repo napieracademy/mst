@@ -11,7 +11,10 @@
     "clean": "chmod +x ./fix-permissions.sh && ./fix-permissions.sh",
     "dev:clean": "chmod +x ./dev.sh && ./dev.sh",
     "dev:port": "PORT=3333 next dev",
-    "create-migration": "ts-node scripts/create-migration.ts"
+    "create-migration": "ts-node scripts/create-migration.ts",
+    "test-sitemap": "ts-node scripts/test-sitemap.ts",
+    "regenerate-sitemap": "node scripts/regenerate-sitemap.js",
+    "regenerate-sitemap:prod": "node scripts/regenerate-sitemap.js production"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -114,6 +114,13 @@ export function Header() {
                     Home
                   </Link>
                   <Link
+                    href="/admin/statistiche-pagine"
+                    className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Statistiche pagine
+                  </Link>
+                  <Link
                     href="/login"
                     className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
