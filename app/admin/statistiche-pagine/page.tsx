@@ -47,11 +47,17 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     const filmUrlPattern = /<loc>([^<]+\/film\/[^<]+)<\/loc>/g;
     const serieUrlPattern = /<loc>([^<]+\/serie\/[^<]+)<\/loc>/g;
     
+    // Pattern per contare tutte le URL nella sitemap
+    const allUrlPattern = /<loc>([^<]+)<\/loc>/g;
+    
     const filmUrlMatches = sitemapXml.match(filmUrlPattern) || [];
     const serieUrlMatches = sitemapXml.match(serieUrlPattern) || [];
+    const allUrlMatches = sitemapXml.match(allUrlPattern) || [];
     
     console.log('Film URL matches found:', filmUrlMatches.length);
     console.log('Serie URL matches found:', serieUrlMatches.length);
+    console.log('Total URL matches found in sitemap:', allUrlMatches.length);
+    
     if (filmUrlMatches.length > 0) {
       console.log('Sample film URL:', filmUrlMatches[0]);
     }
@@ -208,7 +214,7 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
       
       return {
         totalDbRecords: totalCount || dbRecords.length,
-        totalSitemapUrls: filmSlugs.length + serieSlugs.length,
+        totalSitemapUrls: allUrlMatches.length, // Conteggio corretto di tutte le URL
         filmDbRecords: filmDbRecords.length,
         serieDbRecords: serieDbRecords.length,
         filmSitemapUrls: filmSlugs.length,
