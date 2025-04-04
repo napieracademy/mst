@@ -164,6 +164,10 @@ export async function GET() {
   console.log('Generazione sitemap.xml in corso...');
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
   
+  // Imposta modalità debug per ambienti di sviluppo
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  console.log(`Ambiente di esecuzione: ${isDevelopment ? 'DEVELOPMENT' : 'PRODUCTION'}`);
+  
   // Ottieni gli slug da TMDB
   const tmdbFilmSlugs = await getFilmSlugs();
   console.log(`Recuperati ${tmdbFilmSlugs.length} film da TMDB`);
@@ -189,11 +193,32 @@ export async function GET() {
   }
   
   // Unisci gli slug (rimuovendo i duplicati)
-  const filmSlugs = [...new Set([...tmdbFilmSlugs, ...trackedFilmSlugs])];
-  const serieSlugs = [...new Set([...tmdbSerieSlugs, ...trackedSerieSlugs])];
+  let filmSlugs = [...new Set([...tmdbFilmSlugs, ...trackedFilmSlugs])];
+  let serieSlugs = [...new Set([...tmdbSerieSlugs, ...trackedSerieSlugs])];
   
-  console.log(`Totale film nella sitemap: ${filmSlugs.length}`);
-  console.log(`Totale serie nella sitemap: ${serieSlugs.length}`);
+  console.log(`Totale film nella sitemap (prima dei limiti): ${filmSlugs.length}`);
+  console.log(`Totale serie nella sitemap (prima dei limiti): ${serieSlugs.length}`);
+  
+  // In ambiente di sviluppo, limita il numero di URL per debugging
+  const MAX_URLS_IN_DEV = 1000;
+  if (isDevelopment) {
+    const totalSlugs = filmSlugs.length + serieSlugs.length;
+    if (totalSlugs > MAX_URLS_IN_DEV) {
+      console.log(`LIMITE SVILUPPO: Limitando gli URL a ${MAX_URLS_IN_DEV} (da ${totalSlugs})`);
+      
+      const filmRatio = filmSlugs.length / totalSlugs;
+      const maxFilms = Math.floor(MAX_URLS_IN_DEV * filmRatio);
+      const maxSeries = MAX_URLS_IN_DEV - maxFilms;
+      
+      filmSlugs = filmSlugs.slice(0, maxFilms);
+      serieSlugs = serieSlugs.slice(0, maxSeries);
+      
+      console.log(`LIMITE SVILUPPO: Nuovi conteggi - Film: ${filmSlugs.length}, Serie: ${serieSlugs.length}`);
+    }
+  }
+  
+  console.log(`Totale film nella sitemap (dopo i limiti): ${filmSlugs.length}`);
+  console.log(`Totale serie nella sitemap (dopo i limiti): ${serieSlugs.length}`);
   
   const staticRoutes = [
     '',
@@ -214,7 +239,11 @@ export async function GET() {
     
   console.log(`SITEMAP DEBUG: Dimensione stimata dell'XML: ${Math.round(estimatedXmlSize/1024)} KB`);
 
+  // Genera un timestamp per evitare la cache dei browser
+  const timestamp = new Date().getTime();
+  
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    <!-- Generata il: ${new Date().toISOString()} -->
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
       ${staticRoutes.map(route => `
         <url>
@@ -250,7 +279,8 @@ export async function GET() {
   return new NextResponse(xml, { 
     headers: { 
       'Content-Type': 'application/xml',
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'X-Timestamp': timestamp.toString() // Aggiungiamo un timestamp per evitare la cache
     } 
   });
 } 
