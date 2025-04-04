@@ -92,4 +92,4 @@ jobs:
           git config --local user.name "GitHub Actions"
           git add public/sitemap.xml
           git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub"
-          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main 
+          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
