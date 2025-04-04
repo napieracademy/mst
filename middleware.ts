@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getMovieDetails } from './lib/tmdb'
-import { generateSlug } from './lib/utils'
+import { generateSlug, extractIdFromSlug } from './lib/utils'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -34,14 +34,15 @@ export async function middleware(request: NextRequest) {
     // person/123 -> attore/nome-123 o regista/nome-123
     // tv/123 -> serie/titolo-anno-123
     
-    const movieRegex = /^\/movie\/(\d+)$/;
+    const movieIdRegex = /^\/movie\/(\d+)$/;
+    const movieSlugRegex = /^\/movie\/(.+)$/;
     const personRegex = /^\/person\/(\d+)$/;
     const tvRegex = /^\/tv\/(\d+)$/;
     
     let match;
 
     // Reindirizza /movie/:id a /film/:slug
-    if ((match = pathname.match(movieRegex))) {
+    if ((match = pathname.match(movieIdRegex))) {
       const id = match[1];
       try {
         // Ottieni i dettagli del film per generare lo slug
@@ -55,6 +56,16 @@ export async function middleware(request: NextRequest) {
         }
       } catch (error) {
         console.error(`Errore nel reindirizzamento del film ${id}:`, error);
+      }
+    }
+    
+    // Reindirizza /movie/:slug a /film/:slug (per vecchi URL che già contenevano uno slug)
+    if ((match = pathname.match(movieSlugRegex))) {
+      const slug = match[1];
+      // Se lo slug non contiene solo un ID ma è già in formato slug
+      if (!/^\d+$/.test(slug)) {
+        // Reindirizzamento permanente (301) mantenendo lo stesso slug
+        return NextResponse.redirect(new URL(`/film/${slug}`, request.url), 301);
       }
     }
     
@@ -109,7 +120,7 @@ export const config = {
     "/wines/:path*", 
     "/login", 
     "/register",
-    "/movie/:id*",
+    "/movie/:path*",
     "/person/:id*",
     "/tv/:id*"
   ],
