@@ -10,11 +10,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string | Date) {
-  return new Date(date).toLocaleDateString('it-IT', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric', 
+    timeZone: 'Europe/Rome' 
+  };
+  return dateObj.toLocaleDateString('it-IT', options);
 }
 
 export function truncateText(text: string, maxLength: number) {

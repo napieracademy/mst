@@ -31,6 +31,8 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     
     if (dbError) throw dbError;
     
+    console.log(`SITEMAP ANALYZER: Recuperati ${dbRecords?.length || 0} record dal database`);
+    
     // Recupera la sitemap
     const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
     const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : sitemapUrl;
@@ -38,6 +40,7 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     const sitemapXml = await response.text();
     
     console.log('Sitemap XML content sample (first 200 chars):', sitemapXml.substring(0, 200));
+    console.log(`SITEMAP ANALYZER: Dimensione della sitemap recuperata: ${Math.round(sitemapXml.length/1024)} KB`);
     
     // Conta gli URL nella sitemap - correzione per catturare qualsiasi dominio
     // Nota: Cerca qualsiasi URL che contenga /film/ o /serie/ seguito da qualsiasi carattere eccetto spazi e tag XML
@@ -64,6 +67,9 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
       return matches ? matches[1] : '';
     }).filter(Boolean);
     
+    console.log(`SITEMAP ANALYZER: Estratti ${filmSlugs.length} slug film dalla sitemap`);
+    console.log(`SITEMAP ANALYZER: Estratti ${serieSlugs.length} slug serie dalla sitemap`);
+    
     // Identifica i record del DB che non sono nella sitemap
     const invalidSlugs = [];
     
@@ -71,27 +77,53 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
       const filmDbRecords = dbRecords.filter(record => record.page_type === 'film');
       const serieDbRecords = dbRecords.filter(record => record.page_type === 'serie');
       
+      console.log(`SITEMAP ANALYZER: Record film nel DB: ${filmDbRecords.length}`);
+      console.log(`SITEMAP ANALYZER: Record serie nel DB: ${serieDbRecords.length}`);
+      
       // Controlla i film mancanti
+      let slugSpecialCharsCount = 0;
+      let slugEmptyCount = 0;
+      let slugLongCount = 0;
+      let slugStartsWithDashCount = 0;
+      let slugXmlInvalidCount = 0;
+      let slugUnknownCount = 0;
+      
       for (const record of filmDbRecords) {
         if (!filmSlugs.includes(record.slug)) {
           // Analizza il motivo
           let reason = 'Sconosciuto';
           
+          // Verifica le caratteristiche dello slug che potrebbero causare problemi
+          if (!record.slug || record.slug.trim() === '') {
+            reason = 'Slug vuoto o nullo';
+            slugEmptyCount++;
+          } 
           // Controlla se è uno slug duplicato nel DB
-          const duplicates = dbRecords.filter(r => 
-            r.slug === record.slug && r.page_type === record.page_type
-          );
-          
-          if (duplicates.length > 1) {
+          else if (dbRecords.filter(r => r.slug === record.slug && r.page_type === record.page_type).length > 1) {
             reason = 'Duplicato nel database';
           } 
           // Controlla se lo slug ha caratteri non validi
           else if (/[^\w\-]/g.test(record.slug)) {
             reason = 'Caratteri non validi nello slug';
+            slugSpecialCharsCount++;
+          }
+          // Controlla se lo slug ha caratteri problematici per XML
+          else if (/[<>&'"]/g.test(record.slug)) {
+            reason = 'Caratteri non validi per XML';
+            slugXmlInvalidCount++;
           }
           // Controlla se è troppo lungo
           else if (record.slug.length > 200) {
             reason = 'Slug troppo lungo';
+            slugLongCount++;
+          }
+          // Controlla se inizia con un trattino
+          else if (record.slug.startsWith('-')) {
+            reason = 'Slug inizia con trattino';
+            slugStartsWithDashCount++;
+          }
+          else {
+            slugUnknownCount++;
           }
           
           invalidSlugs.push({
@@ -102,27 +134,53 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
         }
       }
       
+      console.log(`SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: ${slugSpecialCharsCount}, Vuoti: ${slugEmptyCount}, Troppo lunghi: ${slugLongCount}, Iniziano con trattino: ${slugStartsWithDashCount}, XML invalidi: ${slugXmlInvalidCount}, Sconosciuti: ${slugUnknownCount}`);
+      
+      // Reset contatori per le serie
+      slugSpecialCharsCount = 0;
+      slugEmptyCount = 0;
+      slugLongCount = 0;
+      slugStartsWithDashCount = 0;
+      slugXmlInvalidCount = 0;
+      slugUnknownCount = 0;
+      
       // Controlla le serie mancanti
       for (const record of serieDbRecords) {
         if (!serieSlugs.includes(record.slug)) {
           // Analizza il motivo
           let reason = 'Sconosciuto';
           
+          // Verifica le caratteristiche dello slug che potrebbero causare problemi
+          if (!record.slug || record.slug.trim() === '') {
+            reason = 'Slug vuoto o nullo';
+            slugEmptyCount++;
+          } 
           // Controlla se è uno slug duplicato nel DB
-          const duplicates = dbRecords.filter(r => 
-            r.slug === record.slug && r.page_type === record.page_type
-          );
-          
-          if (duplicates.length > 1) {
+          else if (dbRecords.filter(r => r.slug === record.slug && r.page_type === record.page_type).length > 1) {
             reason = 'Duplicato nel database';
           } 
           // Controlla se lo slug ha caratteri non validi
           else if (/[^\w\-]/g.test(record.slug)) {
             reason = 'Caratteri non validi nello slug';
+            slugSpecialCharsCount++;
+          }
+          // Controlla se lo slug ha caratteri problematici per XML
+          else if (/[<>&'"]/g.test(record.slug)) {
+            reason = 'Caratteri non validi per XML';
+            slugXmlInvalidCount++;
           }
           // Controlla se è troppo lungo
           else if (record.slug.length > 200) {
             reason = 'Slug troppo lungo';
+            slugLongCount++;
+          }
+          // Controlla se inizia con un trattino
+          else if (record.slug.startsWith('-')) {
+            reason = 'Slug inizia con trattino';
+            slugStartsWithDashCount++;
+          }
+          else {
+            slugUnknownCount++;
           }
           
           invalidSlugs.push({
@@ -130,6 +188,21 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
             page_type: record.page_type,
             reason
           });
+        }
+      }
+      
+      console.log(`SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: ${slugSpecialCharsCount}, Vuoti: ${slugEmptyCount}, Troppo lunghi: ${slugLongCount}, Iniziano con trattino: ${slugStartsWithDashCount}, XML invalidi: ${slugXmlInvalidCount}, Sconosciuti: ${slugUnknownCount}`);
+      console.log(`SITEMAP ANALYZER: Totale record non inclusi nella sitemap: ${invalidSlugs.length}`);
+      
+      if (invalidSlugs.length > 0) {
+        // Mostra alcuni esempi di slug "Sconosciuto"
+        const unknownSlugs = invalidSlugs
+          .filter(item => item.reason === 'Sconosciuto')
+          .slice(0, 10)
+          .map(item => item.slug);
+          
+        if (unknownSlugs.length > 0) {
+          console.log('SITEMAP ANALYZER: Esempi di slug con esclusione "Sconosciuto":', unknownSlugs);
         }
       }
       
@@ -216,16 +289,24 @@ const StatsDashboard = async ({
   // Analisi della sitemap
   const sitemapAnalysis = await analyzeSitemap();
   
+  // Formatta le date con il fuso orario corretto (Europa/Roma)
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'N/A';
+    
+    // Crea una nuova data dall'input
     const date = new Date(dateStr);
-    return date.toLocaleString('it-IT', { 
+    
+    // Opzioni per il formato italiano con fuso orario corretto
+    const options: Intl.DateTimeFormatOptions = { 
       day: '2-digit', 
       month: '2-digit', 
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    });
+      minute: '2-digit',
+      timeZone: 'Europe/Rome'  // Specifico il fuso orario italiano
+    };
+    
+    return date.toLocaleString('it-IT', options);
   };
   
   // Calcolo della paginazione

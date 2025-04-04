@@ -34,6 +34,7 @@ interface ActorDetailsProps {
       cast?: Credit[]
       crew?: Credit[]
     }
+    known_for_credits?: Credit[]
   }
 }
 
@@ -82,18 +83,22 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
       })
   }
   
+  // Prepara i known_for_credits
+  const knownForCredits = actor.known_for_credits || [];
+  
   // Ottieni l'URL dell'immagine del profilo
   const profileUrl = actor.profile_path 
     ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
     : "/placeholder-person.svg?height=500&width=500"
     
-  // Formatta data di nascita e morte
+  // Formatta data di nascita e morte con il fuso orario italiano
   const formatDate = (dateString?: string) => {
     if (!dateString) return null
     return new Date(dateString).toLocaleDateString("it-IT", {
       day: "numeric",
       month: "long",
-      year: "numeric"
+      year: "numeric",
+      timeZone: "Europe/Rome"
     })
   }
   
@@ -183,7 +188,11 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
               {credits.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Filmografia</h2>
-                  <PersonFilmography credits={credits} name={actor.name} />
+                  <PersonFilmography 
+                    credits={credits} 
+                    name={actor.name} 
+                    knownForCredits={knownForCredits}
+                  />
                 </div>
               )}
             </div>

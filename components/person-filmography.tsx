@@ -16,19 +16,33 @@ interface Credit {
   job?: string
   media_type: "movie" | "tv"
   role?: "acting" | "directing" | "both"
+  is_known_for?: boolean
 }
 
 interface PersonFilmographyProps {
   credits: Credit[]
   name: string
+  knownForCredits?: Credit[]
 }
 
-export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
-  const [activeTab, setActiveTab] = useState<"all" | "acting" | "directing" | "movie" | "tv">("all")
+export function PersonFilmography({ credits, name, knownForCredits = [] }: PersonFilmographyProps) {
+  const [activeTab, setActiveTab] = useState<"all" | "known_for" | "acting" | "directing" | "movie" | "tv">(
+    knownForCredits.length > 0 ? "known_for" : "all"
+  )
+
+  // Marca i crediti che sono "known_for"
+  const allCredits = credits.map(credit => {
+    const isKnownFor = knownForCredits.some(kf => kf.id === credit.id && kf.media_type === credit.media_type);
+    return {
+      ...credit,
+      is_known_for: isKnownFor
+    };
+  });
 
   // Filtra i crediti in base al tab attivo
-  const filteredCredits = credits.filter((credit) => {
+  const filteredCredits = allCredits.filter((credit) => {
     if (activeTab === "all") return true;
+    if (activeTab === "known_for") return credit.is_known_for;
     if (activeTab === "acting") return credit.role === "acting" || credit.role === "both";
     if (activeTab === "directing") return credit.role === "directing" || credit.role === "both";
     if (activeTab === "movie") return credit.media_type === "movie";
@@ -44,16 +58,27 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
   })
 
   // Conta i crediti per tipo
-  const actingCount = credits.filter((c) => c.role === "acting" || c.role === "both").length
-  const directingCount = credits.filter((c) => c.role === "directing" || c.role === "both").length
-  const movieCount = credits.filter((c) => c.media_type === "movie").length
-  const tvCount = credits.filter((c) => c.media_type === "tv").length
+  const knownForCount = allCredits.filter(c => c.is_known_for).length
+  const actingCount = allCredits.filter((c) => c.role === "acting" || c.role === "both").length
+  const directingCount = allCredits.filter((c) => c.role === "directing" || c.role === "both").length
+  const movieCount = allCredits.filter((c) => c.media_type === "movie").length
+  const tvCount = allCredits.filter((c) => c.media_type === "tv").length
 
   return (
     <div className="mt-12">
       {/* Tabs per ruolo */}
       <div className="border-b border-gray-800 mb-8">
         <div className="flex overflow-x-auto scrollbar-hide">
+          {knownForCount > 0 && (
+            <button
+              onClick={() => setActiveTab("known_for")}
+              className={`px-6 py-3 font-medium text-sm whitespace-nowrap ${
+                activeTab === "known_for" ? "border-b-2 border-white text-white" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Conosciuto per ({knownForCount})
+            </button>
+          )}
           <button
             onClick={() => setActiveTab("all")}
             className={`px-6 py-3 font-medium text-sm whitespace-nowrap ${
@@ -142,7 +167,7 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
               <Link 
                 key={`${credit.id}-${mediaType}`} 
                 href={href} 
-                className="group relative block overflow-hidden rounded-lg bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50"
+                className={`group relative block overflow-hidden rounded-lg ${credit.is_known_for ? 'ring-2 ring-yellow-500' : 'bg-black/30'} backdrop-blur-sm transition-all hover:bg-black/50`}
               >
                 <div className="aspect-[2/3] relative">
                   {posterPath ? (
@@ -165,6 +190,12 @@ export function PersonFilmography({ credits, name }: PersonFilmographyProps) {
                         {year && <span>{year}</span>}
                         {roleText && year && <span className="mx-1">•</span>}
                         {roleText && <span className="truncate">{roleText}</span>}
+                        {credit.is_known_for && (
+                          <>
+                            <span className="mx-1">•</span>
+                            <span className="text-yellow-500">Top</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

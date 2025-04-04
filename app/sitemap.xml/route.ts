@@ -6,10 +6,12 @@ import { createApiSupabaseClient } from '../../lib/supabase-server';
 /**
  * Ottiene gli slug delle pagine tracciate dal database Supabase
  * utilizzando la paginazione per superare il limite di 1000 record
+ * @param onlyKnownFor Se true, include solo le pagine relative ai "known_for"
  */
-export async function getTrackedPageSlugs() {
+export async function getTrackedPageSlugs(onlyKnownFor = false) {
   try {
     console.log('Recupero pagine tracciate da Supabase per la sitemap...');
+    console.log(`Filtro pagine: ${onlyKnownFor ? 'solo known_for' : 'tutte'}`);
     const supabase = createApiSupabaseClient();
     
     // Utilizzando direttamente RPC per ottenere il conteggio totale
@@ -27,7 +29,7 @@ export async function getTrackedPageSlugs() {
     const totalPages = Math.ceil((countData?.total_pages || 0) / batchSize);
     console.log(`SITEMAP LOG: Necessarie ${totalPages} pagine di query per recuperare tutti i dati`);
     
-    let allRecords: { slug: string; page_type: string }[] = [];
+    let allRecords: { slug: string; page_type: string; is_known_for?: boolean }[] = [];
     
     // Recupera i record in batch successivi
     for (let page = 0; page < totalPages; page++) {
@@ -36,7 +38,7 @@ export async function getTrackedPageSlugs() {
       
       const { data: batchData, error } = await supabase
         .from('generated_pages')
-        .select('slug, page_type')
+        .select('slug, page_type, is_known_for')
         .order('first_generated_at', { ascending: false })
         .range(offset, offset + batchSize - 1);
       
@@ -48,7 +50,14 @@ export async function getTrackedPageSlugs() {
       console.log(`SITEMAP LOG: Recuperati ${batchData?.length || 0} record nel batch ${page + 1}`);
       
       if (batchData && batchData.length > 0) {
-        allRecords = [...allRecords, ...batchData];
+        // Se dobbiamo filtrare per known_for, include solo quelli marcati
+        if (onlyKnownFor) {
+          const filteredBatch = batchData.filter(record => record.is_known_for === true);
+          allRecords = [...allRecords, ...filteredBatch];
+          console.log(`SITEMAP LOG: Filtrati ${filteredBatch.length} record 'known_for' dal batch ${page + 1}`);
+        } else {
+          allRecords = [...allRecords, ...batchData];
+        }
       } else {
         // Se non ci sono più dati, interrompi il ciclo
         break;
@@ -56,6 +65,9 @@ export async function getTrackedPageSlugs() {
     }
     
     console.log(`SITEMAP LOG: Totale record recuperati dopo paginazione: ${allRecords.length}`);
+    if (onlyKnownFor) {
+      console.log(`SITEMAP LOG: Di cui record 'known_for': ${allRecords.filter(r => r.is_known_for === true).length}`);
+    }
     
     // Verifica della validità degli slug
     const invalidSlugs = allRecords.filter(page => {

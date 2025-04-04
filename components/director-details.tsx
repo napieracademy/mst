@@ -34,6 +34,7 @@ interface DirectorDetailsProps {
       cast?: Credit[]
       crew?: Credit[]
     }
+    known_for_credits?: Credit[]
   }
 }
 
@@ -44,7 +45,7 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
   const shortBio = director.biography ? director.biography.slice(0, 300) + (director.biography.length > 300 ? '...' : '') : null
   const fullBio = director.biography || null
   
-  // Prepara la filmografia, enfatizzando il ruolo di regista
+  // Prepara la filmografia
   const credits: Credit[] = []
   
   // Aggiungi i film dove ha lavorato come regista
@@ -82,18 +83,22 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
     })
   }
   
+  // Prepara i known_for_credits
+  const knownForCredits = director.known_for_credits || [];
+  
   // Ottieni l'URL dell'immagine del profilo
   const profileUrl = director.profile_path 
     ? `https://image.tmdb.org/t/p/w500${director.profile_path}`
     : "/placeholder-person.svg?height=500&width=500"
     
-  // Formatta data di nascita e morte
+  // Formatta data di nascita e morte con il fuso orario italiano
   const formatDate = (dateString?: string) => {
     if (!dateString) return null
     return new Date(dateString).toLocaleDateString("it-IT", {
       day: "numeric",
       month: "long",
-      year: "numeric"
+      year: "numeric",
+      timeZone: "Europe/Rome"
     })
   }
   
@@ -183,7 +188,11 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
               {credits.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Filmografia</h2>
-                  <PersonFilmography credits={credits} name={director.name} />
+                  <PersonFilmography 
+                    credits={credits} 
+                    name={director.name} 
+                    knownForCredits={knownForCredits}
+                  />
                 </div>
               )}
             </div>

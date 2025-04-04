@@ -257,6 +257,9 @@ export async function getPersonDetails(id: string): Promise<any | null> {
     // Ottieni i dettagli della persona in inglese per avere i nomi corretti
     const basicData = await fetchFromTMDB(`/person/${id}`, {}, "en-US");
     
+    // Ottieni i known_for dalla persona
+    const knownForData = await fetchFromTMDB(`/person/${id}`, {}, "it-IT");
+    
     // Ottieni i crediti e le immagini in italiano
     const creditsData = await fetchFromTMDB(`/person/${id}/combined_credits`, {}, "it-IT");
     const imagesData = await fetchFromTMDB(`/person/${id}/images`, {}, "it-IT");
@@ -264,9 +267,36 @@ export async function getPersonDetails(id: string): Promise<any | null> {
     // Combina tutti i dati
     const data = {
       ...basicData,
+      known_for: knownForData.known_for || [],
       combined_credits: creditsData,
-      images: imagesData
+      images: imagesData,
+      // Aggiungiamo una proprietà per filtrare i crediti in base a known_for
+      known_for_credits: []
     };
+    
+    // Prepariamo i known_for_credits estraendo i film e le serie in known_for
+    if (knownForData.known_for && Array.isArray(knownForData.known_for)) {
+      // Estrai gli ID dei film/serie per cui la persona è nota
+      const knownForIds = knownForData.known_for.map((item: any) => item.id);
+      
+      // Filtra i crediti per includere solo known_for
+      if (data.combined_credits?.cast) {
+        const knownForCast = data.combined_credits.cast.filter((item: any) => 
+          knownForIds.includes(item.id)
+        );
+        data.known_for_credits.push(...knownForCast);
+      }
+      
+      if (data.combined_credits?.crew) {
+        const knownForCrew = data.combined_credits.crew.filter((item: any) => 
+          knownForIds.includes(item.id)
+        );
+        data.known_for_credits.push(...knownForCrew);
+      }
+      
+      // Log dei known_for
+      console.log(`Person ${id} known for ${knownForIds.length} titles, extracted ${data.known_for_credits.length} matching credits`);
+    }
     
     // Log esteso per debug delle immagini
     if (data && data.profile_path) {

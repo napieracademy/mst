@@ -150,12 +150,15 @@ export function CastCarousel({ cast }: CastCarouselProps) {
     return age
   }
   
-  // Funzione per formattare la data in italiano
+  // Formatta le date con fuso orario italiano
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null
-    
-    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
-    return new Date(dateString).toLocaleDateString('it-IT', options)
+    return new Date(dateString).toLocaleDateString("it-IT", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Europe/Rome"
+    })
   }
 
   return (
