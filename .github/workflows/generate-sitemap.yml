@@ -33,9 +33,10 @@ jobs:
     env:
       # Definisci direttamente le variabili d'ambiente necessarie
       NEXT_PUBLIC_SITE_URL: 'https://mastroianni.app'
-      # Per Supabase utilizziamo un meccanismo di fallback nello script (non servono le credenziali effettive)
-      NEXT_PUBLIC_SUPABASE_URL: 'fallback'
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fallback'
+      # Utilizza le credenziali reali di Supabase (sono credenziali pubbliche, possono essere mostrate)
+      NEXT_PUBLIC_SUPABASE_URL: 'https://gbynhfiqlacmlwpjcxmp.supabase.co'
+      # L'API key anonima è pubblica, quindi può essere inclusa direttamente qui
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdieW5oZmlxbGFjbWx3cGpjeG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE2MzU1NDA4NjYsImV4cCI6MTk1MTExNjg2Nn0.M02gdvw2hHI8eyKuHFWV2F5bqXKFt2Zfwd3GMR1dKr0'
 
     steps:
       - name: Checkout repository
@@ -53,6 +54,10 @@ jobs:
           echo "NEXT_PUBLIC_SITE_URL exists: ${{ env.NEXT_PUBLIC_SITE_URL != '' }}"
           echo "NEXT_PUBLIC_SUPABASE_URL exists: ${{ env.NEXT_PUBLIC_SUPABASE_URL != '' }}"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY exists: ${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}"
+          # Verifica lunghezza diretta in bash
+          if [ -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY length: $(echo $NEXT_PUBLIC_SUPABASE_ANON_KEY | wc -c)"
+          fi
 
       - name: Install dependencies
         run: npm install
@@ -70,6 +75,8 @@ jobs:
           node scripts/generate-static-sitemap.js
           ls -la public/sitemap.xml
           echo "Sitemap size: $(du -h public/sitemap.xml | cut -f1)"
+          # Verifica conteggio URL
+          echo "URL count: $(grep -o "<url>" public/sitemap.xml | wc -l)"
 
       # Verifica il file generato
       - name: Verify generated sitemap
@@ -84,6 +91,15 @@ jobs:
           fi
           echo "Sitemap generated successfully"
           head -n 10 public/sitemap.xml
+          # Assicura che la sitemap contenga almeno 1000 URL (se in modalità fallback ne ha solo 24)
+          URL_COUNT=$(grep -o "<url>" public/sitemap.xml | wc -l)
+          if [ "$URL_COUNT" -lt 1000 ]; then
+            echo "Warning: Sitemap contains only $URL_COUNT URLs. Expected at least 1000."
+            echo "This indicates a potential connection issue with the database."
+            # Non considerarlo un errore, ma solo un avviso
+          else
+            echo "Sitemap contains $URL_COUNT URLs, which looks correct!"
+          fi
 
       # Commit e push delle modifiche con token GitHub
       - name: Commit and push changes
@@ -91,5 +107,5 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
           git add public/sitemap.xml
-          git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub"
+          git diff --staged --quiet || git commit -m "Aggiorna sitemap.xml [skip ci]" -m "Generato automaticamente dall'azione GitHub con $URL_COUNT URL"
           git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main 
