@@ -219,79 +219,12 @@ export function MoviePageClient({
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
             <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
             
-            {/* Mostriamo prima i "Più noti per questo film" se disponibili */}
-            {hasKnownForCredits && (
-              <div className="mb-12">
-                <h3 className="text-sm font-medium text-yellow-500 mb-6">Più noti per questo film</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                  {knownForCredits.map((credit: any) => {
-                    // Determiniamo il tipo di credit (attore o regista)
-                    const isActor = credit.character;
-                    const isDirector = credit.job === "Director";
-                    
-                    // Generiamo uno slug per l'URL della persona
-                    const personSlug = credit.name ? 
-                      `${credit.name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')}-${credit.id}` : 
-                      `person-${credit.id}`;
-                    
-                    // Determiniamo l'URL corretto in base al ruolo
-                    const href = isDirector
-                      ? `/regista/${personSlug}`
-                      : `/attore/${personSlug}`;
-                      
-                    // Determiniamo il testo del ruolo da mostrare
-                    let roleText = "";
-                    if (isDirector) {
-                      roleText = "Regista";
-                    } else if (isActor) {
-                      roleText = credit.character || "Attore";
-                    } else {
-                      roleText = credit.job || "";
-                    }
-                    
-                    return (
-                      <Link 
-                        key={`${credit.id}-${roleText}`} 
-                        href={href} 
-                        className="group relative block overflow-hidden rounded-lg ring-2 ring-yellow-500 bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50"
-                      >
-                        <div className="aspect-[2/3] relative">
-                          {credit.profile_path ? (
-                            <Image
-                              src={`https://image.tmdb.org/t/p/w500${credit.profile_path}`}
-                              alt={credit.name || ""}
-                              fill
-                              sizes="(max-width: 768px) 50vw, 20vw"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
-                              {credit.name ? credit.name.charAt(0) : "?"}
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="absolute bottom-2 left-2 right-2 text-white">
-                              <h3 className="font-medium text-sm truncate">{credit.name}</h3>
-                              <div className="flex items-center text-xs text-gray-300">
-                                <span className="truncate">{roleText}</span>
-                                <span className="mx-1">•</span>
-                                <span className="text-yellow-500">Top</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
+            {/* Mostriamo solo il cast completo con CastCarousel */}
+            {movie.credits?.cast && movie.credits.cast.length > 0 ? (
+              <CastCarousel cast={movie.credits.cast} />
+            ) : (
+              <p className="text-gray-500">Cast non disponibile</p>
             )}
-            
-            {/* Mostriamo sempre il cast completo subito dopo */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-300 mb-6">Cast completo</h3>
-              <CastCarousel cast={movie.credits?.cast || []} />
-            </div>
           </div>
         </FadeInSection>
 
