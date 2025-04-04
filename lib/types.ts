@@ -39,6 +39,7 @@ export interface Movie {
       profile_path?: string | null
     }[]
   }
+  known_for_credits?: any[]
   videos?: {
     results: {
       key: string

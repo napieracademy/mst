@@ -14,6 +14,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Container } from "@/components/container"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
+import { PersonFilmography } from "@/components/person-filmography"
 
 interface MoviePageClientProps {
   movie: Movie
@@ -43,6 +44,18 @@ export function MoviePageClient({
   producers
 }: MoviePageClientProps) {
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
+  
+  // Prepariamo i known_for_credits se esistono
+  const knownForCredits = movie.known_for_credits || [];
+  const hasKnownForCredits = knownForCredits.length > 0;
+  
+  // Convertiamo i credits nel formato atteso da PersonFilmography
+  const castCredits = movie.credits?.cast?.map(member => ({
+    ...member,
+    media_type: "movie" as "movie" | "tv",
+    role: "acting" as "acting" | "directing" | "both",
+    poster_path: member.profile_path // Usiamo profile_path come poster_path per soddisfare l'interfaccia
+  })) || [];
 
   return (
     <main className="min-h-screen w-full bg-black text-white">
@@ -205,7 +218,16 @@ export function MoviePageClient({
         <FadeInSection delay={300} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
             <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
-            <CastCarousel cast={movie.credits?.cast || []} />
+            {/* Se esistono i known_for_credits, usiamo PersonFilmography per visualizzarli */}
+            {hasKnownForCredits ? (
+              <PersonFilmography 
+                credits={castCredits} 
+                name={movie.title || movie.name || ""} 
+                knownForCredits={knownForCredits} 
+              />
+            ) : (
+              <CastCarousel cast={movie.credits?.cast || []} />
+            )}
           </div>
         </FadeInSection>
 

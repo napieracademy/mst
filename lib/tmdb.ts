@@ -184,8 +184,77 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
     // Combina i dati
     const data = {
       ...baseData,
-      credits: creditsData
+      credits: creditsData,
+      known_for_credits: [] // Array dei crediti "known_for" del film/serie
     };
+
+    // Cercare di ottenere i "known_for" per un film/serie
+    try {
+      // Ottieni i film/serie popolari
+      const popularItems = await fetchFromTMDB(`/${type}/popular`, {}, "it-IT");
+      const itemInPopular = popularItems.results?.find((p: any) => p.id === parseInt(id, 10));
+      
+      if (itemInPopular) {
+        console.log(`${type.toUpperCase()} ${id} trovato tra i popolari, aggiungendo known_for_credits`);
+        // Se il film/serie è tra i popolari, possiamo considerarlo known_for
+        // Qui possiamo prendere i registi o attori principali come "known_for"
+        const knownForCredits = [];
+        
+        // Aggiungi i principali attori (primi 5)
+        if (data.credits?.cast && data.credits.cast.length > 0) {
+          // Marchiamo questi crediti come "known_for"
+          const mainCast = data.credits.cast.slice(0, 5).map((actor: any) => ({
+            ...actor,
+            is_known_for: true
+          }));
+          knownForCredits.push(...mainCast);
+        }
+        
+        // Aggiungi i registi
+        if (data.credits?.crew) {
+          const directors = data.credits.crew
+            .filter((c: any) => c.job === "Director")
+            .map((director: any) => ({
+              ...director,
+              is_known_for: true
+            }));
+          knownForCredits.push(...directors);
+        }
+        
+        data.known_for_credits = knownForCredits;
+        console.log(`${type.toUpperCase()} ${id} aggiunti ${knownForCredits.length} known_for_credits`);
+      } else {
+        // Anche se non è tra i popolari, possiamo comunque aggiungere i principali attori/registi
+        // ma limitiamo a meno elementi (3 attori + registi)
+        console.log(`${type.toUpperCase()} ${id} non è tra i popolari, usando approccio alternativo`);
+        const knownForCredits = [];
+        
+        // Aggiungi i principali attori (primi 3)
+        if (data.credits?.cast && data.credits.cast.length > 0) {
+          const mainCast = data.credits.cast.slice(0, 3).map((actor: any) => ({
+            ...actor,
+            is_known_for: true
+          }));
+          knownForCredits.push(...mainCast);
+        }
+        
+        // Aggiungi i registi
+        if (data.credits?.crew) {
+          const directors = data.credits.crew
+            .filter((c: any) => c.job === "Director")
+            .map((director: any) => ({
+              ...director,
+              is_known_for: true
+            }));
+          knownForCredits.push(...directors);
+        }
+        
+        data.known_for_credits = knownForCredits;
+        console.log(`${type.toUpperCase()} ${id} approccio alternativo: aggiunti ${knownForCredits.length} known_for_credits`);
+      }
+    } catch (error) {
+      console.error(`Error fetching known_for for ${type} ${id}:`, error);
+    }
 
     if (data && !data.error && !data.status_code) {
       // Verifica e log aggiuntivo per debug delle immagini
