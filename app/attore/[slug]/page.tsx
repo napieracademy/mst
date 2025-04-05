@@ -66,13 +66,9 @@ export default async function ActorPage({ params }: { params: { slug: string } }
       redirect(errorUrl);
     }
     
-    // Otteniamo i film correlati all'attore
-    const relatedMovies = await getActorRelatedMovies(id);
-    
-    // Aggiungiamo i film correlati ai dati dell'attore
+    // Non recuperiamo più i film correlati all'attore per semplificare la pagina
     const actorWithRelatedMovies = {
-      ...actorDetails,
-      related_movies: relatedMovies
+      ...actorDetails
     };
     
     // Definiamo i campi richiesti per un attore (solo id e name)

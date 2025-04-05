@@ -7,7 +7,7 @@ import { Text } from "@/atomic/atoms/text"
 import { PersonFilmography } from "@/components/person-filmography"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ActorSimilarMovies } from "@/components/actor-similar-movies" // Added import
+// Import di ActorSimilarMovies rimosso
 
 interface Credit {
   id: number
@@ -36,7 +36,7 @@ interface ActorDetailsProps {
       crew?: Credit[]
     }
     known_for_credits?: Credit[]
-    related_movies?: any[] // Added related_movies type
+    related_movies?: any[]
   }
 }
 
@@ -193,14 +193,6 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
             </div>
           </div>
         </Container>
-
-        {/* Film correlati */}
-        {actor.related_movies && actor.related_movies.length > 0 && (
-          <ActorSimilarMovies 
-            movies={actor.related_movies} 
-            title={`Film con ${actor.name}`} 
-          />
-        )}
       </div>
 
       <Footer />
