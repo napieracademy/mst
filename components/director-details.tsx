@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -111,90 +112,85 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
       
       <div className="pt-24 pb-16">
         <Container>
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Colonna sinistra: immagine e info */}
-            <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-              <div className="rounded-lg overflow-hidden relative aspect-[2/3] mb-6">
-                <Image
-                  src={profileUrl}
-                  alt={director.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 300px"
-                />
-              </div>
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">{director.name}</h1>
+            
+            {/* Informazioni biografiche */}
+            <div className="flex flex-col space-y-2 text-gray-300 mb-8">
+              {birthDate && (
+                <p className="text-sm">
+                  <span className="font-medium">Nato il:</span> {birthDate}
+                </p>
+              )}
               
-              <div className="space-y-4 text-gray-300">
-                {birthDate && (
-                  <div>
-                    <h3 className="text-white text-sm font-medium mb-1">Data di nascita</h3>
-                    <p className="text-sm">{birthDate}</p>
-                  </div>
-                )}
-                
-                {deathDate && (
-                  <div>
-                    <h3 className="text-white text-sm font-medium mb-1">Data di morte</h3>
-                    <p className="text-sm">{deathDate}</p>
-                  </div>
-                )}
-                
-                {director.place_of_birth && (
-                  <div>
-                    <h3 className="text-white text-sm font-medium mb-1">Luogo di nascita</h3>
-                    <p className="text-sm">{director.place_of_birth}</p>
-                  </div>
-                )}
-              </div>
+              {deathDate && (
+                <p className="text-sm">
+                  <span className="font-medium">Morto il:</span> {deathDate}
+                </p>
+              )}
+              
+              {director.place_of_birth && (
+                <p className="text-sm">
+                  <span className="font-medium">Luogo di nascita:</span> {director.place_of_birth}
+                </p>
+              )}
             </div>
             
-            {/* Colonna destra: biografia e filmografia */}
-            <div className="w-full md:w-2/3 lg:w-3/4">
-              <h1 className="text-3xl md:text-4xl font-bold mb-6">{director.name}</h1>
-              
-              {/* Biografia */}
-              {fullBio && (
-                <div className="mb-12">
-                  <h2 className="text-xl font-semibold mb-4">Biografia</h2>
-                  <div className="text-gray-300">
-                    {bioExpanded ? (
-                      <>
-                        <p className="mb-4">{fullBio}</p>
-                        <button 
-                          onClick={() => setBioExpanded(false)}
-                          className="text-sm text-red-500 hover:text-red-400 transition-colors"
-                        >
-                          Mostra meno
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mb-4">{shortBio}</p>
-                        {fullBio.length > 300 && (
+            {/* Biografia con avatar */}
+            {fullBio && (
+              <div className="mb-12">
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                  {/* Avatar */}
+                  <div className="w-32 h-32 md:w-48 md:h-48 flex-shrink-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
+                    <Image
+                      src={profileUrl}
+                      alt={director.name}
+                      width={192}
+                      height={192}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  
+                  {/* Biografia */}
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-4">Biografia</h2>
+                    <div className="text-gray-300">
+                      {bioExpanded ? (
+                        <>
+                          <p className="mb-4">{fullBio}</p>
                           <button 
-                            onClick={() => setBioExpanded(true)}
+                            onClick={() => setBioExpanded(false)}
                             className="text-sm text-red-500 hover:text-red-400 transition-colors"
                           >
-                            Leggi la biografia completa
+                            Mostra meno
                           </button>
-                        )}
-                      </>
-                    )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="mb-4">{shortBio}</p>
+                          {fullBio.length > 300 && (
+                            <button 
+                              onClick={() => setBioExpanded(true)}
+                              className="text-sm text-red-500 hover:text-red-400 transition-colors"
+                            >
+                              Leggi la biografia completa
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              )}
-              
-              {/* Filmografia */}
-              {credits.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Filmografia</h2>
-                  <PersonFilmography 
-                    credits={credits} 
-                    name={director.name} 
-                    knownForCredits={knownForCredits}
-                  />
-                </div>
-              )}
+              </div>
+            )}
+            
+            {/* Filmografia */}
+            <div className="mt-10 border-t border-gray-800 pt-10">
+              <PersonFilmography 
+                credits={credits} 
+                name={director.name} 
+                knownForCredits={knownForCredits}
+              />
             </div>
           </div>
         </Container>
