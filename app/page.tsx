@@ -3,12 +3,14 @@ import { Footer } from "@/components/footer"
 import { SearchBar } from "@/components/search-bar"
 import { MovieSection } from "@/components/movie-section"
 import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
+import TopRatedTVShowsCarousel from "@/components/TopRatedTVShowsCarousel"
 import {
   getTrendingMovies,
   getPopularMovies,
   getTopRatedMovies,
   getUpcomingMovies,
   getPopularTVShows,
+  getTopRatedTVShows,
 } from "@/lib/tmdb"
 import Image from "next/image"
 import type { Movie } from "@/lib/types"
@@ -24,6 +26,7 @@ export default async function Home() {
   let topRatedMovies: Movie[] = []
   let upcomingMovies: Movie[] = []
   let popularTVShows: Movie[] = []
+  let streamingTVShows: Movie[] = []
 
   try {
     // Utilizziamo Promise.allSettled per gestire meglio gli errori
@@ -33,6 +36,7 @@ export default async function Home() {
       getTopRatedMovies(),
       getTrendingMovies(),
       getPopularTVShows(),
+      getTopRatedTVShows(),
     ])
 
     // Fix: Use a temporary array and then assign individual values
@@ -43,6 +47,7 @@ export default async function Home() {
     topRatedMovies = processedResults[2]
     nowPlayingMovies = processedResults[3]
     popularTVShows = processedResults[4]
+    streamingTVShows = processedResults[5]
   } catch (error) {
     console.error("Error fetching movie data:", error)
     // Non facciamo nulla qui, useremo gli array vuoti inizializzati sopra
@@ -123,6 +128,14 @@ export default async function Home() {
           movies={popularTVShows.slice(0, 20)} 
           showDirector={false} 
         />
+
+        {/* Serie TV in streaming */}
+        <div className="mt-16 pt-12 border-t border-gray-800">
+          <TopRatedTVShowsCarousel 
+            title="Serie TV in streaming su Netflix, Amazon Prime e Apple TV+" 
+            shows={streamingTVShows.slice(0, 20)} 
+          />
+        </div>
       </div>
 
       {/* Footer */}
