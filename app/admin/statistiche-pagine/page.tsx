@@ -362,7 +362,11 @@ const StatsDashboard = async ({
       
     if (pagesError) {
       console.error('Errore durante il recupero delle pagine:', pagesError);
-      error = `Errore durante il recupero delle pagine: ${pagesError.message}`;
+      error = `Errore durante il recupero delle pagine: ${
+        typeof pagesError === 'object' && pagesError !== null && 'message' in pagesError 
+        ? pagesError.message 
+        : JSON.stringify(pagesError) || 'Errore sconosciuto'
+      }`;
     } else {
       pages = pagesData || [];
       count = pagesCount;
@@ -378,14 +382,22 @@ const StatsDashboard = async ({
       console.error('Errore durante il recupero delle statistiche:', statsError);
       // Non sovrascriviamo l'errore principale se ce n'è già uno
       if (!error) {
-        error = `Errore durante il recupero delle statistiche: ${statsError.message}`;
+        error = `Errore durante il recupero delle statistiche: ${
+          typeof statsError === 'object' && statsError !== null && 'message' in statsError 
+          ? statsError.message 
+          : JSON.stringify(statsError) || 'Errore sconosciuto'
+        }`;
       }
     } else {
       statsData = statsDataResponse;
     }
   } catch (e: any) {
     console.error('Errore fatale durante il recupero dei dati:', e);
-    error = `Errore fatale durante il recupero dei dati: ${e.message || 'Errore sconosciuto'}`;
+    error = `Errore fatale durante il recupero dei dati: ${
+      typeof e === 'object' && e !== null && 'message' in e 
+      ? e.message 
+      : e?.toString() || 'Errore sconosciuto'
+    }`;
   }
   
   // Se la funzione RPC non esiste ancora, crea dati fittizi
@@ -432,12 +444,12 @@ const StatsDashboard = async ({
           <p className="font-bold text-red-700">Si è verificato un errore</p>
           <p className="text-red-700">{error}</p>
           <div className="mt-3">
-            <button 
-              onClick={() => window.location.reload()} 
-              className="bg-red-100 text-red-800 px-4 py-2 rounded hover:bg-red-200 transition-colors"
+            <Link 
+              href="/admin/statistiche-pagine" 
+              className="bg-red-100 text-red-800 px-4 py-2 rounded hover:bg-red-200 transition-colors inline-block"
             >
               Riprova
-            </button>
+            </Link>
           </div>
         </div>
       )}
