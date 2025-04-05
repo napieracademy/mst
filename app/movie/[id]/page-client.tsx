@@ -5,7 +5,7 @@ import { EditableBio } from "@/components/editable-bio"
 import Link from "next/link"
 import { CastCarousel } from "@/components/cast-carousel"
 import { MovieGallery } from "@/components/movie-gallery"
-import { SimilarMovies } from "@/components/similar-movies"
+import { MovieSimilarMovies } from "@/components/movie-similar-movies"
 import { MovieHero } from "@/components/movie-hero"
 import { Footer } from "@/components/footer"
 import { Movie } from "@/lib/types"
@@ -44,11 +44,11 @@ export function MoviePageClient({
   producers
 }: MoviePageClientProps) {
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
-  
+
   // Prepariamo i known_for_credits se esistono
   const knownForCredits = movie.known_for_credits || [];
   const hasKnownForCredits = knownForCredits.length > 0;
-  
+
   // Convertiamo i credits nel formato atteso da PersonFilmography
   const castCredits = movie.credits?.cast?.map(member => ({
     ...member,
@@ -68,7 +68,7 @@ export function MoviePageClient({
           releaseDate={releaseDate}
           trailers={trailers || []}
         />
-        
+
         {/* Indicatore di prerenderizzazione */}
         <div className="absolute bottom-4 right-4 z-50">
           <PreRenderizzazioneCheck />
@@ -218,7 +218,7 @@ export function MoviePageClient({
         <FadeInSection delay={300} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
             <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
-            
+
             {/* Mostriamo solo il cast completo con CastCarousel */}
             {movie.credits?.cast && movie.credits.cast.length > 0 ? (
               <CastCarousel cast={movie.credits.cast} />
@@ -240,7 +240,7 @@ export function MoviePageClient({
         <FadeInSection delay={500} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
             <h2 className="text-sm text-gray-400 mb-8">FILM SIMILI</h2>
-            <SimilarMovies movies={similarMovies} />
+            <MovieSimilarMovies movies={similarMovies} />
           </div>
         </FadeInSection>
       </Container>
@@ -249,4 +249,4 @@ export function MoviePageClient({
       <Footer />
     </main>
   )
-} 
+}

@@ -333,6 +333,24 @@ export async function getActorRelatedMovies(personId: string): Promise<Movie[]> 
   }
 }
 
+// Ottieni film simili per ID film
+export async function getMovieSimilarMovies(movieId: string): Promise<Movie[]> {
+  try {
+    const data = await fetchFromTMDB(`/movie/${movieId}/similar`)
+    
+    if (data && !data.error && data.results) {
+      // Prendiamo massimo 10 film simili
+      return data.results.slice(0, 10)
+    }
+    
+    console.error(`Failed to fetch similar movies for movie ID ${movieId}:`, data?.error)
+    return []
+  } catch (error) {
+    console.error(`Error fetching similar movies for movie ID ${movieId}:`, error)
+    return []
+  }
+}
+
 // Modifica la funzione getPersonDetails per lanciare un errore quando le API sono disabilitate
 export async function getPersonDetails(id: string): Promise<any | null> {
   if (!id) return null
