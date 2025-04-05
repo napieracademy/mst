@@ -113,47 +113,50 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
 
       <div className="pt-24 pb-16">
         <Container>
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{actor.name}</h1>
-            
-            {/* Informazioni biografiche */}
-            <div className="flex flex-col space-y-2 text-gray-300 mb-8">
-              {birthDate && (
-                <p className="text-sm">
-                  <span className="font-medium">Nato il:</span> {birthDate}
-                </p>
-              )}
-              
-              {deathDate && (
-                <p className="text-sm">
-                  <span className="font-medium">Morto il:</span> {deathDate}
-                </p>
-              )}
-              
-              {actor.place_of_birth && (
-                <p className="text-sm">
-                  <span className="font-medium">Luogo di nascita:</span> {actor.place_of_birth}
-                </p>
-              )}
-            </div>
-
-            {/* Biografia con avatar */}
-            {fullBio && (
-              <div className="mb-12">
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                  {/* Avatar */}
-                  <div className="w-32 h-32 md:w-48 md:h-48 flex-shrink-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
-                    <Image
-                      src={profileUrl}
-                      alt={actor.name}
-                      width={192}
-                      height={192}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
+          <div className="max-w-[1100px] mx-auto">
+            <div className="flex flex-col md:flex-row gap-8 mb-12">
+              {/* Colonna Avatar */}
+              <div className="w-full md:w-64 flex-shrink-0">
+                <div className="w-32 h-32 md:w-48 md:h-48 mx-auto md:mx-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
+                  <Image
+                    src={profileUrl}
+                    alt={actor.name}
+                    width={192}
+                    height={192}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                
+                {/* Nome e informazioni biografiche spostati qui */}
+                <div className="mt-6 text-center md:text-left">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-4">{actor.name}</h1>
                   
-                  {/* Biografia */}
-                  <div className="flex-1">
+                  <div className="flex flex-col space-y-2 text-gray-300">
+                    {birthDate && (
+                      <p className="text-sm">
+                        <span className="font-medium">Nato il:</span> {birthDate}
+                      </p>
+                    )}
+                    
+                    {deathDate && (
+                      <p className="text-sm">
+                        <span className="font-medium">Morto il:</span> {deathDate}
+                      </p>
+                    )}
+                    
+                    {actor.place_of_birth && (
+                      <p className="text-sm">
+                        <span className="font-medium">Luogo di nascita:</span> {actor.place_of_birth}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Colonna Biografia */}
+              <div className="flex-1">
+                {fullBio && (
+                  <div>
                     <h2 className="text-xl font-semibold mb-4">Biografia</h2>
                     <div className="text-gray-300">
                       {bioExpanded ? (
@@ -181,9 +184,9 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                       )}
                     </div>
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Filmografia */}
             <div className="mt-10 border-t border-gray-800 pt-10">
