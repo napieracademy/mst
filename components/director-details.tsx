@@ -114,9 +114,9 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
         <Container>
           <div className="max-w-[1100px] mx-auto">
             <div className="flex flex-col gap-8 mb-12">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                {/* Avatar */}
-                <div className="w-32 h-32 md:w-48 md:h-48 flex-shrink-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Avatar in suo div a sinistra */}
+                <div className="w-32 h-32 md:w-48 md:h-48 flex-shrink-0 mx-auto md:mx-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
                   <Image
                     src={profileUrl}
                     alt={director.name}
@@ -126,11 +126,12 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
                   />
                 </div>
                 
-                {/* Nome e informazioni biografiche */}
-                <div className="text-center md:text-left">
+                {/* Div che contiene nome, anagrafica e biografia */}
+                <div className="flex-1 text-center md:text-left">
+                  {/* Nome e informazioni biografiche */}
                   <h1 className="text-2xl md:text-3xl font-bold mb-4">{director.name}</h1>
                   
-                  <div className="flex flex-col space-y-2 text-gray-300">
+                  <div className="flex flex-col space-y-2 text-gray-300 mb-6">
                     {birthDate && (
                       <p className="text-sm">
                         <span className="font-medium">Nato il:</span> {birthDate}
@@ -149,14 +150,11 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
                       </p>
                     )}
                   </div>
-                </div>
-              </div>
-              
-              {/* Biografia */}
-              <div className="w-full mt-4">
-                {fullBio && (
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Biografia</h2>
+                  
+                  {/* Biografia */}
+                  {fullBio && (
+                    <div>
+                      <h2 className="text-xl font-semibold mb-4">Biografia</h2>
                     <div className="text-gray-300">
                       {bioExpanded ? (
                         <>
@@ -182,8 +180,8 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
                         </>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
             
