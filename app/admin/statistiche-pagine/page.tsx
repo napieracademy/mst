@@ -33,42 +33,278 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     
     console.log(`SITEMAP ANALYZER: Recuperati ${dbRecords?.length || 0} record dal database`);
     
-    // Utilizziamo i dati dal database direttamente in tutti gli ambienti
-    // per evitare i problemi di fetch della sitemap
-    if (dbRecords) {
-      console.log(`SITEMAP ANALYZER: Utilizzo conteggio diretto dal database`);
+    // In ambiente di sviluppo, utilizziamo i dati dal database direttamente
+    // invece di analizzare la sitemap XML
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`SITEMAP ANALYZER: Utilizzo conteggio diretto dal database in ambiente di sviluppo`);
       
+      if (dbRecords) {
+        const filmDbRecords = dbRecords.filter(record => record.page_type === 'film');
+        const serieDbRecords = dbRecords.filter(record => record.page_type === 'serie');
+        
+        console.log(`SITEMAP ANALYZER: Record film nel DB: ${filmDbRecords.length}`);
+        console.log(`SITEMAP ANALYZER: Record serie nel DB: ${serieDbRecords.length}`);
+        
+        // Calcola gli slug invalidi (es: slug duplicati)
+        const allSlugs = dbRecords.map(r => `${r.page_type}:${r.slug}`);
+        const uniqueSlugs = new Set(allSlugs);
+        const duplicates = allSlugs.length - uniqueSlugs.size;
+        console.log(`SITEMAP ANALYZER: Trovati ${duplicates} slug duplicati`);
+        
+        // Per ora consideriamo gli stessi valori per sitemap e DB
+        // Questo è solo per l'ambiente di sviluppo
+        return {
+          totalDbRecords: totalCount || dbRecords.length,
+          totalSitemapUrls: dbRecords.length + 4, // + 4 per le rotte statiche
+          filmDbRecords: filmDbRecords.length,
+          serieDbRecords: serieDbRecords.length,
+          filmSitemapUrls: filmDbRecords.length,
+          serieSitemapUrls: serieDbRecords.length,
+          invalidSlugs: []
+        };
+      }
+    }
+    
+    // In produzione o se non ci sono dati nel DB, continua con l'analisi della sitemap
+    // Recupera la sitemap
+    const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
+    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : sitemapUrl;
+    
+    console.log(`SITEMAP ANALYZER: Ricerca sitemap su ${baseUrl}/sitemap.xml`);
+    
+    // Configura la richiesta con un timeout più lungo (30 secondi)
+    const fetchOptions = { 
+      cache: 'no-store' as RequestCache,
+      // @ts-ignore - l'opzione next esiste ma TypeScript potrebbe non riconoscerla
+      next: { revalidate: 0 }, // Disabilita la cache di Next.js
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+      signal: AbortSignal.timeout(30000) // 30 secondi di timeout
+    };
+    
+    // Esegui la richiesta HTTP per ottenere la sitemap
+    const response = await fetch(`${baseUrl}/sitemap.xml`, fetchOptions);
+    if (!response.ok) {
+      console.error(`SITEMAP ANALYZER: Errore nel recupero della sitemap: ${response.status} ${response.statusText}`);
+      throw new Error(`Errore nel recupero della sitemap: ${response.status}`);
+    }
+    
+    // Ottieni il contenuto completo della sitemap
+    const sitemapXml = await response.text();
+    
+    console.log(`SITEMAP ANALYZER: Dimensione sitemap recuperata: ${Math.round(sitemapXml.length/1024)} KB`);
+    console.log('SITEMAP ANALYZER: Prime 200 caratteri:', sitemapXml.substring(0, 200));
+    
+    // Conta gli URL nella sitemap con regex più affidabili
+    const urlPattern = /<url>\s*<loc>([^<]+)<\/loc>/g;
+    const filmUrlPattern = /<url>\s*<loc>([^<]+\/film\/[^<]+)<\/loc>/g;
+    const serieUrlPattern = /<url>\s*<loc>([^<]+\/serie\/[^<]+)<\/loc>/g;
+    
+    // Estrai tutti gli URL dalla sitemap
+    let allUrls = [];
+    let match;
+    while (match = urlPattern.exec(sitemapXml)) {
+      allUrls.push(match[1]);
+    }
+    
+    // Estrai URL film e serie
+    let filmUrls = [];
+    while (match = filmUrlPattern.exec(sitemapXml)) {
+      filmUrls.push(match[1]);
+    }
+    
+    let serieUrls = [];
+    while (match = serieUrlPattern.exec(sitemapXml)) {
+      serieUrls.push(match[1]);
+    }
+    
+    console.log(`SITEMAP ANALYZER: Totale URL trovati: ${allUrls.length}`);
+    console.log(`SITEMAP ANALYZER: URL film trovati: ${filmUrls.length}`);
+    console.log(`SITEMAP ANALYZER: URL serie trovati: ${serieUrls.length}`);
+    console.log(`SITEMAP ANALYZER: URL altri (non film/serie): ${allUrls.length - filmUrls.length - serieUrls.length}`);
+    
+    if (allUrls.length > 0) {
+      console.log('SITEMAP ANALYZER: Primi 5 URL:', allUrls.slice(0, 5));
+    }
+    
+    if (filmUrls.length > 0) {
+      console.log('SITEMAP ANALYZER: Primi 3 URL film:', filmUrls.slice(0, 3));
+    }
+    
+    if (serieUrls.length > 0) {
+      console.log('SITEMAP ANALYZER: Primi 3 URL serie:', serieUrls.slice(0, 3));
+    }
+    
+    // Estrai gli slug dalla sitemap
+    const filmSlugs = filmUrls.map(url => {
+      const matches = url.match(/\/film\/([^/]+)(?:\/)?$/);
+      return matches ? matches[1] : '';
+    }).filter(Boolean);
+    
+    const serieSlugs = serieUrls.map(url => {
+      const matches = url.match(/\/serie\/([^/]+)(?:\/)?$/);
+      return matches ? matches[1] : '';
+    }).filter(Boolean);
+    
+    console.log(`SITEMAP ANALYZER: Estratti ${filmSlugs.length} slug film dalla sitemap`);
+    console.log(`SITEMAP ANALYZER: Estratti ${serieSlugs.length} slug serie dalla sitemap`);
+    
+    // Identifica i record del DB che non sono nella sitemap
+    const invalidSlugs = [];
+    
+    if (dbRecords) {
       const filmDbRecords = dbRecords.filter(record => record.page_type === 'film');
       const serieDbRecords = dbRecords.filter(record => record.page_type === 'serie');
       
       console.log(`SITEMAP ANALYZER: Record film nel DB: ${filmDbRecords.length}`);
       console.log(`SITEMAP ANALYZER: Record serie nel DB: ${serieDbRecords.length}`);
       
-      // Calcola gli slug invalidi (es: slug duplicati)
-      const allSlugs = dbRecords.map(r => `${r.page_type}:${r.slug}`);
-      const uniqueSlugs = new Set(allSlugs);
-      const duplicates = allSlugs.length - uniqueSlugs.size;
-      console.log(`SITEMAP ANALYZER: Trovati ${duplicates} slug duplicati`);
+      // Controlla i film mancanti
+      let slugSpecialCharsCount = 0;
+      let slugEmptyCount = 0;
+      let slugLongCount = 0;
+      let slugStartsWithDashCount = 0;
+      let slugXmlInvalidCount = 0;
+      let slugUnknownCount = 0;
+      
+      for (const record of filmDbRecords) {
+        if (!filmSlugs.includes(record.slug)) {
+          // Analizza il motivo
+          let reason = 'Sconosciuto';
+          
+          // Verifica le caratteristiche dello slug che potrebbero causare problemi
+          if (!record.slug || record.slug.trim() === '') {
+            reason = 'Slug vuoto o nullo';
+            slugEmptyCount++;
+          } 
+          // Controlla se è uno slug duplicato nel DB
+          else if (dbRecords.filter(r => r.slug === record.slug && r.page_type === record.page_type).length > 1) {
+            reason = 'Duplicato nel database';
+          } 
+          // Controlla se lo slug ha caratteri non validi
+          else if (/[^\w\-]/g.test(record.slug)) {
+            reason = 'Caratteri non validi nello slug';
+            slugSpecialCharsCount++;
+          }
+          // Controlla se lo slug ha caratteri problematici per XML
+          else if (/[<>&'"]/g.test(record.slug)) {
+            reason = 'Caratteri non validi per XML';
+            slugXmlInvalidCount++;
+          }
+          // Controlla se è troppo lungo
+          else if (record.slug.length > 200) {
+            reason = 'Slug troppo lungo';
+            slugLongCount++;
+          }
+          // Controlla se inizia con un trattino
+          else if (record.slug.startsWith('-')) {
+            reason = 'Slug inizia con trattino';
+            slugStartsWithDashCount++;
+          }
+          else {
+            slugUnknownCount++;
+          }
+          
+          invalidSlugs.push({
+            slug: record.slug,
+            page_type: record.page_type,
+            reason
+          });
+        }
+      }
+      
+      console.log(`SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: ${slugSpecialCharsCount}, Vuoti: ${slugEmptyCount}, Troppo lunghi: ${slugLongCount}, Iniziano con trattino: ${slugStartsWithDashCount}, XML invalidi: ${slugXmlInvalidCount}, Sconosciuti: ${slugUnknownCount}`);
+      
+      // Reset contatori per le serie
+      slugSpecialCharsCount = 0;
+      slugEmptyCount = 0;
+      slugLongCount = 0;
+      slugStartsWithDashCount = 0;
+      slugXmlInvalidCount = 0;
+      slugUnknownCount = 0;
+      
+      // Controlla le serie mancanti
+      for (const record of serieDbRecords) {
+        if (!serieSlugs.includes(record.slug)) {
+          // Analizza il motivo
+          let reason = 'Sconosciuto';
+          
+          // Verifica le caratteristiche dello slug che potrebbero causare problemi
+          if (!record.slug || record.slug.trim() === '') {
+            reason = 'Slug vuoto o nullo';
+            slugEmptyCount++;
+          } 
+          // Controlla se è uno slug duplicato nel DB
+          else if (dbRecords.filter(r => r.slug === record.slug && r.page_type === record.page_type).length > 1) {
+            reason = 'Duplicato nel database';
+          } 
+          // Controlla se lo slug ha caratteri non validi
+          else if (/[^\w\-]/g.test(record.slug)) {
+            reason = 'Caratteri non validi nello slug';
+            slugSpecialCharsCount++;
+          }
+          // Controlla se lo slug ha caratteri problematici per XML
+          else if (/[<>&'"]/g.test(record.slug)) {
+            reason = 'Caratteri non validi per XML';
+            slugXmlInvalidCount++;
+          }
+          // Controlla se è troppo lungo
+          else if (record.slug.length > 200) {
+            reason = 'Slug troppo lungo';
+            slugLongCount++;
+          }
+          // Controlla se inizia con un trattino
+          else if (record.slug.startsWith('-')) {
+            reason = 'Slug inizia con trattino';
+            slugStartsWithDashCount++;
+          }
+          else {
+            slugUnknownCount++;
+          }
+          
+          invalidSlugs.push({
+            slug: record.slug,
+            page_type: record.page_type,
+            reason
+          });
+        }
+      }
+      
+      console.log(`SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: ${slugSpecialCharsCount}, Vuoti: ${slugEmptyCount}, Troppo lunghi: ${slugLongCount}, Iniziano con trattino: ${slugStartsWithDashCount}, XML invalidi: ${slugXmlInvalidCount}, Sconosciuti: ${slugUnknownCount}`);
+      console.log(`SITEMAP ANALYZER: Totale record non inclusi nella sitemap: ${invalidSlugs.length}`);
+      
+      if (invalidSlugs.length > 0) {
+        // Mostra alcuni esempi di slug "Sconosciuto"
+        const unknownSlugs = invalidSlugs
+          .filter(item => item.reason === 'Sconosciuto')
+          .slice(0, 10)
+          .map(item => item.slug);
+          
+        if (unknownSlugs.length > 0) {
+          console.log('SITEMAP ANALYZER: Esempi di slug con esclusione "Sconosciuto":', unknownSlugs);
+        }
+      }
       
       return {
         totalDbRecords: totalCount || dbRecords.length,
-        totalSitemapUrls: dbRecords.length + 4, // + 4 per le rotte statiche
+        totalSitemapUrls: allUrls.length, // Utilizziamo il conteggio esatto di tutti gli URL
         filmDbRecords: filmDbRecords.length,
         serieDbRecords: serieDbRecords.length,
-        filmSitemapUrls: filmDbRecords.length,
-        serieSitemapUrls: serieDbRecords.length,
-        invalidSlugs: []
+        filmSitemapUrls: filmSlugs.length,
+        serieSitemapUrls: serieSlugs.length,
+        invalidSlugs
       };
     }
     
-    // Se non ci sono dati nel DB (improbabile), restituisci un risultato vuoto
     return {
       totalDbRecords: 0,
-      totalSitemapUrls: 0,
+      totalSitemapUrls: allUrls.length,
       filmDbRecords: 0,
       serieDbRecords: 0,
-      filmSitemapUrls: 0,
-      serieSitemapUrls: 0,
+      filmSitemapUrls: filmSlugs.length,
+      serieSitemapUrls: serieSlugs.length,
       invalidSlugs: []
     };
     
@@ -103,66 +339,25 @@ const StatsDashboard = async ({
     );
   }
   
-  let pages: any[] = [];
-  let count: number | null = null;
-  let statsData: any = null;
-  let error: string | null = null;
+  const supabase = createApiSupabaseClient();
   
   // Parametri di paginazione
   const currentPage = parseInt(searchParams.page || '1', 10);
   const pageSize = 50;
+  const offset = (currentPage - 1) * pageSize;
   
-  try {
-    const supabase = createApiSupabaseClient();
+  // Pagine più visitate, ordinate per data di generazione dal più nuovo al più vecchio
+  const { data: pages, error: pagesError, count } = await supabase
+    .from('generated_pages')
+    .select('*', { count: 'exact' })
+    .order('first_generated_at', { ascending: false })
+    .range(offset, offset + pageSize - 1);
     
-    const offset = (currentPage - 1) * pageSize;
-    
-    // Pagine più visitate, ordinate per data di generazione dal più nuovo al più vecchio
-    const { data: pagesData, error: pagesError, count: pagesCount } = await supabase
-      .from('generated_pages')
-      .select('*', { count: 'exact' })
-      .order('first_generated_at', { ascending: false })
-      .range(offset, offset + pageSize - 1);
-      
-    if (pagesError) {
-      console.error('Errore durante il recupero delle pagine:', pagesError);
-      error = `Errore durante il recupero delle pagine: ${
-        typeof pagesError === 'object' && pagesError !== null && 'message' in pagesError 
-        ? pagesError.message 
-        : JSON.stringify(pagesError) || 'Errore sconosciuto'
-      }`;
-    } else {
-      pages = pagesData || [];
-      count = pagesCount;
-    }
-    
-    // Statistiche generali
-    const { data: statsDataResponse, error: statsError } = await supabase
-      .rpc('get_page_stats')
-      .select('*')
-      .single();
-    
-    if (statsError && statsError.code !== 'PGRST116') {
-      console.error('Errore durante il recupero delle statistiche:', statsError);
-      // Non sovrascriviamo l'errore principale se ce n'è già uno
-      if (!error) {
-        error = `Errore durante il recupero delle statistiche: ${
-          typeof statsError === 'object' && statsError !== null && 'message' in statsError 
-          ? statsError.message 
-          : JSON.stringify(statsError) || 'Errore sconosciuto'
-        }`;
-      }
-    } else {
-      statsData = statsDataResponse;
-    }
-  } catch (e: any) {
-    console.error('Errore fatale durante il recupero dei dati:', e);
-    error = `Errore fatale durante il recupero dei dati: ${
-      typeof e === 'object' && e !== null && 'message' in e 
-      ? e.message 
-      : e?.toString() || 'Errore sconosciuto'
-    }`;
-  }
+  // Statistiche generali
+  const { data: statsData, error: statsError } = await supabase
+    .rpc('get_page_stats')
+    .select('*')
+    .single();
   
   // Se la funzione RPC non esiste ancora, crea dati fittizi
   const stats = statsData || {
@@ -201,22 +396,6 @@ const StatsDashboard = async ({
   return (
     <div className="container mx-auto p-8 bg-white text-black">
       <h1 className="text-3xl font-bold mb-6">Statistiche pagine generate</h1>
-      
-      {/* Messaggi di errore */}
-      {error && (
-        <div className="mb-6 border-l-4 border-red-500 bg-red-50 p-4" role="alert">
-          <p className="font-bold text-red-700">Si è verificato un errore</p>
-          <p className="text-red-700">{error}</p>
-          <div className="mt-3">
-            <Link 
-              href="/admin/statistiche-pagine" 
-              className="bg-red-100 text-red-800 px-4 py-2 rounded hover:bg-red-200 transition-colors inline-block"
-            >
-              Riprova
-            </Link>
-          </div>
-        </div>
-      )}
       
       {/* Statistiche generali in forma testuale */}
       <div className="mb-8 border border-gray-300 p-4">
