@@ -72,7 +72,7 @@ export function TVPageClient({
     poster_path: show.poster_path ? show.poster_path : undefined,
     backdrop_path: show.backdrop_path ? show.backdrop_path : undefined
   };
-  
+
   // Prepariamo i known_for_credits se esistono
   const knownForCredits = show.known_for_credits || [];
   const hasKnownForCredits = knownForCredits.length > 0;
@@ -80,7 +80,7 @@ export function TVPageClient({
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
-      <div className="relative h-[100dvh] sm:h-[50vh] md:h-[70vh]">
+      <div className="relative w-full h-[90dvh] sm:h-[70vh] md:h-[80vh]"> {/* Adjusted height */}
         <TVHero
           show={heroShow}
           posterUrl={posterUrl}
@@ -88,7 +88,7 @@ export function TVPageClient({
           releaseDate={releaseDate}
           trailers={trailers || []}
         />
-        
+
         {/* Indicatore di prerenderizzazione */}
         <div className="absolute bottom-4 right-4 z-50">
           <PreRenderizzazioneCheck />
@@ -96,7 +96,7 @@ export function TVPageClient({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+      <div className="max-w-[1100px] mx-auto px-4 py-8 sm:py-16 -mt-24 sm:-mt-16"> {/* Adjusted top margin */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           {/* Left Column - Show Details */}
           <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
@@ -361,12 +361,12 @@ export function TVPageClient({
             </div>
           )}
         </FadeInSection>
-        
+
         {/* Cast Section */}
         <FadeInSection delay={300} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
             <h2 className="text-sm text-gray-400 mb-8">CAST</h2>
-            
+
             {/* Mostriamo solo il cast completo con CastCarousel */}
             {show.credits?.cast && show.credits.cast.length > 0 ? (
               <CastCarousel cast={show.credits.cast} />
@@ -395,4 +395,4 @@ export function TVPageClient({
       <Footer />
     </div>
   )
-} 
+}

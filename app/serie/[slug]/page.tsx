@@ -213,19 +213,21 @@ export default async function SeriePage({ params }: { params: { slug: string } }
           genres={show.genres}
           numberOfSeasons={show.number_of_seasons}
         />
-        <TVPageClient
-          show={show}
-          posterUrl={posterUrl}
-          backdropUrl={backdropUrl}
-          releaseDate={releaseDate}
-          releaseYear={releaseYear}
-          trailers={trailers}
-          similarShows={similarShows}
-          id={id}
-          creators={creators}
-          writers={writers}
-          producers={producers}
-        />
+        <div className="bg-black">
+          <TVPageClient
+            show={show}
+            posterUrl={posterUrl}
+            backdropUrl={backdropUrl}
+            releaseDate={releaseDate}
+            releaseYear={releaseYear}
+            trailers={trailers}
+            similarShows={similarShows}
+            id={id}
+            creators={creators}
+            writers={writers}
+            producers={producers}
+          />
+        </div>
       </>
     );
   } catch (error) {

@@ -209,7 +209,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
 
   return (
     <>
-      <div ref={containerRef} className="relative w-full h-[120dvh] sm:h-[70vh] md:h-[85vh] mb-0">
+      <div ref={containerRef} className="relative w-full h-[90dvh] sm:h-[65vh] md:h-[75vh] mb-0">
         {/* Backdrop Image - Occupa tutta l'area senza restrizioni */}
         <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full">
           <div className="relative w-full h-full">
