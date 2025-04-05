@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidShow, slugify } from '@/lib/utils';
-import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows, getTopRatedTVShows } from "@/lib/tmdb";
+import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows, getTopRatedTVShows, checkShowPlatformDetails } from "@/lib/tmdb";
 import { TVPageClient } from '@/app/tv/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
@@ -170,7 +170,20 @@ export default async function SeriePage({ params }: { params: { slug: string } }
     
     // Recuperiamo serie popolari e top rated per i caroselli
     const popularShows = await getPopularTVShows().catch(() => []) || [];
-    const topRatedShows = await getTopRatedTVShows().catch(() => []) || [];
+    
+    // Recupera informazioni sulle piattaforme per questa serie
+    let availableOn: string[] = [];
+    try {
+      const platformDetails = await checkShowPlatformDetails(id);
+      availableOn = platformDetails.availableOn;
+      // Aggiungi le informazioni sulle piattaforme all'oggetto show
+      if (show) {
+        show.availableOn = availableOn;
+        show.isOnSupportedPlatform = platformDetails.isSupported;
+      }
+    } catch (error) {
+      console.error("Error fetching platform details for show:", error);
+    }
     
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {

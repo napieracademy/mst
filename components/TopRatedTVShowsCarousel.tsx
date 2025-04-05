@@ -16,6 +16,7 @@ interface Show {
   overview?: string
   backdrop_path?: string | null
   popularity?: number
+  availableOn?: string[]
 }
 
 interface TopRatedTVShowsCarouselProps {
@@ -143,6 +144,27 @@ export default function TopRatedTVShowsCarousel({ shows, title = "Serie TV premi
                       <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
                       <span>{show.vote_average?.toFixed(1) || "N/A"}</span>
                     </div>
+                    
+                    {/* Piattaforme */}
+                    {show.availableOn && show.availableOn.length > 0 && (
+                      <div className="absolute top-2 left-2 flex items-center gap-1">
+                        {show.availableOn.includes("Netflix") && (
+                          <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center" title="Netflix">
+                            <span className="text-white text-xs font-bold">N</span>
+                          </div>
+                        )}
+                        {show.availableOn.includes("Amazon Prime Video") && (
+                          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center" title="Amazon Prime Video">
+                            <span className="text-white text-xs font-bold">A</span>
+                          </div>
+                        )}
+                        {show.availableOn.includes("Apple TV+") && (
+                          <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center" title="Apple TV+">
+                            <span className="text-white text-xs font-bold">TV</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     {/* Info */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">

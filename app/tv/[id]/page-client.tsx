@@ -31,8 +31,9 @@ interface TVShow extends Movie {
   number_of_seasons?: number;
   number_of_episodes?: number;
   status?: string;
-  networks?: { name: string }[];
+  networks?: { id: number; name: string; logo_path?: string | null }[];
   seasons?: any[];
+  availableOn?: string[];
 }
 
 interface TVPageClientProps {
@@ -161,8 +162,7 @@ export function TVPageClient({
               <div className="mb-12">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-yellow-400 font-bold text-sm">JustWatch</span>
-                    <span className="sm:hidden text-sm text-gray-400">(7 servizi)</span>
+                    <span className="text-yellow-400 font-bold text-sm">Disponibile su</span>
                   </div>
                   <button
                     onClick={() => setIsJustWatchExpanded(!isJustWatchExpanded)}
@@ -173,40 +173,37 @@ export function TVPageClient({
                 </div>
 
                 <div className={`sm:block ${isJustWatchExpanded ? 'block' : 'hidden'}`}>
-                  {/* Noleggio */}
-                  <div className="mb-8">
-                    <h3 className="text-sm text-gray-400 mb-3">NOLEGGIO</h3>
+                  {/* Piattaforme supportate */}
+                  {show.availableOn && show.availableOn.length > 0 ? (
                     <div className="flex flex-wrap gap-3">
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Rakuten TV
-                      </button>
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Apple TV
-                      </button>
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Amazon Video
-                      </button>
+                      {show.availableOn.includes("Netflix") && (
+                        <div className="bg-red-600/90 hover:bg-red-700 px-5 py-3 rounded-lg text-white flex items-center gap-2 transition-colors">
+                          <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-red-600 text-xs font-bold">N</span>
+                          </div>
+                          <span className="font-medium text-sm">Netflix</span>
+                        </div>
+                      )}
+                      {show.availableOn.includes("Amazon Prime Video") && (
+                        <div className="bg-blue-600/90 hover:bg-blue-700 px-5 py-3 rounded-lg text-white flex items-center gap-2 transition-colors">
+                          <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 text-xs font-bold">A</span>
+                          </div>
+                          <span className="font-medium text-sm">Amazon Prime</span>
+                        </div>
+                      )}
+                      {show.availableOn.includes("Apple TV+") && (
+                        <div className="bg-gray-800/90 hover:bg-gray-700 px-5 py-3 rounded-lg text-white flex items-center gap-2 transition-colors">
+                          <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-gray-800 text-xs font-bold">TV</span>
+                          </div>
+                          <span className="font-medium text-sm">Apple TV+</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Acquisto */}
-                  <div>
-                    <h3 className="text-sm text-gray-400 mb-3">ACQUISTO</h3>
-                    <div className="flex flex-wrap gap-3">
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Rakuten TV
-                      </button>
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Apple TV
-                      </button>
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Google Play Movies
-                      </button>
-                      <button className="bg-gray-900 hover:bg-gray-800 px-6 py-3 rounded-lg text-sm transition-colors">
-                        Amazon Video
-                      </button>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className="text-gray-400 text-sm">Non disponibile sulle piattaforme supportate</p>
+                  )}
                 </div>
               </div>
             </FadeInSection>

@@ -136,16 +136,134 @@ export async function getUpcomingMovies(): Promise<Movie[]> {
   return data?.results || []
 }
 
-// Ottieni le serie TV popolari
-export async function getPopularTVShows(): Promise<Movie[]> {
-  const data = await fetchFromTMDB("/tv/popular")
-  return data?.results || []
+// Array delle piattaforme di streaming supportate
+const SUPPORTED_PLATFORMS = [
+  // Netflix - TMDB ID: 8
+  { id: 8, name: "Netflix" },
+  // Amazon Prime Video - TMDB ID: 9
+  { id: 9, name: "Amazon Prime Video" },
+  // Apple TV+ - TMDB ID: 350
+  { id: 350, name: "Apple TV+" }
+];
+
+// Filtra le serie TV per piattaforme supportate
+export function filterShowsByPlatform(shows: Movie[]): Movie[] {
+  return shows.filter(show => {
+    // Se non ha networks, non possiamo filtrare
+    if (!show.networks || !Array.isArray(show.networks) || show.networks.length === 0) {
+      return false;
+    }
+    
+    // Verifica se la serie è disponibile su almeno una delle piattaforme supportate
+    return show.networks.some(network => 
+      SUPPORTED_PLATFORMS.some(platform => platform.id === network.id)
+    );
+  });
 }
 
-// Ottieni le serie TV con le migliori recensioni
+// Verifica dettagli platform per una singola serie
+export async function checkShowPlatformDetails(id: string): Promise<{
+  availableOn: string[];
+  isSupported: boolean;
+}> {
+  if (!id) return { availableOn: [], isSupported: false };
+
+  try {
+    // Ottieni i dettagli di watch providers
+    const data = await fetchFromTMDB(`/tv/${id}/watch/providers`);
+    
+    // Controlla la risposta per l'Italia (IT)
+    const italyProviders = data?.results?.IT;
+    if (!italyProviders) {
+      return { availableOn: [], isSupported: false };
+    }
+    
+    // Ottieni tutti i provider disponibili (flatrate, rent, buy)
+    const allProviders = [
+      ...(italyProviders.flatrate || []),
+      ...(italyProviders.rent || []),
+      ...(italyProviders.buy || [])
+    ];
+    
+    // Filtra per piattaforme supportate
+    const supportedProviders = allProviders.filter(provider => 
+      SUPPORTED_PLATFORMS.some(p => p.id === provider.provider_id)
+    );
+    
+    // Ottieni i nomi delle piattaforme
+    const availableOn = supportedProviders.map(p => p.provider_name);
+    
+    return {
+      availableOn,
+      isSupported: availableOn.length > 0
+    };
+  } catch (error) {
+    console.error(`Error checking platform details for show ${id}:`, error);
+    return { availableOn: [], isSupported: false };
+  }
+}
+
+// Ottieni le serie TV popolari con filtri per piattaforma
+export async function getPopularTVShows(): Promise<Movie[]> {
+  try {
+    const data = await fetchFromTMDB("/tv/popular", { 
+      watch_region: "IT" // Specifico che voglio contenuti per l'Italia
+    });
+    
+    if (!data?.results) return [];
+    
+    // Ordina per popolarità (decrescente)
+    const sortedShows = [...data.results].sort((a: Movie, b: Movie) => b.popularity - a.popularity);
+    
+    // Ottieni i dettagli delle piattaforme per le prime 20 serie
+    const showsWithDetails = await Promise.all(
+      sortedShows.slice(0, 20).map(async (show: Movie) => {
+        const { isSupported } = await checkShowPlatformDetails(show.id.toString());
+        return {
+          ...show,
+          isOnSupportedPlatform: isSupported
+        };
+      })
+    );
+    
+    // Filtra solo quelle disponibili sulle piattaforme supportate
+    return showsWithDetails
+      .filter(show => show.isOnSupportedPlatform)
+      .slice(0, 10); // Limita a 10 risultati
+  } catch (error) {
+    console.error("Error fetching popular TV shows:", error);
+    return [];
+  }
+}
+
+// Ottieni le serie TV con le migliori recensioni (filtrate per piattaforma)
 export async function getTopRatedTVShows(): Promise<Movie[]> {
-  const data = await fetchFromTMDB("/tv/top_rated")
-  return data?.results || []
+  try {
+    const data = await fetchFromTMDB("/tv/top_rated", {
+      watch_region: "IT" // Specifico che voglio contenuti per l'Italia
+    });
+    
+    if (!data?.results) return [];
+    
+    // Ottieni i dettagli delle piattaforme per le prime 20 serie
+    const showsWithDetails = await Promise.all(
+      data.results.slice(0, 20).map(async (show: Movie) => {
+        const { isSupported } = await checkShowPlatformDetails(show.id.toString());
+        return {
+          ...show,
+          isOnSupportedPlatform: isSupported
+        };
+      })
+    );
+    
+    // Filtra solo quelle disponibili sulle piattaforme supportate e limita a 10
+    return showsWithDetails
+      .filter(show => show.isOnSupportedPlatform)
+      .slice(0, 10);
+  } catch (error) {
+    console.error("Error fetching top rated TV shows:", error);
+    return [];
+  }
 }
 
 // Cerca film o serie TV

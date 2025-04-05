@@ -19,6 +19,10 @@ export interface Movie {
   original_language?: string
   production_countries?: { iso_3166_1: string; name: string }[]
   production_companies?: { id: number; name: string; logo_path: string | null }[]
+  networks?: { id: number; name: string; logo_path?: string | null }[]
+  isOnSupportedPlatform?: boolean
+  availableOn?: string[]
+  status?: string
   created_by?: { 
     id: number
     name: string
