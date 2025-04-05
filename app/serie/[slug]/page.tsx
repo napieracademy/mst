@@ -233,13 +233,14 @@ export default async function SeriePage({ params }: { params: { slug: string } }
             producers={producers}
           />
           
-          {/* Aggiungiamo i carousel per le serie di tendenza e le serie premiate */}
+          {/* Serie più popolari sotto il footer */}
           {popularShows.length > 0 && (
-            <TrendingTVShowsCarousel shows={popularShows} />
-          )}
-          
-          {topRatedShows.length > 0 && (
-            <TopRatedTVShowsCarousel shows={topRatedShows.filter(show => show.poster_path)} title="Serie TV premiate dalla critica" />
+            <div className="pt-12 pb-16">
+              <TopRatedTVShowsCarousel 
+                shows={popularShows.filter(show => show.poster_path)} 
+                title="Serie TV più popolari" 
+              />
+            </div>
           )}
         </div>
       </>

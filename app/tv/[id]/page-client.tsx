@@ -382,13 +382,6 @@ export function TVPageClient({
             <MovieGallery movieId={id} type="tv" />
           </div>
         </FadeInSection>
-
-        {/* Similar Shows */}
-        <FadeInSection delay={500} threshold={0.05}>
-          <div className="mt-12 sm:mt-16">
-            <SimilarMovies movies={similarShows} />
-          </div>
-        </FadeInSection>
       </div>
 
       {/* Footer */}
