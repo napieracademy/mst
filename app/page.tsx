@@ -3,7 +3,6 @@ import { Footer } from "@/components/footer"
 import { SearchBar } from "@/components/search-bar"
 import { MovieSection } from "@/components/movie-section"
 import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
-import TopRatedTVShowsCarousel from "@/components/TopRatedTVShowsCarousel"
 import {
   getTrendingMovies,
   getPopularMovies,
@@ -130,12 +129,11 @@ export default async function Home() {
         />
 
         {/* Serie TV in streaming */}
-        <div className="mt-16 pt-12 border-t border-gray-800">
-          <TopRatedTVShowsCarousel 
-            title="Serie TV in streaming su Netflix, Amazon Prime e Apple TV+" 
-            shows={streamingTVShows.slice(0, 20)} 
-          />
-        </div>
+        <MovieSectionInterattivo 
+          title="Serie TV in streaming su Netflix, Amazon Prime e Apple TV+" 
+          movies={streamingTVShows.slice(0, 20)} 
+          showDirector={false} 
+        />
       </div>
 
       {/* Footer */}
