@@ -14,6 +14,7 @@ import { FadeInSection } from "@/components/fade-in-section"
 import { useState } from "react"
 import { generateSlug } from "@/lib/utils"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
+import TopRatedTVShowsCarousel from "@/components/TopRatedTVShowsCarousel"
 
 // Interfaccia compatibile con quella del TVHero
 interface Show {
@@ -46,6 +47,7 @@ interface TVPageClientProps {
   creators: any[]
   writers: any[]
   producers: any[]
+  popularShows?: any[] // Serie TV popolari da mostrare nel carousel
 }
 
 export function TVPageClient({
@@ -59,7 +61,8 @@ export function TVPageClient({
   id,
   creators,
   writers,
-  producers
+  producers,
+  popularShows
 }: TVPageClientProps) {
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
 
@@ -382,6 +385,18 @@ export function TVPageClient({
             <MovieGallery movieId={id} type="tv" />
           </div>
         </FadeInSection>
+        
+        {/* Serie TV popolari */}
+        {popularShows && popularShows.length > 0 && (
+          <FadeInSection delay={500} threshold={0.05}>
+            <div className="mt-12 sm:mt-16 pt-8 border-t border-gray-800">
+              <TopRatedTVShowsCarousel 
+                shows={popularShows.filter(show => show.poster_path)} 
+                title="Serie TV più popolari" 
+              />
+            </div>
+          </FadeInSection>
+        )}
       </div>
 
       {/* Footer */}

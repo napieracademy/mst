@@ -231,17 +231,8 @@ export default async function SeriePage({ params }: { params: { slug: string } }
             creators={creators}
             writers={writers}
             producers={producers}
+            popularShows={popularShows}
           />
-          
-          {/* Serie più popolari sotto il footer */}
-          {popularShows.length > 0 && (
-            <div className="pt-12 pb-16">
-              <TopRatedTVShowsCarousel 
-                shows={popularShows.filter(show => show.poster_path)} 
-                title="Serie TV più popolari" 
-              />
-            </div>
-          )}
         </div>
       </>
     );
