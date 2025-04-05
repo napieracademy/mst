@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { getPersonDetails } from '@/lib/tmdb';
+import { getPersonDetails, getActorRelatedMovies } from '@/lib/tmdb';
 import { extractIdFromSlug } from '@/lib/utils';
 import ActorDetails from '@/components/actor-details';
 import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
@@ -66,6 +66,15 @@ export default async function ActorPage({ params }: { params: { slug: string } }
       redirect(errorUrl);
     }
     
+    // Otteniamo i film correlati all'attore
+    const relatedMovies = await getActorRelatedMovies(id);
+    
+    // Aggiungiamo i film correlati ai dati dell'attore
+    const actorWithRelatedMovies = {
+      ...actorDetails,
+      related_movies: relatedMovies
+    };
+    
     // Definiamo i campi richiesti per un attore (solo id e name)
     const requiredFields = ['id', 'name'] as (keyof typeof actorDetails)[];
     const { isValid, missingFields } = hasRequiredData(actorDetails, requiredFields);
@@ -88,7 +97,7 @@ export default async function ActorPage({ params }: { params: { slug: string } }
       return redirect(errorUrl);
     }
     
-    return <ActorDetails actor={actorDetails} />;
+    return <ActorDetails actor={actorWithRelatedMovies} />;
   } catch (error) {
     console.error("Error fetching actor details:", error);
     const errorUrl = generateErrorUrl({

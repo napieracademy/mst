@@ -312,6 +312,27 @@ export async function getSimilarMovies(id: string, type: "movie" | "tv"): Promis
   }
 }
 
+// Ottieni film correlati a un attore/persona
+export async function getActorRelatedMovies(personId: string): Promise<Movie[]> {
+  try {
+    // Otteniamo i film in cui l'attore ha recitato
+    const data = await fetchFromTMDB(`/person/${personId}/movie_credits`)
+    
+    if (data && !data.error && data.cast) {
+      // Prendiamo solo i film più popolari (massimo 10)
+      return data.cast
+        .sort((a: any, b: any) => b.popularity - a.popularity)
+        .slice(0, 10)
+    }
+    
+    console.error(`Failed to fetch actor related movies:`, data?.error)
+    return []
+  } catch (error) {
+    console.error("Error fetching actor related movies:", error)
+    return []
+  }
+}
+
 // Modifica la funzione getPersonDetails per lanciare un errore quando le API sono disabilitate
 export async function getPersonDetails(id: string): Promise<any | null> {
   if (!id) return null

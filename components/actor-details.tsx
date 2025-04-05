@@ -7,6 +7,7 @@ import { Text } from "@/atomic/atoms/text"
 import { PersonFilmography } from "@/components/person-filmography"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { ActorSimilarMovies } from "@/components/actor-similar-movies" // Added import
 
 interface Credit {
   id: number
@@ -35,19 +36,20 @@ interface ActorDetailsProps {
       crew?: Credit[]
     }
     known_for_credits?: Credit[]
+    related_movies?: any[] // Added related_movies type
   }
 }
 
 export default function ActorDetails({ actor }: ActorDetailsProps) {
   const [bioExpanded, setBioExpanded] = useState(false)
-  
+
   // Prepara biografia e credits
   const shortBio = actor.biography ? actor.biography.slice(0, 300) + (actor.biography.length > 300 ? '...' : '') : null
   const fullBio = actor.biography || null
-  
+
   // Prepara la filmografia
   const credits: Credit[] = []
-  
+
   // Aggiungi i film dove ha recitato
   if (actor.combined_credits?.cast) {
     actor.combined_credits.cast.forEach(credit => {
@@ -57,7 +59,7 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
       })
     })
   }
-  
+
   // Aggiungi i film dove ha lavorato come regista
   if (actor.combined_credits?.crew) {
     actor.combined_credits.crew
@@ -69,7 +71,7 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
           c.media_type === credit.media_type && 
           c.role === "acting"
         )
-        
+
         if (existingCredit) {
           // Se è già presente come attore, aggiorna il ruolo a "both"
           existingCredit.role = "both"
@@ -82,15 +84,15 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
         }
       })
   }
-  
+
   // Prepara i known_for_credits
   const knownForCredits = actor.known_for_credits || [];
-  
+
   // Ottieni l'URL dell'immagine del profilo
   const profileUrl = actor.profile_path 
     ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
     : "/placeholder-person.svg?height=500&width=500"
-    
+
   // Formatta data di nascita e morte con il fuso orario italiano
   const formatDate = (dateString?: string) => {
     if (!dateString) return null
@@ -101,14 +103,14 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
       timeZone: "Europe/Rome"
     })
   }
-  
+
   const birthDate = formatDate(actor.birthday)
   const deathDate = formatDate(actor.deathday)
-  
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Header />
-      
+
       <div className="pt-24 pb-16">
         <Container>
           <div className="flex flex-col md:flex-row gap-8">
@@ -123,7 +125,7 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                   sizes="(max-width: 768px) 100vw, 300px"
                 />
               </div>
-              
+
               <div className="space-y-4 text-gray-300">
                 {birthDate && (
                   <div>
@@ -131,14 +133,14 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                     <p className="text-sm">{birthDate}</p>
                   </div>
                 )}
-                
+
                 {deathDate && (
                   <div>
                     <h3 className="text-white text-sm font-medium mb-1">Data di morte</h3>
                     <p className="text-sm">{deathDate}</p>
                   </div>
                 )}
-                
+
                 {actor.place_of_birth && (
                   <div>
                     <h3 className="text-white text-sm font-medium mb-1">Luogo di nascita</h3>
@@ -147,11 +149,11 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                 )}
               </div>
             </div>
-            
+
             {/* Colonna destra: biografia e filmografia */}
             <div className="w-full md:w-2/3 lg:w-3/4">
               <h1 className="text-3xl md:text-4xl font-bold mb-6">{actor.name}</h1>
-              
+
               {/* Biografia */}
               {fullBio && (
                 <div className="mb-12">
@@ -183,24 +185,25 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                   </div>
                 </div>
               )}
-              
+
               {/* Filmografia */}
-              {credits.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Filmografia</h2>
-                  <PersonFilmography 
-                    credits={credits} 
-                    name={actor.name} 
-                    knownForCredits={knownForCredits}
-                  />
-                </div>
-              )}
+              <div className="mt-16 border-t border-gray-800 pt-10">
+                <PersonFilmography credits={credits} name={actor.name} knownForCredits={knownForCredits} />
+              </div>
             </div>
           </div>
         </Container>
+
+        {/* Film correlati */}
+        {actor.related_movies && actor.related_movies.length > 0 && (
+          <ActorSimilarMovies 
+            movies={actor.related_movies} 
+            title={`Film con ${actor.name}`} 
+          />
+        )}
       </div>
-      
+
       <Footer />
     </main>
   )
-} 
+}
