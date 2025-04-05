@@ -142,6 +142,12 @@ export async function getPopularTVShows(): Promise<Movie[]> {
   return data?.results || []
 }
 
+// Ottieni le serie TV con le migliori recensioni
+export async function getTopRatedTVShows(): Promise<Movie[]> {
+  const data = await fetchFromTMDB("/tv/top_rated")
+  return data?.results || []
+}
+
 // Cerca film o serie TV
 export async function searchMovies(query: string): Promise<Movie[]> {
   const data = await fetchFromTMDB("/search/multi", { query })

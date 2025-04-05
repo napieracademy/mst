@@ -1,13 +1,14 @@
-
 import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidShow, slugify } from '@/lib/utils';
-import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows } from "@/lib/tmdb";
+import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows, getTopRatedTVShows } from "@/lib/tmdb";
 import { TVPageClient } from '@/app/tv/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
 import SerieSEO from '@/app/components/seo/serie-seo';
 import { hasRequiredData, generateErrorUrl } from '@/lib/error-utils';
 import { trackGeneratedPage } from '@/lib/page-tracking';
+import TopRatedTVShowsCarousel from '@/components/TopRatedTVShowsCarousel';
+import TrendingTVShowsCarousel from '@/components/TrendingTVShowsCarousel';
 
 export async function generateStaticParams() {
   try {
@@ -167,6 +168,10 @@ export default async function SeriePage({ params }: { params: { slug: string } }
     const trailers = await getTrailers(id, "tv").catch(() => []) || [];
     const similarShows = await getSimilarMovies(id, "tv").catch(() => []) || [];
     
+    // Recuperiamo serie popolari e top rated per i caroselli
+    const popularShows = await getPopularTVShows().catch(() => []) || [];
+    const topRatedShows = await getTopRatedTVShows().catch(() => []) || [];
+    
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {
       return !!path && typeof path === 'string' && path.startsWith('/');
@@ -227,6 +232,15 @@ export default async function SeriePage({ params }: { params: { slug: string } }
             writers={writers}
             producers={producers}
           />
+          
+          {/* Aggiungiamo i carousel per le serie di tendenza e le serie premiate */}
+          {popularShows.length > 0 && (
+            <TrendingTVShowsCarousel shows={popularShows} />
+          )}
+          
+          {topRatedShows.length > 0 && (
+            <TopRatedTVShowsCarousel shows={topRatedShows.filter(show => show.poster_path)} title="Serie TV premiate dalla critica" />
+          )}
         </div>
       </>
     );
