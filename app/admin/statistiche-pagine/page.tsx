@@ -339,25 +339,54 @@ const StatsDashboard = async ({
     );
   }
   
-  const supabase = createApiSupabaseClient();
+  let pages: any[] = [];
+  let count: number | null = null;
+  let statsData: any = null;
+  let error: string | null = null;
   
   // Parametri di paginazione
   const currentPage = parseInt(searchParams.page || '1', 10);
   const pageSize = 50;
-  const offset = (currentPage - 1) * pageSize;
   
-  // Pagine più visitate, ordinate per data di generazione dal più nuovo al più vecchio
-  const { data: pages, error: pagesError, count } = await supabase
-    .from('generated_pages')
-    .select('*', { count: 'exact' })
-    .order('first_generated_at', { ascending: false })
-    .range(offset, offset + pageSize - 1);
+  try {
+    const supabase = createApiSupabaseClient();
     
-  // Statistiche generali
-  const { data: statsData, error: statsError } = await supabase
-    .rpc('get_page_stats')
-    .select('*')
-    .single();
+    const offset = (currentPage - 1) * pageSize;
+    
+    // Pagine più visitate, ordinate per data di generazione dal più nuovo al più vecchio
+    const { data: pagesData, error: pagesError, count: pagesCount } = await supabase
+      .from('generated_pages')
+      .select('*', { count: 'exact' })
+      .order('first_generated_at', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+      
+    if (pagesError) {
+      console.error('Errore durante il recupero delle pagine:', pagesError);
+      error = `Errore durante il recupero delle pagine: ${pagesError.message}`;
+    } else {
+      pages = pagesData || [];
+      count = pagesCount;
+    }
+    
+    // Statistiche generali
+    const { data: statsDataResponse, error: statsError } = await supabase
+      .rpc('get_page_stats')
+      .select('*')
+      .single();
+    
+    if (statsError && statsError.code !== 'PGRST116') {
+      console.error('Errore durante il recupero delle statistiche:', statsError);
+      // Non sovrascriviamo l'errore principale se ce n'è già uno
+      if (!error) {
+        error = `Errore durante il recupero delle statistiche: ${statsError.message}`;
+      }
+    } else {
+      statsData = statsDataResponse;
+    }
+  } catch (e: any) {
+    console.error('Errore fatale durante il recupero dei dati:', e);
+    error = `Errore fatale durante il recupero dei dati: ${e.message || 'Errore sconosciuto'}`;
+  }
   
   // Se la funzione RPC non esiste ancora, crea dati fittizi
   const stats = statsData || {
@@ -396,6 +425,22 @@ const StatsDashboard = async ({
   return (
     <div className="container mx-auto p-8 bg-white text-black">
       <h1 className="text-3xl font-bold mb-6">Statistiche pagine generate</h1>
+      
+      {/* Messaggi di errore */}
+      {error && (
+        <div className="mb-6 border-l-4 border-red-500 bg-red-50 p-4" role="alert">
+          <p className="font-bold text-red-700">Si è verificato un errore</p>
+          <p className="text-red-700">{error}</p>
+          <div className="mt-3">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-red-100 text-red-800 px-4 py-2 rounded hover:bg-red-200 transition-colors"
+            >
+              Riprova
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Statistiche generali in forma testuale */}
       <div className="mb-8 border border-gray-300 p-4">

@@ -30,12 +30,14 @@ export async function trackGeneratedPage(
       return;
     }
     
-    console.log(`⚠️ TRACK PAGE: Creazione client Supabase`);
-    const supabase = createApiSupabaseClient();
-    if (!supabase) {
-      console.log('⚠️ TRACK PAGE: client Supabase non disponibile');
+    // Verifica che il tipo di pagina sia valido
+    if (pageType !== 'film' && pageType !== 'serie') {
+      console.log(`⚠️ TRACK PAGE: tipo pagina non valido: "${pageType}"`);
       return;
     }
+    
+    console.log(`⚠️ TRACK PAGE: Creazione client Supabase`);
+    const supabase = createApiSupabaseClient();
     
     console.log(`⚠️ TRACK PAGE: Chiamata a RPC track_generated_page con:`, {
       p_slug: slug,
@@ -43,13 +45,21 @@ export async function trackGeneratedPage(
       p_is_first_generation: isFirstGeneration
     });
     
+    // Impostiamo un timeout di 5 secondi per la chiamata al database
+    const timeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => 
+      setTimeout(() => reject(new Error("Timeout durante l'operazione di tracciamento")), 5000)
+    );
+    
     // Utilizza la funzione RPC sicura per tracciare la pagina
     // Questa funzione gestisce sia inserimenti che aggiornamenti
-    const { data, error } = await supabase.rpc('track_generated_page', {
+    const rpcPromise = supabase.rpc('track_generated_page', {
       p_slug: slug,
       p_page_type: pageType,
       p_is_first_generation: isFirstGeneration
     });
+    
+    // Utilizza Promise.race per implementare il timeout
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]) as any;
     
     if (error) {
       console.log(`⚠️ TRACK PAGE: ERRORE per ${slug}`, error.message);

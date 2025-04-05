@@ -48,8 +48,23 @@ export const createServerSupabaseClient = async () => {
 }
 
 export const createApiSupabaseClient = () => {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Supabase URL o Key mancanti. Controlla le variabili di ambiente.');
+    throw new Error('Configurazione Supabase incompleta');
+  }
+  
+  try {
+    return createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
+  } catch (error) {
+    console.error('Errore nella creazione del client Supabase:', error);
+    throw new Error('Impossibile creare il client Supabase');
+  }
 } 
