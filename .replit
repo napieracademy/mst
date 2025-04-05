@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "bash"]
+modules = ["nodejs-18", "web", "bash"]
 run = "npm run dev"
 
 [nix]
@@ -49,4 +49,4 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "npm install --legacy-peer-deps && npm run dev"
