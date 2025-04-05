@@ -114,10 +114,10 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
       <div className="pt-24 pb-16">
         <Container>
           <div className="max-w-[1100px] mx-auto">
-            <div className="flex flex-col md:flex-row gap-8 mb-12">
-              {/* Colonna Avatar */}
-              <div className="w-full md:w-64 flex-shrink-0">
-                <div className="w-32 h-32 md:w-48 md:h-48 mx-auto md:mx-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
+            <div className="flex flex-col gap-8 mb-12">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                {/* Avatar */}
+                <div className="w-32 h-32 md:w-48 md:h-48 flex-shrink-0 rounded-full overflow-hidden border-2 border-gray-700 shadow-xl">
                   <Image
                     src={profileUrl}
                     alt={actor.name}
@@ -127,8 +127,8 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                   />
                 </div>
                 
-                {/* Nome e informazioni biografiche spostati qui */}
-                <div className="mt-6 text-center md:text-left">
+                {/* Nome e informazioni biografiche */}
+                <div className="text-center md:text-left">
                   <h1 className="text-2xl md:text-3xl font-bold mb-4">{actor.name}</h1>
                   
                   <div className="flex flex-col space-y-2 text-gray-300">
@@ -153,8 +153,8 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                 </div>
               </div>
               
-              {/* Colonna Biografia */}
-              <div className="flex-1">
+              {/* Biografia */}
+              <div className="w-full mt-4">
                 {fullBio && (
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Biografia</h2>
