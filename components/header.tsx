@@ -11,7 +11,14 @@ import { cn } from "@/atomic/utils/cn"
 import { usePathname } from "next/navigation"
 import { PageGenerationIndicator } from "./page-generation-indicator"
 
-const supabase = createClient()
+// Creiamo il client in modo sicuro
+let supabase;
+try {
+  supabase = createClient();
+} catch (error) {
+  console.error("Errore nell'inizializzazione di Supabase:", error);
+  // supabase rimane undefined
+}
 
 function UserProfile() {
   const [user, setUser] = useState<any>(null)

@@ -13,31 +13,38 @@ export const createServerSupabaseClient = async () => {
     return null
   }
 
-  return createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+  try {
+    return createServerClient(
+      supabaseUrl,
+      supabaseKey,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            try {
+              cookieStore.set({ name, value, ...options })
+            } catch (error) {
+              // Ignora errori di cookie in ambiente server
+              console.warn('Errore nel settare cookie:', error)
+            }
+          },
+          remove(name: string, options: any) {
+            try {
+              cookieStore.set({ name, value: '', ...options })
+            } catch (error) {
+              // Ignora errori di cookie in ambiente server
+              console.warn('Errore nel rimuovere cookie:', error)
+            }
+          },
         },
-        set(name: string, value: string, options: any) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // Ignora errori di cookie in ambiente server
-          }
-        },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // Ignora errori di cookie in ambiente server
-          }
-        },
-      },
-    }
-  )
+      }
+    )
+  } catch (error) {
+    console.error('Errore nella creazione del client Supabase lato server:', error)
+    return null
+  }
 }
 
 export const createApiSupabaseClient = () => {
