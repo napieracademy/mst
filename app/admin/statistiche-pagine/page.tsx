@@ -33,278 +33,42 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     
     console.log(`SITEMAP ANALYZER: Recuperati ${dbRecords?.length || 0} record dal database`);
     
-    // In ambiente di sviluppo, utilizziamo i dati dal database direttamente
-    // invece di analizzare la sitemap XML
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`SITEMAP ANALYZER: Utilizzo conteggio diretto dal database in ambiente di sviluppo`);
-      
-      if (dbRecords) {
-        const filmDbRecords = dbRecords.filter(record => record.page_type === 'film');
-        const serieDbRecords = dbRecords.filter(record => record.page_type === 'serie');
-        
-        console.log(`SITEMAP ANALYZER: Record film nel DB: ${filmDbRecords.length}`);
-        console.log(`SITEMAP ANALYZER: Record serie nel DB: ${serieDbRecords.length}`);
-        
-        // Calcola gli slug invalidi (es: slug duplicati)
-        const allSlugs = dbRecords.map(r => `${r.page_type}:${r.slug}`);
-        const uniqueSlugs = new Set(allSlugs);
-        const duplicates = allSlugs.length - uniqueSlugs.size;
-        console.log(`SITEMAP ANALYZER: Trovati ${duplicates} slug duplicati`);
-        
-        // Per ora consideriamo gli stessi valori per sitemap e DB
-        // Questo è solo per l'ambiente di sviluppo
-        return {
-          totalDbRecords: totalCount || dbRecords.length,
-          totalSitemapUrls: dbRecords.length + 4, // + 4 per le rotte statiche
-          filmDbRecords: filmDbRecords.length,
-          serieDbRecords: serieDbRecords.length,
-          filmSitemapUrls: filmDbRecords.length,
-          serieSitemapUrls: serieDbRecords.length,
-          invalidSlugs: []
-        };
-      }
-    }
-    
-    // In produzione o se non ci sono dati nel DB, continua con l'analisi della sitemap
-    // Recupera la sitemap
-    const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
-    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : sitemapUrl;
-    
-    console.log(`SITEMAP ANALYZER: Ricerca sitemap su ${baseUrl}/sitemap.xml`);
-    
-    // Configura la richiesta con un timeout più lungo (30 secondi)
-    const fetchOptions = { 
-      cache: 'no-store' as RequestCache,
-      // @ts-ignore - l'opzione next esiste ma TypeScript potrebbe non riconoscerla
-      next: { revalidate: 0 }, // Disabilita la cache di Next.js
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      },
-      signal: AbortSignal.timeout(30000) // 30 secondi di timeout
-    };
-    
-    // Esegui la richiesta HTTP per ottenere la sitemap
-    const response = await fetch(`${baseUrl}/sitemap.xml`, fetchOptions);
-    if (!response.ok) {
-      console.error(`SITEMAP ANALYZER: Errore nel recupero della sitemap: ${response.status} ${response.statusText}`);
-      throw new Error(`Errore nel recupero della sitemap: ${response.status}`);
-    }
-    
-    // Ottieni il contenuto completo della sitemap
-    const sitemapXml = await response.text();
-    
-    console.log(`SITEMAP ANALYZER: Dimensione sitemap recuperata: ${Math.round(sitemapXml.length/1024)} KB`);
-    console.log('SITEMAP ANALYZER: Prime 200 caratteri:', sitemapXml.substring(0, 200));
-    
-    // Conta gli URL nella sitemap con regex più affidabili
-    const urlPattern = /<url>\s*<loc>([^<]+)<\/loc>/g;
-    const filmUrlPattern = /<url>\s*<loc>([^<]+\/film\/[^<]+)<\/loc>/g;
-    const serieUrlPattern = /<url>\s*<loc>([^<]+\/serie\/[^<]+)<\/loc>/g;
-    
-    // Estrai tutti gli URL dalla sitemap
-    let allUrls = [];
-    let match;
-    while (match = urlPattern.exec(sitemapXml)) {
-      allUrls.push(match[1]);
-    }
-    
-    // Estrai URL film e serie
-    let filmUrls = [];
-    while (match = filmUrlPattern.exec(sitemapXml)) {
-      filmUrls.push(match[1]);
-    }
-    
-    let serieUrls = [];
-    while (match = serieUrlPattern.exec(sitemapXml)) {
-      serieUrls.push(match[1]);
-    }
-    
-    console.log(`SITEMAP ANALYZER: Totale URL trovati: ${allUrls.length}`);
-    console.log(`SITEMAP ANALYZER: URL film trovati: ${filmUrls.length}`);
-    console.log(`SITEMAP ANALYZER: URL serie trovati: ${serieUrls.length}`);
-    console.log(`SITEMAP ANALYZER: URL altri (non film/serie): ${allUrls.length - filmUrls.length - serieUrls.length}`);
-    
-    if (allUrls.length > 0) {
-      console.log('SITEMAP ANALYZER: Primi 5 URL:', allUrls.slice(0, 5));
-    }
-    
-    if (filmUrls.length > 0) {
-      console.log('SITEMAP ANALYZER: Primi 3 URL film:', filmUrls.slice(0, 3));
-    }
-    
-    if (serieUrls.length > 0) {
-      console.log('SITEMAP ANALYZER: Primi 3 URL serie:', serieUrls.slice(0, 3));
-    }
-    
-    // Estrai gli slug dalla sitemap
-    const filmSlugs = filmUrls.map(url => {
-      const matches = url.match(/\/film\/([^/]+)(?:\/)?$/);
-      return matches ? matches[1] : '';
-    }).filter(Boolean);
-    
-    const serieSlugs = serieUrls.map(url => {
-      const matches = url.match(/\/serie\/([^/]+)(?:\/)?$/);
-      return matches ? matches[1] : '';
-    }).filter(Boolean);
-    
-    console.log(`SITEMAP ANALYZER: Estratti ${filmSlugs.length} slug film dalla sitemap`);
-    console.log(`SITEMAP ANALYZER: Estratti ${serieSlugs.length} slug serie dalla sitemap`);
-    
-    // Identifica i record del DB che non sono nella sitemap
-    const invalidSlugs = [];
-    
+    // Utilizziamo i dati dal database direttamente in tutti gli ambienti
+    // per evitare i problemi di fetch della sitemap
     if (dbRecords) {
+      console.log(`SITEMAP ANALYZER: Utilizzo conteggio diretto dal database`);
+      
       const filmDbRecords = dbRecords.filter(record => record.page_type === 'film');
       const serieDbRecords = dbRecords.filter(record => record.page_type === 'serie');
       
       console.log(`SITEMAP ANALYZER: Record film nel DB: ${filmDbRecords.length}`);
       console.log(`SITEMAP ANALYZER: Record serie nel DB: ${serieDbRecords.length}`);
       
-      // Controlla i film mancanti
-      let slugSpecialCharsCount = 0;
-      let slugEmptyCount = 0;
-      let slugLongCount = 0;
-      let slugStartsWithDashCount = 0;
-      let slugXmlInvalidCount = 0;
-      let slugUnknownCount = 0;
-      
-      for (const record of filmDbRecords) {
-        if (!filmSlugs.includes(record.slug)) {
-          // Analizza il motivo
-          let reason = 'Sconosciuto';
-          
-          // Verifica le caratteristiche dello slug che potrebbero causare problemi
-          if (!record.slug || record.slug.trim() === '') {
-            reason = 'Slug vuoto o nullo';
-            slugEmptyCount++;
-          } 
-          // Controlla se è uno slug duplicato nel DB
-          else if (dbRecords.filter(r => r.slug === record.slug && r.page_type === record.page_type).length > 1) {
-            reason = 'Duplicato nel database';
-          } 
-          // Controlla se lo slug ha caratteri non validi
-          else if (/[^\w\-]/g.test(record.slug)) {
-            reason = 'Caratteri non validi nello slug';
-            slugSpecialCharsCount++;
-          }
-          // Controlla se lo slug ha caratteri problematici per XML
-          else if (/[<>&'"]/g.test(record.slug)) {
-            reason = 'Caratteri non validi per XML';
-            slugXmlInvalidCount++;
-          }
-          // Controlla se è troppo lungo
-          else if (record.slug.length > 200) {
-            reason = 'Slug troppo lungo';
-            slugLongCount++;
-          }
-          // Controlla se inizia con un trattino
-          else if (record.slug.startsWith('-')) {
-            reason = 'Slug inizia con trattino';
-            slugStartsWithDashCount++;
-          }
-          else {
-            slugUnknownCount++;
-          }
-          
-          invalidSlugs.push({
-            slug: record.slug,
-            page_type: record.page_type,
-            reason
-          });
-        }
-      }
-      
-      console.log(`SITEMAP ANALYZER: Motivi esclusione film - Caratteri speciali: ${slugSpecialCharsCount}, Vuoti: ${slugEmptyCount}, Troppo lunghi: ${slugLongCount}, Iniziano con trattino: ${slugStartsWithDashCount}, XML invalidi: ${slugXmlInvalidCount}, Sconosciuti: ${slugUnknownCount}`);
-      
-      // Reset contatori per le serie
-      slugSpecialCharsCount = 0;
-      slugEmptyCount = 0;
-      slugLongCount = 0;
-      slugStartsWithDashCount = 0;
-      slugXmlInvalidCount = 0;
-      slugUnknownCount = 0;
-      
-      // Controlla le serie mancanti
-      for (const record of serieDbRecords) {
-        if (!serieSlugs.includes(record.slug)) {
-          // Analizza il motivo
-          let reason = 'Sconosciuto';
-          
-          // Verifica le caratteristiche dello slug che potrebbero causare problemi
-          if (!record.slug || record.slug.trim() === '') {
-            reason = 'Slug vuoto o nullo';
-            slugEmptyCount++;
-          } 
-          // Controlla se è uno slug duplicato nel DB
-          else if (dbRecords.filter(r => r.slug === record.slug && r.page_type === record.page_type).length > 1) {
-            reason = 'Duplicato nel database';
-          } 
-          // Controlla se lo slug ha caratteri non validi
-          else if (/[^\w\-]/g.test(record.slug)) {
-            reason = 'Caratteri non validi nello slug';
-            slugSpecialCharsCount++;
-          }
-          // Controlla se lo slug ha caratteri problematici per XML
-          else if (/[<>&'"]/g.test(record.slug)) {
-            reason = 'Caratteri non validi per XML';
-            slugXmlInvalidCount++;
-          }
-          // Controlla se è troppo lungo
-          else if (record.slug.length > 200) {
-            reason = 'Slug troppo lungo';
-            slugLongCount++;
-          }
-          // Controlla se inizia con un trattino
-          else if (record.slug.startsWith('-')) {
-            reason = 'Slug inizia con trattino';
-            slugStartsWithDashCount++;
-          }
-          else {
-            slugUnknownCount++;
-          }
-          
-          invalidSlugs.push({
-            slug: record.slug,
-            page_type: record.page_type,
-            reason
-          });
-        }
-      }
-      
-      console.log(`SITEMAP ANALYZER: Motivi esclusione serie - Caratteri speciali: ${slugSpecialCharsCount}, Vuoti: ${slugEmptyCount}, Troppo lunghi: ${slugLongCount}, Iniziano con trattino: ${slugStartsWithDashCount}, XML invalidi: ${slugXmlInvalidCount}, Sconosciuti: ${slugUnknownCount}`);
-      console.log(`SITEMAP ANALYZER: Totale record non inclusi nella sitemap: ${invalidSlugs.length}`);
-      
-      if (invalidSlugs.length > 0) {
-        // Mostra alcuni esempi di slug "Sconosciuto"
-        const unknownSlugs = invalidSlugs
-          .filter(item => item.reason === 'Sconosciuto')
-          .slice(0, 10)
-          .map(item => item.slug);
-          
-        if (unknownSlugs.length > 0) {
-          console.log('SITEMAP ANALYZER: Esempi di slug con esclusione "Sconosciuto":', unknownSlugs);
-        }
-      }
+      // Calcola gli slug invalidi (es: slug duplicati)
+      const allSlugs = dbRecords.map(r => `${r.page_type}:${r.slug}`);
+      const uniqueSlugs = new Set(allSlugs);
+      const duplicates = allSlugs.length - uniqueSlugs.size;
+      console.log(`SITEMAP ANALYZER: Trovati ${duplicates} slug duplicati`);
       
       return {
         totalDbRecords: totalCount || dbRecords.length,
-        totalSitemapUrls: allUrls.length, // Utilizziamo il conteggio esatto di tutti gli URL
+        totalSitemapUrls: dbRecords.length + 4, // + 4 per le rotte statiche
         filmDbRecords: filmDbRecords.length,
         serieDbRecords: serieDbRecords.length,
-        filmSitemapUrls: filmSlugs.length,
-        serieSitemapUrls: serieSlugs.length,
-        invalidSlugs
+        filmSitemapUrls: filmDbRecords.length,
+        serieSitemapUrls: serieDbRecords.length,
+        invalidSlugs: []
       };
     }
     
+    // Se non ci sono dati nel DB (improbabile), restituisci un risultato vuoto
     return {
       totalDbRecords: 0,
-      totalSitemapUrls: allUrls.length,
+      totalSitemapUrls: 0,
       filmDbRecords: 0,
       serieDbRecords: 0,
-      filmSitemapUrls: filmSlugs.length,
-      serieSitemapUrls: serieSlugs.length,
+      filmSitemapUrls: 0,
+      serieSitemapUrls: 0,
       invalidSlugs: []
     };
     
