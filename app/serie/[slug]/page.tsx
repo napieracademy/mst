@@ -1,3 +1,4 @@
+
 import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidShow, slugify } from '@/lib/utils';
 import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows } from "@/lib/tmdb";
@@ -45,7 +46,6 @@ export async function generateStaticParams() {
         params.push({ slug });
         
         // Registra la pagina come generata staticamente
-        // Il try/catch è interno alla funzione, quindi non bloccherà in caso di errore
         trackGeneratedPage(slug, 'serie', true);
       } catch (error) {
         console.error(`Errore durante il recupero dettagli della serie ID ${id}:`, error);
@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   try {
     const show = await getMovieDetails(id, "tv");
     
-    if (!show) {
+    if (!show || !isValidShow(show)) {
       return {
         title: 'Serie TV non trovata',
         description: 'La serie TV richiesta non è disponibile o non contiene informazioni complete'
@@ -118,14 +118,6 @@ export default async function SeriePage({ params }: { params: { slug: string } }
         pageWasPrerendered = true;
       } else {
         console.log(`🆕 Pagina serie ${slug} non trovata, verrà generata on-demand`);
-        
-        // Log anche di tutti i file presenti nella directory per debug
-        try {
-          const existingFiles = fs.readdirSync(pageDir);
-          console.log(`File presenti nella directory delle pagine serie:`, existingFiles.filter(f => f.endsWith('.html')).join(', '));
-        } catch (e) {
-          console.error(`Impossibile leggere la directory delle pagine:`, e);
-        }
       }
     } catch (err) {
       console.error(`Errore nel controllo se la pagina ${slug} è già generata:`, err);
@@ -162,15 +154,6 @@ export default async function SeriePage({ params }: { params: { slug: string } }
     
     if (!isValid) {
       console.log("DATI SERIE MANCANTI (ID: " + id + "):", missingFields);
-      console.log("Dettagli serie disponibili:", {
-        id: show.id,
-        name: show.name || "(mancante)", 
-        first_air_date: show.first_air_date || "(mancante)",
-        overview: show.overview ? (show.overview.substring(0, 50) + "...") : "(mancante)",
-        poster_path: show.poster_path || "(mancante)",
-        backdrop_path: show.backdrop_path || "(mancante)"
-      });
-      
       const errorUrl = generateErrorUrl({
         title: "Dati serie TV insufficienti",
         message: "I dati della serie TV sono incompleti o non disponibili",
