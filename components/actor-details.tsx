@@ -156,30 +156,31 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                   {fullBio && (
                     <div>
                       <h2 className="text-xl font-semibold mb-4">Biografia</h2>
-                    <div className="text-gray-300">
-                      {bioExpanded ? (
-                        <>
-                          <p className="mb-4">{fullBio}</p>
-                          <button 
-                            onClick={() => setBioExpanded(false)}
-                            className="text-sm text-red-500 hover:text-red-400 transition-colors"
-                          >
-                            Mostra meno
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <p className="mb-4">{shortBio}</p>
-                          {fullBio.length > 300 && (
+                      <div className="text-gray-300">
+                        {bioExpanded ? (
+                          <>
+                            <p className="mb-4">{fullBio}</p>
                             <button 
-                              onClick={() => setBioExpanded(true)}
+                              onClick={() => setBioExpanded(false)}
                               className="text-sm text-red-500 hover:text-red-400 transition-colors"
                             >
-                              Leggi la biografia completa
+                              Mostra meno
                             </button>
-                          )}
-                        </>
-                      )}
+                          </>
+                        ) : (
+                          <>
+                            <p className="mb-4">{shortBio}</p>
+                            {fullBio.length > 300 && (
+                              <button 
+                                onClick={() => setBioExpanded(true)}
+                                className="text-sm text-red-500 hover:text-red-400 transition-colors"
+                              >
+                                Leggi la biografia completa
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
