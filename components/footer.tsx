@@ -127,7 +127,7 @@ export function Footer() {
           <Text variant="caption">© {new Date().getFullYear()} MastroiAnni. Tutti i diritti riservati.</Text>
           <div className="mt-2 md:mt-0 flex items-center">
             <Text variant="caption">
-              Realizzato con <Heart className="h-3 w-3 mx-1 text-red-500 fill-red-500" /> in Italia
+              Realizzato con <Heart className="h-3 w-3 mx-1 text-red-500 fill-red-500" /> in Italia da Napier Academy
             </Text>
           </div>
         </div>
