@@ -40,8 +40,7 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
-    ppr: false,  // Disabilita Progressive Rendering per evitare errori
-    staticWorkerRequestDeduping: true, // Deduplicazione per migliorare performance
+    ppr: false  // Disabilita Progressive Rendering per evitare errori
   },
   outputFileTracingIncludes: {
     '/**': ['./public/**/*', './app/globals.css', './styles/**/*', './.next/static/css/**/*']

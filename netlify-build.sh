@@ -25,9 +25,14 @@ rm -rf node_modules/.cache
 echo "Installazione dipendenze..."
 npm install --legacy-peer-deps
 
-# Build con opzioni ottimizzate
+# Build con opzioni ottimizzate e controllo di fallimenti
 echo "Avvio build..."
-NODE_OPTIONS="--max-old-space-size=3584" npm run build
+export NODE_OPTIONS="--max-old-space-size=3584" 
+export NEXT_TELEMETRY_DISABLED=1
+
+# Usa next build direttamente invece di npm per maggiore controllo
+echo "Avvio next build..."
+./node_modules/.bin/next build
 
 # Verifica risultato
 BUILD_RESULT=$?
