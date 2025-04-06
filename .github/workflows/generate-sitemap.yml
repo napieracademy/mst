@@ -44,77 +44,49 @@ jobs:
           
           const { createClient } = require('@supabase/supabase-js');
           const fs = require('fs');
-
+          
           (async () => {
             try {
-              // Ottieni e verifica le variabili d'ambiente
+              // Parametri di base
+              const SITEMAP_PATH = './public/sitemap.xml';
+              const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
               const supabaseUrl = process.env.SUPABASE_URL;
               const supabaseKey = process.env.SUPABASE_KEY;
-              const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
-              const SITEMAP_PATH = process.env.SITEMAP_PATH || './public/sitemap.xml';
-
-              console.log(\`🌐 URL base: \${baseUrl}\`);
-              console.log(\`📄 Percorso sitemap: \${SITEMAP_PATH}\`);
               
-              // Log dei valori parziali oscurati per debug
-              if (supabaseUrl) {
-                console.log(\`🔑 SUPABASE_URL trovato (inizia con: \${supabaseUrl.substring(0, 10)}...)\`);
-              } else {
-                console.error('❌ SUPABASE_URL non trovato!');
-              }
+              console.log(`🌐 URL base: ${baseUrl}`);
               
-              if (supabaseKey) {
-                console.log(\`🔑 SUPABASE_KEY trovato (lunghezza: \${supabaseKey.length})\`);
-              } else {
-                console.error('❌ SUPABASE_KEY non trovato!');
-              }
-
               if (!supabaseUrl || !supabaseKey) {
-                console.error('❌ Mancano le variabili Supabase URL o KEY');
-                process.exit(1);
+                throw new Error('Mancano le variabili Supabase URL o KEY');
               }
-
-              // Inizializza client con opzioni esplicite
-              console.log('🔄 Inizializzazione client Supabase...');
-              const supabase = createClient(supabaseUrl, supabaseKey, {
-                auth: {
-                  persistSession: false,
-                  autoRefreshToken: false
-                }
-              });
-              console.log('✅ Client Supabase inizializzato con successo');
-
-              console.log('🔄 Recupero conteggio totale...');
-              // Recupera conteggio totale
+              
+              const supabase = createClient(supabaseUrl, supabaseKey);
+              
               const { count: totalCount, error: countError } = await supabase
                 .from('generated_pages')
                 .select('*', { count: 'exact', head: true });
-
+              
               if (countError) {
-                throw new Error(\`Errore conteggio: \${countError.message}\`);
+                throw new Error(`Errore conteggio: ${countError.message}`);
               }
-
-              console.log(\`🔢 Totale record nel DB: \${totalCount || 0}\`);
-
-              // Recupera tutti i record
-              console.log('🔄 Recupero film...');
+              
+              console.log(`🔢 Totale record nel DB: ${totalCount || 0}`);
+              
               const { data: filmPages, error: filmError } = await supabase
                 .from('generated_pages')
                 .select('slug')
                 .eq('page_type', 'film');
-
+              
               if (filmError) {
-                throw new Error(\`Errore query film: \${filmError.message}\`);
+                throw new Error(`Errore query film: ${filmError.message}`);
               }
               
-              console.log('🔄 Recupero serie...');
               const { data: seriePages, error: serieError } = await supabase
                 .from('generated_pages')
                 .select('slug')
                 .eq('page_type', 'serie');
-
+              
               if (serieError) {
-                throw new Error(\`Errore query serie: \${serieError.message}\`);
+                throw new Error(`Errore query serie: ${serieError.message}`);
               }
               
               // Filtra slug vuoti
@@ -126,48 +98,48 @@ jobs:
                 .map(page => page.slug)
                 .filter(slug => slug && slug.trim() !== '');
               
-              console.log(\`🎬 Film: \${filmSlugs.length}, 📺 Serie: \${serieSlugs.length}\`);
+              console.log(`🎬 Film: ${filmSlugs.length}, 📺 Serie: ${serieSlugs.length}`);
               
               // Rotte statiche
               const staticRoutes = ['', '/search', '/login', '/about'];
               const totalUrls = staticRoutes.length + filmSlugs.length + serieSlugs.length;
               
-              console.log(\`📊 Totale URL sitemap: \${totalUrls}\`);
+              console.log(`📊 Totale URL sitemap: ${totalUrls}`);
               
               // Genera sitemap
-              const xml = \`<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>
-          <\!-- Generata il: \${new Date().toISOString()} con \${totalUrls} URL -->
-          <urlset xmlns=\\"http://www.sitemaps.org/schemas/sitemap/0.9\\" count=\\"\${totalUrls}\\">
-            \${staticRoutes.map(route => \`
+              const xml = `<?xml version="1.0" encoding="UTF-8"?>
+          <!-- Generata il: ${new Date().toISOString()} con ${totalUrls} URL -->
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" count="${totalUrls}">
+            ${staticRoutes.map(route => `
               <url>
-                <loc>\${baseUrl}\${route}</loc>
+                <loc>${baseUrl}${route}</loc>
                 <changefreq>weekly</changefreq>
-                <priority>\${route === '' ? '1.0' : '0.8'}</priority>
+                <priority>${route === '' ? '1.0' : '0.8'}</priority>
               </url>
-            \`).join('')}
+            `).join('')}
             
-            \${filmSlugs.map(slug => \`
+            ${filmSlugs.map(slug => `
               <url>
-                <loc>\${baseUrl}/film/\${slug}</loc>
+                <loc>${baseUrl}/film/${slug}</loc>
                 <changefreq>monthly</changefreq>
                 <priority>0.7</priority>
               </url>
-            \`).join('')}
+            `).join('')}
             
-            \${serieSlugs.map(slug => \`
+            ${serieSlugs.map(slug => `
               <url>
-                <loc>\${baseUrl}/serie/\${slug}</loc>
+                <loc>${baseUrl}/serie/${slug}</loc>
                 <changefreq>monthly</changefreq>
                 <priority>0.7</priority>
               </url>
-            \`).join('')}
-          </urlset>\`;
+            `).join('')}
+          </urlset>`;
               
               // Salva sitemap
               fs.writeFileSync(SITEMAP_PATH, xml);
-              console.log(\`✅ Sitemap generata con successo in \${SITEMAP_PATH}\`);
+              console.log(`✅ Sitemap generata con successo in ${SITEMAP_PATH}`);
               
-              // Aggiorna statistiche se possibile
+              // Aggiorna statistiche
               try {
                 const { error: statsError } = await supabase
                   .from('sitemap_stats')
@@ -180,18 +152,18 @@ jobs:
                     is_error: false,
                     error_message: null
                   }]);
-                  
+                
                 if (statsError) {
-                  console.log(\`⚠️ Errore aggiornamento statistiche: \${statsError.message}\`);
+                  console.log(`⚠️ Errore aggiornamento statistiche: ${statsError.message}`);
                 } else {
                   console.log('📊 Statistiche aggiornate con successo');
                 }
               } catch (statsError) {
-                console.log(\`⚠️ Errore durante aggiornamento statistiche: \${statsError.message}\`);
+                console.log(`⚠️ Errore durante aggiornamento statistiche: ${statsError.message}`);
+                // Non usciamo dal processo qui, perché la sitemap è già stata generata
               }
-              
             } catch (error) {
-              console.error(\`❌ ERRORE: \${error.message}\`);
+              console.error(`❌ ERRORE: ${error.message}`);
               process.exit(1);
             }
           })();
