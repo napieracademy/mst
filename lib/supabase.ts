@@ -8,9 +8,6 @@ export const createClient = () => {
     throw new Error('Mancano le variabili d\'ambiente di Supabase. Definiscile in .env.local')
   }
 
-  console.log('Supabase URL:', supabaseUrl);
-  console.log('Supabase Anon Key:', supabaseAnonKey);
-
   return createBrowserClient(supabaseUrl, supabaseAnonKey, {
     auth: { persistSession: true }
   })
