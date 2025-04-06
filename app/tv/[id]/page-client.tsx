@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { CastCarousel } from "@/components/cast-carousel"
 import { MovieGallery } from "@/components/movie-gallery"
-import { SimilarMovies } from "@/components/similar-movies"
+// Nota: import SimilarMovies rimosso
 import { TVHero } from "@/components/tv-hero"
 import { Footer } from "@/components/footer"
 import { SeasonsTable } from "@/components/seasons-table"
@@ -326,13 +326,7 @@ export function TVPageClient({
           </div>
         </FadeInSection>
 
-        {/* Similar Shows */}
-        <FadeInSection delay={500} threshold={0.05}>
-          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
-            <h2 className="text-sm text-gray-400 mb-8">SERIE SIMILI</h2>
-            <SimilarMovies movies={similarShows} />
-          </div>
-        </FadeInSection>
+        {/* Sezione serie simili rimossa */}
       </Container>
 
       {/* Footer */}

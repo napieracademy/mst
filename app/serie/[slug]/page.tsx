@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidShow, slugify } from '@/lib/utils';
-import { getMovieDetails, getTrailers, getSimilarMovies, getPopularTVShows } from "@/lib/tmdb";
+import { getMovieDetails, getTrailers, getPopularTVShows } from "@/lib/tmdb";
 import { TVPageClient } from '@/app/tv/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
@@ -186,15 +186,7 @@ export default async function SeriePage({ params }: { params: { slug: string } }
     // Ottieni dati correlati
     const trailers = await getTrailers(id, "tv").catch(() => []) || [];
     
-    // Ottieni contenuti simili dai dati della serie o tramite API separata
-    let similarShows = [];
-    if (show.similar && show.similar.results) {
-      similarShows = show.similar.results;
-      console.log(`Usando ${similarShows.length} serie simili dai dati già disponibili`);
-    } else {
-      similarShows = await getSimilarMovies(id, "tv").catch(() => []) || [];
-      console.log(`Usando ${similarShows.length} serie simili da API separata`);
-    }
+    // Nota: rimosso codice per ottenere serie simili
     
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {
@@ -249,7 +241,6 @@ export default async function SeriePage({ params }: { params: { slug: string } }
           releaseDate={releaseDate}
           releaseYear={releaseYear}
           trailers={trailers}
-          similarShows={similarShows}
           id={id}
           creators={creators}
           writers={writers}
