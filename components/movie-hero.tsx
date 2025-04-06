@@ -13,6 +13,7 @@ import { Button } from "@/atomic/atoms/button"
 import dynamic from 'next/dynamic'
 import { MovieInfo } from '@/atomic/molecules/movie-info'
 import { Container } from "@/atomic/atoms/container"
+import { DraggableContent } from "@/atomic/molecules/draggable-content"
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -228,23 +229,34 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
 
                 {/* Info - Allineato a sinistra sempre */}
                 <div className="flex flex-col text-left max-w-2xl">
-                  <MovieInfo
-                    title={movie.title}
-                    releaseDate={releaseDate || undefined}
-                    hasTrailer={false}
-                    onWatchTrailer={() => {}}
-                  />
+                  <DraggableContent
+                    dragConstraints={{ top: -50, right: 100, bottom: 50, left: -100 }}
+                    snapBackDuration={0.6}
+                  >
+                    <MovieInfo
+                      title={movie.title}
+                      releaseDate={releaseDate || undefined}
+                      hasTrailer={false}
+                      onWatchTrailer={() => {}}
+                    />
+                  </DraggableContent>
                   
                   {/* Trailer Button - Sempre allineato a sinistra */}
                   {trailers && trailers.length > 0 && (
                     <div className="mt-2 sm:mt-4">
-                      <button
-                        onClick={() => setIsTrailerOpen(true)}
-                        className="flex items-center gap-3 text-white bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl"
+                      <DraggableContent
+                        dragConstraints={{ top: -30, right: 60, bottom: 30, left: -60 }}
+                        snapBackDuration={0.5}
+                        dragElastic={0.6}
                       >
-                        <Play className="w-6 h-6" fill="white" />
-                        <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
-                      </button>
+                        <button
+                          onClick={() => setIsTrailerOpen(true)}
+                          className="flex items-center gap-3 text-white bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl"
+                        >
+                          <Play className="w-6 h-6" fill="white" />
+                          <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
+                        </button>
+                      </DraggableContent>
                     </div>
                   )}
                 </div>
