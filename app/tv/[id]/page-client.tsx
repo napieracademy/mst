@@ -14,6 +14,7 @@ import { FadeInSection } from "@/components/fade-in-section"
 import { useState } from "react"
 import { generateSlug } from "@/lib/utils"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
+import { Container } from "@/components/container"
 
 // Interfaccia compatibile con quella del TVHero
 interface Show {
@@ -78,9 +79,9 @@ export function TVPageClient({
   const hasKnownForCredits = knownForCredits.length > 0;
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <main className="min-h-screen w-full bg-black text-white">
       {/* Hero Section */}
-      <div className="relative h-[100dvh] sm:h-[50vh] md:h-[70vh]">
+      <div className="relative w-full h-[100dvh] sm:h-[60vh] md:h-[80vh]">
         <TVHero
           show={heroShow}
           posterUrl={posterUrl}
@@ -96,13 +97,13 @@ export function TVPageClient({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+      <Container className="py-8 sm:py-16">
+        <div className="flex flex-col lg:flex-row lg:relative gap-4 sm:gap-8">
           {/* Left Column - Show Details */}
           <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
             {/* Technical Details */}
             <FadeInSection>
-              <p className="text-gray-300 mb-6 sm:mb-8 text-sm">
+              <p className="text-gray-300 mb-6 sm:mb-8">
                 {releaseYear && `Uscita nel ${releaseYear}, `}
                 {show.name} è una serie TV {show.genres?.map((g) => g.name).join(", ") || ""}
                 {show.episode_run_time &&
@@ -117,7 +118,7 @@ export function TVPageClient({
 
             {/* Synopsis */}
             <FadeInSection delay={100}>
-              <div className="mb-8">
+              <div className="mb-12">
                 <EditableBio
                   initialBio={show.overview || "Nessuna descrizione disponibile per questa serie TV."}
                   onSave={async (newBio) => {
@@ -250,23 +251,13 @@ export function TVPageClient({
               )}
             </FadeInSection>
 
-            {/* Networks */}
-            <FadeInSection delay={250}>
-              {show.networks && show.networks.length > 0 && (
+            {/* Writers */}
+            <FadeInSection delay={200}>
+              {writers.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="font-medium mb-2">Reti televisive</h3>
-                  <p className="text-gray-300">{show.networks.map((network: { name: string }) => network.name).join(", ")}</p>
-                </div>
-              )}
-            </FadeInSection>
-
-            {/* Production Companies */}
-            <FadeInSection delay={250}>
-              {show.production_companies && show.production_companies.length > 0 && (
-                <div className="mb-8 sm:mb-12">
-                  <h3 className="font-medium mb-2">Case di produzione</h3>
-                  <p className="text-gray-300">
-                    {show.production_companies.map((company: { name: string }) => company.name).join(", ")}
+                  <h2 className="text-sm text-gray-400 mb-4">SCENEGGIATURA</h2>
+                  <p className="text-sm text-gray-300">
+                    {writers.slice(0, 3).map((writer) => writer.name).join(", ")}
                   </p>
                 </div>
               )}
@@ -277,75 +268,31 @@ export function TVPageClient({
               {producers.length > 0 && (
                 <div className="mb-8">
                   <h2 className="text-sm text-gray-400 mb-4">PRODUZIONE</h2>
-                  <div className="space-y-4">
-                    {producers.slice(0, 3).map((producer) => {
-                      const producerSlug = generateSlug(producer.name, null, producer.id);
-                      return (
-                        <div key={producer.id} className="flex items-center gap-4">
-                          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                            <Link href={`/regista/${producerSlug}`}>
-                              {producer.profile_path ? (
-                                <Image
-                                  src={`https://image.tmdb.org/t/p/w185${producer.profile_path}`}
-                                  alt={producer.name}
-                                  fill
-                                  className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-                                  {producer.name.charAt(0)}
-                                </div>
-                              )}
-                            </Link>
-                          </div>
-                          <div>
-                            <Link href={`/regista/${producerSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
-                              {producer.name}
-                            </Link>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <p className="text-sm text-gray-300">
+                    {producers.slice(0, 3).map((producer) => producer.name).join(", ")}
+                  </p>
                 </div>
               )}
             </FadeInSection>
 
-            {/* Writers */}
-            <FadeInSection delay={200}>
-              {writers.length > 0 && (
+            {/* Networks */}
+            <FadeInSection delay={250}>
+              {show.networks && show.networks.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-sm text-gray-400 mb-4">SCENEGGIATURA</h2>
-                  <div className="space-y-4">
-                    {writers.slice(0, 3).map((writer) => {
-                      const writerSlug = generateSlug(writer.name, null, writer.id);
-                      return (
-                        <div key={writer.id} className="flex items-center gap-4">
-                          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                            <Link href={`/attore/${writerSlug}`}>
-                              {writer.profile_path ? (
-                                <Image
-                                  src={`https://image.tmdb.org/t/p/w185${writer.profile_path}`}
-                                  alt={writer.name}
-                                  fill
-                                  className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-                                  {writer.name.charAt(0)}
-                                </div>
-                              )}
-                            </Link>
-                          </div>
-                          <div>
-                            <Link href={`/attore/${writerSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
-                              {writer.name}
-                            </Link>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <h2 className="text-sm text-gray-400 mb-4">RETI TELEVISIVE</h2>
+                  <p className="text-sm text-gray-300">{show.networks.map((network: { name: string }) => network.name).join(", ")}</p>
+                </div>
+              )}
+            </FadeInSection>
+
+            {/* Production Companies */}
+            <FadeInSection delay={300}>
+              {show.production_companies && show.production_companies.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-sm text-gray-400 mb-4">CASE DI PRODUZIONE</h2>
+                  <p className="text-sm text-gray-300">
+                    {show.production_companies.map((company: { name: string }) => company.name).join(", ")}
+                  </p>
                 </div>
               )}
             </FadeInSection>
@@ -355,8 +302,8 @@ export function TVPageClient({
         {/* Seasons Section */}
         <FadeInSection delay={200} threshold={0.05}>
           {show.seasons && show.seasons.length > 0 && (
-            <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-800">
-              <h2 className="text-2xl font-semibold mb-6">Stagioni</h2>
+            <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+              <h2 className="text-sm text-gray-400 mb-8">STAGIONI</h2>
               <SeasonsTable seasons={show.seasons} />
             </div>
           )}
@@ -376,23 +323,25 @@ export function TVPageClient({
           </div>
         </FadeInSection>
 
-        {/* Gallery */}
+        {/* Gallery Section */}
         <FadeInSection delay={400} threshold={0.05}>
-          <div className="mt-12 sm:mt-16">
+          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+            <h2 className="text-sm text-gray-400 mb-8">GALLERIA</h2>
             <MovieGallery movieId={id} type="tv" />
           </div>
         </FadeInSection>
 
         {/* Similar Shows */}
         <FadeInSection delay={500} threshold={0.05}>
-          <div className="mt-12 sm:mt-16">
+          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+            <h2 className="text-sm text-gray-400 mb-8">SERIE SIMILI</h2>
             <SimilarMovies movies={similarShows} />
           </div>
         </FadeInSection>
-      </div>
+      </Container>
 
       {/* Footer */}
       <Footer />
-    </div>
+    </main>
   )
 } 
