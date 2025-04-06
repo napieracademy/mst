@@ -1,72 +1,11 @@
 'use client';
 
 import React from 'react';
-import { TVInfo } from '@/atomic/molecules/tv-info';
-import { ActionButtons } from '@/atomic/molecules/action-buttons';
-import Image from 'next/image';
 import { cn } from '@/atomic/utils/cn';
 import { Button } from '@/atomic/atoms/button';
 import { Container } from '@/atomic/atoms/container';
 import { Text } from '@/atomic/atoms/text';
 import { ReactNode } from 'react';
-
-interface HeroLayoutProps {
-  title: string;
-  releaseDate?: string;
-  hasTrailer: boolean;
-  onWatchTrailer: () => void;
-  onShare: () => void;
-  onFavorite: () => void;
-  onNotify: () => void;
-  backdropUrl: string | null;
-  posterUrl: string;
-}
-
-export const TVHeroLayout: React.FC<HeroLayoutProps> = ({
-  title,
-  releaseDate,
-  hasTrailer,
-  onWatchTrailer,
-  onShare,
-  onFavorite,
-  onNotify,
-  backdropUrl,
-  posterUrl,
-}) => {
-  return (
-    <div className="relative w-full h-[100dvh] sm:h-[50vh] md:h-[70vh] mb-[30px] sm:mb-0">
-      {backdropUrl && (
-        <div className="absolute inset-0 hidden sm:block">
-          <Image
-            src={backdropUrl}
-            alt={title}
-            fill
-            className="object-cover object-center"
-            priority
-            quality={90}
-          />
-        </div>
-      )}
-      <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center h-full">
-        <div className="w-full sm:w-1/2 p-4">
-          <TVInfo
-            title={title}
-            releaseDate={releaseDate}
-            hasTrailer={hasTrailer}
-            onWatchTrailer={onWatchTrailer}
-          />
-        </div>
-        <div className="w-full sm:w-1/2 p-4">
-          <ActionButtons
-            onShare={onShare}
-            onFavorite={onFavorite}
-            onNotify={onNotify}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 interface HeroLayoutProps {
   backgroundImage?: string;
