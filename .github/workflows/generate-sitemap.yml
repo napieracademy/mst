@@ -38,7 +38,9 @@ jobs:
           const { createClient } = require('@supabase/supabase-js');
           const fs = require('fs');
           
-          (async () => {
+          async function generateSitemap() {
+            console.log('🔄 Avvio generazione sitemap...');
+            
             try {
               // Parametri di base
               const SITEMAP_PATH = './public/sitemap.xml';
@@ -48,10 +50,12 @@ jobs:
               
               console.log(\`🌐 URL base: \${baseUrl}\`);
               
+              // Verifica variabili
               if (!supabaseUrl || !supabaseKey) {
                 throw new Error('Mancano le variabili Supabase URL o KEY');
               }
               
+              // Crea client Supabase
               const supabase = createClient(supabaseUrl, supabaseKey);
               
               // Recupera conteggio totale
@@ -73,33 +77,38 @@ jobs:
                 let startIndex = 0;
                 let hasMore = true;
                 
-                while (hasMore) {
-                  console.log(\`  ⏳ Batch \${startIndex}-\${startIndex + batchSize - 1}...\`);
-                  const { data, error } = await supabase
-                    .from('generated_pages')
-                    .select('slug')
-                    .eq('page_type', type)
-                    .range(startIndex, startIndex + batchSize - 1);
+                try {
+                  while (hasMore) {
+                    console.log(\`  ⏳ Batch \${startIndex}-\${startIndex + batchSize - 1}...\`);
+                    const { data, error } = await supabase
+                      .from('generated_pages')
+                      .select('slug')
+                      .eq('page_type', type)
+                      .range(startIndex, startIndex + batchSize - 1);
+                      
+                    if (error) {
+                      console.error(\`  ⚠️ Errore recupero batch: \${error.message}\`);
+                      break;
+                    }
                     
-                  if (error) {
-                    console.log(\`  ⚠️ Errore recupero batch: \${error.message}\`);
-                    break;
+                    const batchCount = data?.length || 0;
+                    allRecords = allRecords.concat(data || []);
+                    
+                    console.log(\`  ✅ Recuperati \${batchCount} record\`);
+                    
+                    if (batchCount < batchSize) {
+                      hasMore = false;
+                    } else {
+                      startIndex += batchSize;
+                    }
                   }
                   
-                  const batchCount = data?.length || 0;
-                  allRecords = allRecords.concat(data || []);
-                  
-                  console.log(\`  ✅ Recuperati \${batchCount} record\`);
-                  
-                  if (batchCount < batchSize) {
-                    hasMore = false;
-                  } else {
-                    startIndex += batchSize;
-                  }
+                  console.log(\`✅ Recupero completato: \${allRecords.length} record totali di tipo '\${type}'\`);
+                  return allRecords;
+                } catch (error) {
+                  console.error(\`❌ Errore durante il recupero dei record di tipo '\${type}': \${error.message}\`);
+                  return [];
                 }
-                
-                console.log(\`✅ Recupero completato: \${allRecords.length} record totali di tipo '\${type}'\`);
-                return allRecords;
               }
               
               // Recupera film con paginazione
@@ -112,13 +121,20 @@ jobs:
               
               // Recupera attori e altri tipi di persone
               console.log('🔄 Recupero persone e altri tipi...');
-              const { data: crewPages, error: crewError } = await supabase
-                .from('generated_pages')
-                .select('slug, page_type')
-                .not('page_type', 'in', '("film","serie")');
-              
-              if (crewError) {
-                throw new Error(\`Errore query persone: \${crewError.message}\`);
+              let crewPages = [];
+              try {
+                const { data, error } = await supabase
+                  .from('generated_pages')
+                  .select('slug, page_type')
+                  .not('page_type', 'in', '("film","serie")');
+                
+                if (error) {
+                  console.error(\`❌ Errore query persone: \${error.message}\`);
+                } else {
+                  crewPages = data || [];
+                }
+              } catch (error) {
+                console.error(\`❌ Errore durante il recupero delle persone: \${error.message}\`);
               }
               
               // Filtra slug vuoti
@@ -213,9 +229,13 @@ jobs:
             \`)).join('')}
           </urlset>\`;
               
-              // Salva sitemap
-              fs.writeFileSync(SITEMAP_PATH, xml);
-              console.log(\`✅ Sitemap generata con successo in \${SITEMAP_PATH}\`);
+              try {
+                // Salva sitemap
+                fs.writeFileSync(SITEMAP_PATH, xml);
+                console.log(\`✅ Sitemap generata con successo in \${SITEMAP_PATH}\`);
+              } catch (fileError) {
+                throw new Error(\`Errore durante la scrittura del file: \${fileError.message}\`);
+              }
               
               // Aggiorna statistiche
               try {
@@ -233,18 +253,53 @@ jobs:
                   }]);
                   
                 if (statsError) {
-                  console.log(\`⚠️ Errore aggiornamento statistiche: \${statsError.message}\`);
+                  console.error(\`⚠️ Errore aggiornamento statistiche: \${statsError.message}\`);
                 } else {
                   console.log('📊 Statistiche aggiornate con successo');
                 }
               } catch (statsError) {
-                console.log(\`⚠️ Errore durante aggiornamento statistiche: \${statsError.message}\`);
+                console.error(\`⚠️ Errore durante aggiornamento statistiche: \${statsError.message}\`);
               }
               
+              return {
+                success: true,
+                message: \`Sitemap generata con successo (\${totalUrls} URL)\`,
+                timestamp: new Date().toISOString(),
+                urlCount: totalUrls,
+                filmCount: filmSlugs.length,
+                serieCount: serieSlugs.length,
+                personCount: totalPersons
+              };
             } catch (error) {
               console.error(\`❌ ERRORE: \${error.message}\`);
-              process.exit(1);
+              
+              // Tenta di aggiornare le statistiche con l'errore
+              try {
+                await supabase
+                  .from('sitemap_stats')
+                  .upsert([{
+                    id: 1,
+                    last_generation: new Date().toISOString(),
+                    urls_count: 0,
+                    film_count: 0,
+                    serie_count: 0,
+                    person_count: 0,
+                    is_error: true,
+                    error_message: error.message
+                  }]);
+              } catch (statsError) {
+                console.error(\`⚠️ Errore durante aggiornamento statistiche di errore: \${statsError.message}\`);
+              }
+              
+              return { success: false, error: error.message };
             }
+          }
+          
+          // Esegui la generazione
+          (async () => {
+            const result = await generateSitemap();
+            console.log('📋 Risultato:', JSON.stringify(result, null, 2));
+            if (!result.success) process.exit(1);
           })();
           "
       
