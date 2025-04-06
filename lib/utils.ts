@@ -74,8 +74,11 @@ export function generateFilmSlug(title: string, year: number, id: number): strin
  * @returns L'ID estratto, o null se non trovato
  */
 export function extractIdFromSlug(slug: string): string | null {
-  // Cerca un ID alla fine dello slug
-  // Gestisce sia slug con formato titolo-id che titolo-anno-id
+  // Gestisce i nuovi formati semplificati: movie-123, tv-123, persona-123
+  const simpleMatch = slug.match(/^(movie|tv|persona)-(\d+)$/);
+  if (simpleMatch) return simpleMatch[2];
+  
+  // Cerca un ID alla fine dello slug (formato tradizionale titolo-id o titolo-anno-id)
   const matchEnd = slug.match(/[-](\d+)$/);
   if (matchEnd) return matchEnd[1];
   
@@ -84,7 +87,7 @@ export function extractIdFromSlug(slug: string): string | null {
   if (matchAnywhere) return matchAnywhere[1];
   
   // Nessun ID trovato
-  console.error(`Nessun ID trovato nello slug: ${slug}`);
+  console.log(`Warning: Nessun ID trovato nello slug: ${slug}`);
   return null;
 }
 
