@@ -10,6 +10,7 @@
   NEXT_PUBLIC_TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
   TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
   NEXT_PUBLIC_SITE_URL = "https://mastroianni.app"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 [functions]
   node_bundler = "esbuild"
