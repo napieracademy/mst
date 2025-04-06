@@ -202,6 +202,11 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
       append_to_response: "videos,recommendations,similar",
     }, "it-IT");
     
+    console.log(`Dati simili per ${type} ${id}:`, {
+      hasSimilar: !!baseData.similar,
+      similarCount: baseData.similar?.results?.length || 0
+    });
+    
     // Ottieni i crediti (cast e crew) in inglese
     const creditsData = await fetchFromTMDB(`/${type}/${id}/credits`, {}, "en-US");
     

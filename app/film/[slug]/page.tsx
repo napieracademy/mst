@@ -172,7 +172,16 @@ export default async function FilmPage({ params }: { params: { slug: string } })
     
     // Ottieni dati correlati
     const trailers = await getTrailers(id, "movie").catch(() => []) || [];
-    const similarMovies = await getSimilarMovies(id, "movie").catch(() => []) || [];
+    
+    // Ottieni contenuti simili dai dati del film o tramite API separata
+    let similarMovies = [];
+    if (movie.similar && movie.similar.results) {
+      similarMovies = movie.similar.results;
+      console.log(`Usando ${similarMovies.length} film simili dai dati già disponibili`);
+    } else {
+      similarMovies = await getSimilarMovies(id, "movie").catch(() => []) || [];
+      console.log(`Usando ${similarMovies.length} film simili da API separata`);
+    }
     
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {

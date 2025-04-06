@@ -1,36 +1,30 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
 import type { Movie } from "@/lib/types"
 import { Carousel } from "../atomic/molecules/carousel"
 import { Text } from "../atomic/atoms/text"
 import { Container } from "@/atomic/atoms/container"
 import { MovieImage } from "../atomic/atoms/image"
-import Link from "next/link"
 import { cn } from "../atomic/utils/cn"
-import { createGraphFromMovies, kruskalMST } from "../lib/graph"
 import { ContentLink } from "./content-link"
 
 interface SimilarMoviesProps {
   movies: Movie[]
 }
 
-// Adapter per rendere compatibile il tipo Movie con il nostro componente
-const adaptMovie = (movie: Movie) => ({
-  id: movie.id,
-  title: movie.title || movie.name || "Film",
-  poster_path: movie.poster_path,
-  release_date: movie.release_date || new Date().toISOString(),
-  vote_average: movie.vote_average || 0
-});
-
 export function SimilarMovies({ movies }: SimilarMoviesProps) {
-  if (!movies || movies.length === 0) return null
-
-  // Utilizziamo l'algoritmo MST per selezionare i contenuti più rilevanti
-  // ma li mostriamo comunque nel carousel tradizionale
-  const filteredMovies = useMSTToFilterMovies(movies);
+  // Log per debugging
+  console.log(`SimilarMovies component received ${movies?.length || 0} items`);
   
+  if (!movies || movies.length === 0) {
+    console.log("SimilarMovies: nessun contenuto simile trovato, componente non renderizzato");
+    return null;
+  }
+
+  // Limitiamo la quantità di film/serie mostrate (max 10)
+  const displayMovies = movies.slice(0, 10);
+  
+  // Determiniamo se sono film o serie TV
   const isMovieType = !!movies?.[0]?.title; // Se il primo elemento ha title, allora è di tipo "movie"
   const mediaType = isMovieType ? 'film' : 'serie';
 
@@ -45,11 +39,11 @@ export function SimilarMovies({ movies }: SimilarMoviesProps) {
           </div>
           
           <Carousel showArrows showDots={false}>
-            {filteredMovies.map((movie) => {
+            {displayMovies.map((movie) => {
               // Estrai l'anno dalla data di rilascio
               const year = movie.release_date 
                 ? movie.release_date.split('-')[0] 
-                : null;
+                : (movie.first_air_date ? movie.first_air_date.split('-')[0] : null);
                 
               return (
                 <div
@@ -58,9 +52,9 @@ export function SimilarMovies({ movies }: SimilarMoviesProps) {
                 >
                   <ContentLink
                     id={movie.id}
-                    title={movie.title || movie.name || "Film"}
+                    title={movie.title || movie.name || "Contenuto"}
                     year={year}
-                    type={mediaType as 'film' | 'attore' | 'regista'}
+                    type={mediaType as 'film' | 'attore' | 'regista' | 'serie'}
                     className={cn(
                       'group relative block overflow-hidden rounded-lg bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50'
                     )}
@@ -94,45 +88,6 @@ export function SimilarMovies({ movies }: SimilarMoviesProps) {
         </Container>
       </section>
     );
-  }
-}
-
-// Funzione che utilizza l'algoritmo MST per selezionare i film più rilevanti
-function useMSTToFilterMovies(movies: Movie[], limit = 10): Movie[] {
-  try {
-    if (!movies || movies.length <= limit) return movies;
-    
-    // Crea il grafo completo
-    const graph = createGraphFromMovies(movies);
-    
-    // Se il grafo non è valido, ritorniamo i primi "limit" film
-    if (!graph || !graph.nodes || graph.nodes.length === 0) {
-      return movies.slice(0, limit);
-    }
-    
-    // Applica l'algoritmo MST
-    const mst = kruskalMST(graph);
-    
-    // Conta quante connessioni ha ogni nodo nel MST
-    const nodeConnections = new Map<number, number>();
-    mst.edges.forEach(edge => {
-      const sourceCount = nodeConnections.get(edge.source) || 0;
-      const targetCount = nodeConnections.get(edge.target) || 0;
-      nodeConnections.set(edge.source, sourceCount + 1);
-      nodeConnections.set(edge.target, targetCount + 1);
-    });
-    
-    // Ordina i film per il numero di connessioni (più connessioni = più rilevante)
-    const sortedMovies = [...movies].sort((a, b) => {
-      const aConnections = nodeConnections.get(a.id) || 0;
-      const bConnections = nodeConnections.get(b.id) || 0;
-      return bConnections - aConnections; // Ordine decrescente
-    });
-    
-    return sortedMovies.slice(0, limit);
-  } catch (error) {
-    console.error("Errore nell'applicazione dell'algoritmo MST:", error);
-    return movies.slice(0, limit);
   }
 }
 

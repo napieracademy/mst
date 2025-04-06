@@ -185,7 +185,16 @@ export default async function SeriePage({ params }: { params: { slug: string } }
 
     // Ottieni dati correlati
     const trailers = await getTrailers(id, "tv").catch(() => []) || [];
-    const similarShows = await getSimilarMovies(id, "tv").catch(() => []) || [];
+    
+    // Ottieni contenuti simili dai dati della serie o tramite API separata
+    let similarShows = [];
+    if (show.similar && show.similar.results) {
+      similarShows = show.similar.results;
+      console.log(`Usando ${similarShows.length} serie simili dai dati già disponibili`);
+    } else {
+      similarShows = await getSimilarMovies(id, "tv").catch(() => []) || [];
+      console.log(`Usando ${similarShows.length} serie simili da API separata`);
+    }
     
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {
