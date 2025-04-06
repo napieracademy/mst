@@ -34,7 +34,14 @@ jobs:
           SITEMAP_PATH: './public/sitemap.xml'
         run: |
           echo "Inizia generazione sitemap..."
+          echo "Debug - Variabili ambiente disponibili:"
+          env | grep -i 'SUPABASE\|SITE_URL' || echo "Nessuna variabile trovata"
           node -e "
+          console.log('Debug - Variabili Node.js:');
+          console.log('SUPABASE_URL exists:', !!process.env.SUPABASE_URL);
+          console.log('SUPABASE_KEY exists:', !!process.env.SUPABASE_KEY);
+          console.log('NEXT_PUBLIC_SITE_URL exists:', !!process.env.NEXT_PUBLIC_SITE_URL);
+          
           const { createClient } = require('@supabase/supabase-js');
           const fs = require('fs');
 
