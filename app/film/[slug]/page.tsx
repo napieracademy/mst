@@ -56,7 +56,10 @@ export async function generateStaticParams() {
     console.log(`Generati ${params.length} parametri statici per film popolari`);
     return params;
   } catch (error) {
-    console.error('Errore nella generazione dei parametri statici:', error);
+    // In ambiente di build, log minimo
+    if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PHASE !== 'build') {
+      console.warn('Errore nella generazione dei parametri statici:', error instanceof Error ? error.message : error);
+    }
     return []; 
   }
 }

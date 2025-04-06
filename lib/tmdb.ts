@@ -46,7 +46,10 @@ export function buildImageUrl(path: string | null | undefined, size: string = "o
 async function fetchFromTMDB(endpoint: string, params: Record<string, string> = {}, language = "it-IT") {
   // Se le API sono disabilitate tramite configurazione, lancia un errore
   if (!config.enableTMDBApi) {
-    console.error(`TMDB API disabled: request to ${endpoint} blocked`)
+    // Evita log in ambiente build
+    if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PHASE !== 'build') {
+      console.warn(`TMDB API disabled: request to ${endpoint} blocked`)
+    }
     throw new Error("TMDB API is disabled")
   }
 
@@ -57,7 +60,10 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
   });
 
   if (!apiKey) {
-    console.error("TMDB API key is missing")
+    // In ambiente di build, evita di fare console.error
+    if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PHASE !== 'build') {
+      console.warn("TMDB API key is missing")
+    }
     throw new Error("TMDB API key is missing")
   }
 
@@ -89,7 +95,10 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`TMDB API error (${response.status}): ${errorText}`, { endpoint, params })
+      // Evita log durante la build
+      if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PHASE !== 'build') {
+        console.warn(`TMDB API error (${response.status}): ${errorText}`, { endpoint, params })
+      }
       throw new Error(`TMDB API error (${response.status}): ${errorText}`)
     }
 
@@ -118,7 +127,10 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
 
     return data
   } catch (error) {
-    console.error("Error fetching from TMDB:", error, { endpoint, params })
+    // Evita log pesanti durante la build
+    if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PHASE !== 'build') {
+      console.warn("Error fetching from TMDB:", error instanceof Error ? error.message : error)
+    }
     throw error // Rilancia l'errore invece di restituire un oggetto di errore
   }
 }
