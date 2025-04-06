@@ -17,7 +17,9 @@ type ApiKeyType =
   'netlify' | 
   'supabase_service_role' | 
   'openai' | 
-  'pinecone' | 
+  'google_ai' |
+  'perplexity' |
+  'tinymce' |
   'other'
 
 // Interfaccia per la richiesta in body
@@ -167,16 +169,22 @@ function getApiKey(keyType: ApiKeyType): string | null {
   switch (keyType) {
     case 'tmdb':
       return Deno.env.get('TMDB_API_KEY') || null
-    case 'netlify':
-      return Deno.env.get('NETLIFY_AUTH_TOKEN') || null
+    case 'netlify': 
+      // Nota: questa chiave non è attualmente configurata
+      return null
     case 'supabase_service_role':
       return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || null
     case 'openai':
-      return Deno.env.get('OPENAI_API_KEY') || null 
-    case 'pinecone':
-      return Deno.env.get('PINECONE_API_KEY') || null
+      return Deno.env.get('OPENAI_API_KEY') || null
+    case 'google_ai':  // Aggiungiamo Google AI, che è disponibile
+      return Deno.env.get('GOOGLE_AI_API_KEY') || null
+    case 'perplexity': // Aggiungiamo Perplexity, che è disponibile
+      return Deno.env.get('PERPLEXITY_API_KEY') || null
+    case 'tinymce':    // Aggiungiamo TinyMCE, che è disponibile
+      return Deno.env.get('TINYMCE_API_KEY') || null
     case 'other':
-      return Deno.env.get('OTHER_API_KEY') || null
+      // Fallback per altri tipi di chiavi
+      return null
     default:
       return null
   }

@@ -7,7 +7,9 @@ CREATE TYPE api_key_type AS ENUM (
   'netlify',
   'supabase_service_role',
   'openai',
-  'pinecone',
+  'google_ai',
+  'perplexity',
+  'tinymce',
   'other'
 );
 

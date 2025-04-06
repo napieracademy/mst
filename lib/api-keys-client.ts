@@ -12,7 +12,9 @@ export type ApiKeyType =
   'netlify' | 
   'supabase_service_role' | 
   'openai' | 
-  'pinecone' | 
+  'google_ai' |
+  'perplexity' |
+  'tinymce' |
   'other'
 
 // Interfaccia della risposta
@@ -163,16 +165,20 @@ export async function getApiKey(
 function getKeyFromEnvironment(keyType: ApiKeyType): string | null {
   switch (keyType) {
     case 'tmdb':
-      return process.env.TMDB_API_KEY || null
+      return process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY || null
     case 'netlify':
       return process.env.NETLIFY_AUTH_TOKEN || null
     case 'supabase_service_role':
       // Non dovrebbe mai essere disponibile in client
-      return process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || null
+      return process.env.SUPABASE_SERVICE_ROLE_KEY || null
     case 'openai':
       return process.env.OPENAI_API_KEY || null
-    case 'pinecone':
-      return process.env.PINECONE_API_KEY || null
+    case 'google_ai':
+      return process.env.GOOGLE_AI_API_KEY || null
+    case 'perplexity':
+      return process.env.PERPLEXITY_API_KEY || null
+    case 'tinymce':
+      return process.env.TINYMCE_API_KEY || null
     case 'other':
       return process.env.OTHER_API_KEY || null
     default:
