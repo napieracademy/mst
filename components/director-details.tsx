@@ -40,14 +40,14 @@ interface DirectorDetailsProps {
 
 export default function DirectorDetails({ director }: DirectorDetailsProps) {
   const [bioExpanded, setBioExpanded] = useState(false)
-  
+
   // Prepara biografia e credits
   const shortBio = director.biography ? director.biography.slice(0, 300) + (director.biography.length > 300 ? '...' : '') : null
   const fullBio = director.biography || null
-  
+
   // Prepara la filmografia
   const credits: Credit[] = []
-  
+
   // Aggiungi i film dove ha lavorato come regista
   if (director.combined_credits?.crew) {
     director.combined_credits.crew
@@ -59,7 +59,7 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
         })
       })
   }
-  
+
   // Aggiungi i film dove ha recitato
   if (director.combined_credits?.cast) {
     director.combined_credits.cast.forEach(credit => {
@@ -69,7 +69,7 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
         c.media_type === credit.media_type && 
         c.role === "directing"
       )
-      
+
       if (existingCredit) {
         // Se è già presente come regista, aggiorna il ruolo a "both"
         existingCredit.role = "both"
@@ -82,15 +82,15 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
       }
     })
   }
-  
+
   // Prepara i known_for_credits
   const knownForCredits = director.known_for_credits || [];
-  
+
   // Ottieni l'URL dell'immagine del profilo
   const profileUrl = director.profile_path 
     ? `https://image.tmdb.org/t/p/w500${director.profile_path}`
     : "/placeholder-person.svg?height=500&width=500"
-    
+
   // Formatta data di nascita e morte con il fuso orario italiano
   const formatDate = (dateString?: string) => {
     if (!dateString) return null
@@ -101,14 +101,14 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
       timeZone: "Europe/Rome"
     })
   }
-  
+
   const birthDate = formatDate(director.birthday)
   const deathDate = formatDate(director.deathday)
-  
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Header />
-      
+
       <div className="pt-24 pb-16">
         <Container maxWidth="custom">
           <div className="flex flex-col items-start max-w-4xl mx-auto">
@@ -123,10 +123,10 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
                   sizes="(max-width: 768px) 12rem, 16rem"
                 />
               </div>
-              
+
               <div className="flex flex-col">
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">{director.name}</h1>
-                
+
                 <div className="flex flex-wrap gap-6 text-gray-300 mb-4">
                   {birthDate && (
                     <div>
@@ -134,14 +134,14 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
                       <p className="text-sm">{birthDate}</p>
                     </div>
                   )}
-                  
+
                   {deathDate && (
                     <div>
                       <h3 className="text-white text-sm font-medium mb-1">Data di morte</h3>
                       <p className="text-sm">{deathDate}</p>
                     </div>
                   )}
-                  
+
                   {director.place_of_birth && (
                     <div>
                       <h3 className="text-white text-sm font-medium mb-1">Luogo di nascita</h3>
@@ -149,36 +149,28 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-            
-            {/* Contenuto impilato in colonna */}
-            <div className="w-full flex flex-col mt-8 border-t border-gray-800 pt-8">
-              {/* Biografia chiaramente separata e sotto l'anagrafica */}
-              {fullBio && (
-                <div className="mb-12 mt-2">
-                  <div className="flex items-center mb-4">
-                    <h2 className="text-xl font-semibold">Biografia</h2>
+                {fullBio && (
+                  <div className="text-gray-300 mb-12">
+                    <p>{bioExpanded ? fullBio : shortBio}</p>
                     {fullBio.length > 300 && (
-                      <button 
+                      <button
                         onClick={() => setBioExpanded(!bioExpanded)}
-                        className="ml-4 flex items-center justify-center w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+                        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors ml-2"
                         aria-label={bioExpanded ? "Riduci biografia" : "Espandi biografia"}
                       >
                         <span className="text-xl font-semibold">{bioExpanded ? "-" : "+"}</span>
                       </button>
                     )}
                   </div>
-                  
-                  <div className="text-gray-300">
-                    <p className="mb-4">{bioExpanded ? fullBio : shortBio}</p>
-                  </div>
-                </div>
-              )}
-              
+                )}
+              </div>
+            </div>
+
+            {/* Contenuto impilato in colonna */}
+            <div className="w-full flex flex-col mt-8 border-t border-gray-800 pt-8">
               {/* Filmografia */}
               {credits.length > 0 && (
-                <div>
+                <div className="mb-16">
                   <h2 className="text-xl font-semibold mb-2">Filmografia</h2>
                   <PersonFilmography 
                     credits={credits} 
@@ -191,8 +183,8 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
           </div>
         </Container>
       </div>
-      
+
       <Footer />
     </main>
   )
-} 
+}
