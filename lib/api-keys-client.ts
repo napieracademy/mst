@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { config } from './config'
 
 // Tipi chiavi supportate
 export type ApiKeyType = 
@@ -44,6 +45,11 @@ export async function getApiKey(
   keyType: ApiKeyType, 
   forceRefresh = false
 ): Promise<string | null> {
+  // Se il servizio è disabilitato, usa direttamente le variabili d'ambiente
+  if (!config.apiKeys.useApiKeysService) {
+    return getKeyFromEnvironment(keyType)
+  }
+  
   // Verifica se c'è una cache valida (non scaduta e non forzata a refreshare)
   const now = Date.now()
   const cached = keyCache.get(keyType)
@@ -66,7 +72,18 @@ export async function getApiKey(
     
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('Configurazione Supabase mancante')
-      return null
+      
+      // Gestisci il fallback in base alla strategia configurata
+      switch (config.apiKeys.fallbackStrategy) {
+        case 'env':
+          return getKeyFromEnvironment(keyType)
+        case 'null':
+          return null
+        case 'error':
+          throw new Error('Configurazione Supabase mancante')
+        default:
+          return getKeyFromEnvironment(keyType)
+      }
     }
     
     // Crea un client Supabase
@@ -108,10 +125,11 @@ export async function getApiKey(
       throw new Error('Risposta non valida dal servizio chiavi')
     }
     
-    // Aggiorna la cache
+    // Aggiorna la cache con il tempo configurato
+    const cacheTime = config.apiKeys.cacheTime || 3600
     keyCache.set(keyType, {
       key: result.key,
-      expiresAt: now + (result.expiresIn * 1000 * 0.9) // 90% del tempo di validità
+      expiresAt: now + (cacheTime * 1000) // Tempo di cache configurato
     })
     
     return result.key
@@ -124,8 +142,17 @@ export async function getApiKey(
       return cached.key
     }
     
-    // In alternativa usa le variabili d'ambiente locali
-    return getKeyFromEnvironment(keyType)
+    // Altrimenti gestisci il fallback in base alla strategia configurata
+    switch (config.apiKeys.fallbackStrategy) {
+      case 'env':
+        return getKeyFromEnvironment(keyType)
+      case 'null':
+        return null
+      case 'error':
+        throw new Error(`Impossibile recuperare la chiave ${keyType}`)
+      default:
+        return getKeyFromEnvironment(keyType)
+    }
   }
 }
 
