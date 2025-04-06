@@ -9,7 +9,7 @@ export const config = {
   // Configurazione del servizio centralizzato delle chiavi API
   apiKeys: {
     // Abilitare/disabilitare l'utilizzo del servizio centralizzato
-    useApiKeysService: true,
+    useApiKeysService: false, // Temporaneamente disabilitato per usare variabili d'ambiente locali
     
     // Tempo di cache in secondi (0 = nessuna cache)
     cacheTime: 3600, // 1 ora
