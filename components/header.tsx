@@ -11,6 +11,7 @@ import { cn } from "@/atomic/utils/cn"
 import { usePathname } from "next/navigation"
 import { PageGenerationIndicator } from "./page-generation-indicator"
 import { PreRenderizzazioneCheck } from "./prerenderizzazione-check"
+import { DatabaseCounter } from "./database-counter"
 
 const supabase = createClient()
 
@@ -96,6 +97,7 @@ export function Header() {
             <div className="flex space-x-2">
               {pathname && <PageGenerationIndicator pathname={pathname} />}
               <PreRenderizzazioneCheck />
+              <DatabaseCounter />
             </div>
             
             <div className="relative">
