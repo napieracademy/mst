@@ -14,8 +14,8 @@ export async function middleware(request: NextRequest) {
     // Ottieni il percorso della richiesta
     const { pathname } = request.nextUrl;
 
-    // Parte 1: Autenticazione 
-    if (pathname.startsWith("/wines") || pathname === "/login" || pathname === "/register") {
+    // Parte 1: Autenticazione per pagine protette
+    if (pathname === "/login" || pathname === "/register") {
       const supabase = await createServerSupabaseClient()
       
       // Se supabase non è disponibile, continua normalmente
@@ -33,15 +33,10 @@ export async function middleware(request: NextRequest) {
         console.warn("Middleware: Errore nel recupero della sessione")
       }
 
-      // Gestisci reindirizzamenti di autenticazione
-      if (!session && pathname.startsWith("/wines")) {
-        console.log("Middleware: Reindirizzamento a login (utente non autenticato)")
-        return NextResponse.redirect(new URL("/login", request.url))
-      }
-
+      // Reindirizza utenti già autenticati alla home
       if (session && (pathname === "/login" || pathname === "/register")) {
-        console.log("Middleware: Reindirizzamento a wines (utente già autenticato)")
-        return NextResponse.redirect(new URL("/wines", request.url))
+        console.log("Middleware: Reindirizzamento a home (utente già autenticato)")
+        return NextResponse.redirect(new URL("/", request.url))
       }
     }
 
@@ -88,7 +83,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/wines/:path*", 
     "/login", 
     "/register",
     "/movie/:path*",
