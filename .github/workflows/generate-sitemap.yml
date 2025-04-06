@@ -172,10 +172,11 @@ jobs:
           }
           
           // Esegui la generazione
-          generateSitemap().then(result => {
+          (async () => {
+            const result = await generateSitemap();
             console.log(JSON.stringify(result, null, 2));
             if (!result.success) process.exit(1);
-          });
+          })();
           "
       
       - name: Commit e push sitemap
