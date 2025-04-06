@@ -16,6 +16,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
     domains: ['image.tmdb.org'],
+    // Configurazione specifica per Netlify
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'image.tmdb.org',
+        pathname: '/**',
+      },
+    ],
   },
   experimental: {
     webpackBuildWorker: true,

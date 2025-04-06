@@ -7,10 +7,10 @@
   NODE_VERSION = "18"
   NPM_VERSION = "9"
   NPM_FLAGS = "--legacy-peer-deps"
-  NEXT_PUBLIC_TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
-  TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
+  # Le chiavi API sono gestite nel pannello di controllo Netlify Environment Variables
   NEXT_PUBLIC_SITE_URL = "https://mastroianni.app"
-  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # Non skippiamo più il plugin Next.js
+  # NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 [functions]
   node_bundler = "esbuild"

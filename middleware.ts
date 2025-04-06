@@ -6,23 +6,34 @@ import { generateSlug } from './lib/utils'
 
 export async function middleware(request: NextRequest) {
   try {
+    // Middleware semplificato per compatibilità con Netlify Edge Functions
     // Gestione dell'autenticazione
     const supabase = await createServerSupabaseClient()
     
     // Se supabase è null, continua con la richiesta
     if (!supabase) {
+      console.log("Middleware: Supabase client non disponibile, continuando...")
       return NextResponse.next()
     }
     
-    const { data: { session } } = await supabase.auth.getSession()
+    // Ottieni la sessione in modo sicuro
+    let session = null
+    try {
+      const { data } = await supabase.auth.getSession()
+      session = data.session
+    } catch (error) {
+      console.warn("Middleware: Errore nel recupero della sessione:", error)
+    }
 
     // Se l'utente non è autenticato e sta cercando di accedere a una rotta protetta
     if (!session && request.nextUrl.pathname.startsWith("/wines")) {
+      console.log("Middleware: Reindirizzamento a login (utente non autenticato)")
       return NextResponse.redirect(new URL("/login", request.url))
     }
 
     // Se l'utente è autenticato e sta cercando di accedere a login/register
     if (session && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
+      console.log("Middleware: Reindirizzamento a wines (utente già autenticato)")
       return NextResponse.redirect(new URL("/wines", request.url))
     }
 
@@ -81,17 +92,11 @@ export async function middleware(request: NextRequest) {
     if ((match = pathname.match(personRegex))) {
       const id = match[1];
       try {
-        // Ottieni i dettagli della persona per generare lo slug
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.themoviedb.org/3'}/person/${id}?api_key=${process.env.TMDB_API_KEY}`);
-        if (response.ok) {
-          const person = await response.json();
-          if (person && person.name) {
-            const slug = generateSlug(person.name, null, id);
-            
-            // Reindirizzamento permanente (301) alla nuova URL SEO-friendly
-            return NextResponse.redirect(new URL(`/attore/${slug}`, request.url), 301);
-          }
-        }
+        // Per Netlify, evitiamo chiamate API nel middleware per person
+        // Reindirizzamento semplificato con solo ID, il nome verrà recuperato lato pagina
+        const slug = `persona-${id}`;
+        console.log(`Middleware: Reindirizzamento semplificato persona ${id} a /attore/${slug}`);
+        return NextResponse.redirect(new URL(`/attore/${slug}`, request.url), 301);
       } catch (error) {
         console.error(`Errore nel reindirizzamento della persona ${id}:`, error);
       }
