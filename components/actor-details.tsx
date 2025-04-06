@@ -48,6 +48,8 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
   // Prepara la filmografia
   const credits: Credit[] = []
   
+  // Prepara i dati dell'attore
+  
   // Aggiungi i film dove ha recitato
   if (actor.combined_credits?.cast) {
     actor.combined_credits.cast.forEach(credit => {
@@ -195,6 +197,7 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                   />
                 </div>
               )}
+              
             </div>
           </div>
         </Container>
