@@ -154,11 +154,11 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
               </div>
             </div>
             
-            {/* Anagrafica e biografia impilati in colonna */}
-            <div className="w-full flex flex-col">
-              {/* Biografia */}
+            {/* Contenuto impilato in colonna */}
+            <div className="w-full flex flex-col mt-8 border-t border-gray-800 pt-8">
+              {/* Biografia chiaramente separata e sotto l'anagrafica */}
               {fullBio && (
-                <div className="mb-12 mt-6">
+                <div className="mb-12 mt-2">
                   <div className="flex items-center mb-4">
                     <h2 className="text-xl font-semibold">Biografia</h2>
                     {fullBio.length > 300 && (
