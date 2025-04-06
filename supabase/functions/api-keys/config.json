@@ -1,0 +1,6 @@
+{
+  "name": "api-keys",
+  "version": "1.0.0",
+  "description": "Centralizza l'accesso alle chiavi API per tutte le applicazioni",
+  "verify_jwt": true
+}

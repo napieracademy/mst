@@ -1,9 +1,13 @@
 import { config } from "./config"
 import type { Movie } from "./types"
+import { getApiKey } from "./api-keys-client"
 
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY
+// Costanti per le API TMDB
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p"
+
+// Fallback in caso il servizio centralizzato non sia disponibile
+const TMDB_API_KEY_FALLBACK = process.env.NEXT_PUBLIC_TMDB_API_KEY
 
 // Funzione per verificare se un percorso immagine è valido
 export function isValidImagePath(path: string | null | undefined): boolean {
@@ -46,7 +50,13 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
     throw new Error("TMDB API is disabled")
   }
 
-  if (!TMDB_API_KEY) {
+  // Ottieni la chiave API TMDB dal centralizzatore delle chiavi
+  let apiKey = await getApiKey('tmdb').catch(error => {
+    console.warn("Errore nel recupero chiave TMDB dal servizio centralizzato:", error.message)
+    return TMDB_API_KEY_FALLBACK // Fallback alla chiave dalle variabili d'ambiente
+  });
+
+  if (!apiKey) {
     console.error("TMDB API key is missing")
     throw new Error("TMDB API key is missing")
   }
@@ -54,7 +64,7 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
   const url = new URL(`${TMDB_BASE_URL}${endpoint}`)
 
   // Aggiungi l'API key e i parametri
-  url.searchParams.append("api_key", TMDB_API_KEY)
+  url.searchParams.append("api_key", apiKey)
   url.searchParams.append("language", language)
   
   Object.entries(params).forEach(([key, value]) => {
@@ -63,10 +73,11 @@ async function fetchFromTMDB(endpoint: string, params: Record<string, string> = 
 
   try {
     console.log(`Fetching from TMDB: ${endpoint}`, {
-      apiKeyPresent: !!TMDB_API_KEY,
-      apiKeyLength: TMDB_API_KEY?.length || 0,
-      url: url.toString().replace(TMDB_API_KEY, "API_KEY_HIDDEN"),
-      language: language
+      apiKeyPresent: !!apiKey,
+      apiKeyLength: apiKey?.length || 0,
+      url: url.toString().replace(apiKey, "API_KEY_HIDDEN"),
+      language: language,
+      source: apiKey === TMDB_API_KEY_FALLBACK ? 'fallback' : 'central-service'
     })
 
     const response = await fetch(url.toString(), {
