@@ -34,14 +34,7 @@ jobs:
           SITEMAP_PATH: './public/sitemap.xml'
         run: |
           echo "Inizia generazione sitemap..."
-          echo "Debug - Variabili ambiente disponibili:"
-          env | grep -i 'SUPABASE\|SITE_URL' || echo "Nessuna variabile trovata"
           node -e "
-          console.log('Debug - Variabili Node.js:');
-          console.log('SUPABASE_URL exists:', !!process.env.SUPABASE_URL);
-          console.log('SUPABASE_KEY exists:', !!process.env.SUPABASE_KEY);
-          console.log('NEXT_PUBLIC_SITE_URL exists:', !!process.env.NEXT_PUBLIC_SITE_URL);
-          
           const { createClient } = require('@supabase/supabase-js');
           const fs = require('fs');
           
@@ -53,7 +46,7 @@ jobs:
               const supabaseUrl = process.env.SUPABASE_URL;
               const supabaseKey = process.env.SUPABASE_KEY;
               
-              console.log(`🌐 URL base: ${baseUrl}`);
+              console.log(\`🌐 URL base: \${baseUrl}\`);
               
               if (!supabaseUrl || !supabaseKey) {
                 throw new Error('Mancano le variabili Supabase URL o KEY');
@@ -61,32 +54,71 @@ jobs:
               
               const supabase = createClient(supabaseUrl, supabaseKey);
               
+              // Recupera conteggio totale
               const { count: totalCount, error: countError } = await supabase
                 .from('generated_pages')
                 .select('*', { count: 'exact', head: true });
               
               if (countError) {
-                throw new Error(`Errore conteggio: ${countError.message}`);
+                throw new Error(\`Errore conteggio: \${countError.message}\`);
               }
               
-              console.log(`🔢 Totale record nel DB: ${totalCount || 0}`);
+              console.log(\`🔢 Totale record nel DB: \${totalCount || 0}\`);
               
-              const { data: filmPages, error: filmError } = await supabase
-                .from('generated_pages')
-                .select('slug')
-                .eq('page_type', 'film');
-              
-              if (filmError) {
-                throw new Error(`Errore query film: ${filmError.message}`);
+              // Funzione per recuperare tutti i record con paginazione
+              async function fetchAllByType(type) {
+                console.log(\`🔄 Recupero completo dei record di tipo '\${type}'...\`);
+                const batchSize = 1000;
+                let allRecords = [];
+                let startIndex = 0;
+                let hasMore = true;
+                
+                while (hasMore) {
+                  console.log(\`  ⏳ Batch \${startIndex}-\${startIndex + batchSize - 1}...\`);
+                  const { data, error } = await supabase
+                    .from('generated_pages')
+                    .select('slug')
+                    .eq('page_type', type)
+                    .range(startIndex, startIndex + batchSize - 1);
+                    
+                  if (error) {
+                    console.log(\`  ⚠️ Errore recupero batch: \${error.message}\`);
+                    break;
+                  }
+                  
+                  const batchCount = data?.length || 0;
+                  allRecords = allRecords.concat(data || []);
+                  
+                  console.log(\`  ✅ Recuperati \${batchCount} record\`);
+                  
+                  if (batchCount < batchSize) {
+                    hasMore = false;
+                  } else {
+                    startIndex += batchSize;
+                  }
+                }
+                
+                console.log(\`✅ Recupero completato: \${allRecords.length} record totali di tipo '\${type}'\`);
+                return allRecords;
               }
               
-              const { data: seriePages, error: serieError } = await supabase
-                .from('generated_pages')
-                .select('slug')
-                .eq('page_type', 'serie');
+              // Recupera film con paginazione
+              console.log('🔄 Recupero film...');
+              const filmPages = await fetchAllByType('film');
               
-              if (serieError) {
-                throw new Error(`Errore query serie: ${serieError.message}`);
+              // Recupera serie con paginazione
+              console.log('🔄 Recupero serie...');
+              const seriePages = await fetchAllByType('serie');
+              
+              // Recupera attori e altri tipi di persone
+              console.log('🔄 Recupero persone e altri tipi...');
+              const { data: crewPages, error: crewError } = await supabase
+                .from('generated_pages')
+                .select('slug, page_type')
+                .not('page_type', 'in', '("film","serie")');
+              
+              if (crewError) {
+                throw new Error(\`Errore query persone: \${crewError.message}\`);
               }
               
               // Filtra slug vuoti
@@ -98,46 +130,92 @@ jobs:
                 .map(page => page.slug)
                 .filter(slug => slug && slug.trim() !== '');
               
-              console.log(`🎬 Film: ${filmSlugs.length}, 📺 Serie: ${serieSlugs.length}`);
+              // Filtra e raggruppa le persone per tipo
+              const personSlugs = {};
+              (crewPages || []).forEach(page => {
+                if (page.slug && page.slug.trim() !== '') {
+                  const tipo = page.page_type || 'person';
+                  if (!personSlugs[tipo]) personSlugs[tipo] = [];
+                  personSlugs[tipo].push(page.slug);
+                }
+              });
+              
+              // Calcola conteggio totale di persone
+              const totalPersons = Object.values(personSlugs).reduce((sum, slugs) => sum + slugs.length, 0);
+              
+              console.log(\`🎬 Film validi: \${filmSlugs.length}, 📺 Serie valide: \${serieSlugs.length}, 👨‍👩‍👧‍👦 Persone valide: \${totalPersons}\`);
+              
+              // Log dettagliato persone per tipo
+              Object.entries(personSlugs).forEach(([tipo, slugs]) => {
+                console.log(\`    - \${tipo}: \${slugs.length} pagine\`);
+              });
+              
+              // Funzione per determinare il percorso corretto per ogni tipo di persona
+              const getPersonPath = (tipo, slug) => {
+                switch (tipo.toLowerCase()) {
+                  case 'actor':
+                  case 'attore':
+                    return \`/attore/\${slug}\`;
+                  case 'director':
+                  case 'regista':
+                    return \`/regista/\${slug}\`;
+                  case 'cast':
+                    return \`/cast/\${slug}\`;
+                  case 'crew':
+                    return \`/crew/\${slug}\`;
+                  case 'person':
+                  default:
+                    return \`/person/\${slug}\`;
+                }
+              };
               
               // Rotte statiche
               const staticRoutes = ['', '/search', '/login', '/about'];
-              const totalUrls = staticRoutes.length + filmSlugs.length + serieSlugs.length;
+              const totalUrls = staticRoutes.length + filmSlugs.length + serieSlugs.length + totalPersons;
               
-              console.log(`📊 Totale URL sitemap: ${totalUrls}`);
+              console.log(\`📊 Totale URL sitemap: \${totalUrls}\`);
               
               // Genera sitemap
-              const xml = `<?xml version="1.0" encoding="UTF-8"?>
-          <!-- Generata il: ${new Date().toISOString()} con ${totalUrls} URL -->
-          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" count="${totalUrls}">
-            ${staticRoutes.map(route => `
+              const xml = \`<?xml version="1.0" encoding="UTF-8"?>
+          <!-- Generata il: \${new Date().toISOString()} con \${totalUrls} URL -->
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" count="\${totalUrls}">
+            \${staticRoutes.map(route => \`
               <url>
-                <loc>${baseUrl}${route}</loc>
+                <loc>\${baseUrl}\${route}</loc>
                 <changefreq>weekly</changefreq>
-                <priority>${route === '' ? '1.0' : '0.8'}</priority>
+                <priority>\${route === '' ? '1.0' : '0.8'}</priority>
               </url>
-            `).join('')}
+            \`).join('')}
             
-            ${filmSlugs.map(slug => `
+            \${filmSlugs.map(slug => \`
               <url>
-                <loc>${baseUrl}/film/${slug}</loc>
+                <loc>\${baseUrl}/film/\${slug}</loc>
                 <changefreq>monthly</changefreq>
                 <priority>0.7</priority>
               </url>
-            `).join('')}
+            \`).join('')}
             
-            ${serieSlugs.map(slug => `
+            \${serieSlugs.map(slug => \`
               <url>
-                <loc>${baseUrl}/serie/${slug}</loc>
+                <loc>\${baseUrl}/serie/\${slug}</loc>
                 <changefreq>monthly</changefreq>
                 <priority>0.7</priority>
               </url>
-            `).join('')}
-          </urlset>`;
+            \`).join('')}
+            
+            \${Object.entries(personSlugs).flatMap(([tipo, slugs]) => 
+              slugs.map(slug => \`
+              <url>
+                <loc>\${baseUrl}\${getPersonPath(tipo, slug)}</loc>
+                <changefreq>monthly</changefreq>
+                <priority>0.6</priority>
+              </url>
+            \`)).join('')}
+          </urlset>\`;
               
               // Salva sitemap
               fs.writeFileSync(SITEMAP_PATH, xml);
-              console.log(`✅ Sitemap generata con successo in ${SITEMAP_PATH}`);
+              console.log(\`✅ Sitemap generata con successo in \${SITEMAP_PATH}\`);
               
               // Aggiorna statistiche
               try {
@@ -149,21 +227,22 @@ jobs:
                     urls_count: totalUrls,
                     film_count: filmSlugs.length,
                     serie_count: serieSlugs.length,
+                    person_count: totalPersons,
                     is_error: false,
                     error_message: null
                   }]);
-                
+                  
                 if (statsError) {
-                  console.log(`⚠️ Errore aggiornamento statistiche: ${statsError.message}`);
+                  console.log(\`⚠️ Errore aggiornamento statistiche: \${statsError.message}\`);
                 } else {
                   console.log('📊 Statistiche aggiornate con successo');
                 }
               } catch (statsError) {
-                console.log(`⚠️ Errore durante aggiornamento statistiche: ${statsError.message}`);
-                // Non usciamo dal processo qui, perché la sitemap è già stata generata
+                console.log(\`⚠️ Errore durante aggiornamento statistiche: \${statsError.message}\`);
               }
+              
             } catch (error) {
-              console.error(`❌ ERRORE: ${error.message}`);
+              console.error(\`❌ ERRORE: \${error.message}\`);
               process.exit(1);
             }
           })();
