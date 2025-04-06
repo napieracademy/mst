@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowPathIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 // Interfaccia per le statistiche della sitemap
 interface SitemapStats {
@@ -140,9 +139,9 @@ export function DatabaseCounter() {
           <div className="text-sm font-medium mb-2 text-white flex items-center gap-2">
             <span>Statistiche contenuti</span>
             {stats.isError ? (
-              <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
+              <span className="text-red-500">⚠️</span>
             ) : (
-              <CheckCircleIcon className="h-4 w-4 text-green-500" />
+              <span className="text-green-500">✓</span>
             )}
           </div>
           
