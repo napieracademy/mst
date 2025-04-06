@@ -10,6 +10,7 @@ import { Button } from "@/atomic/atoms/button"
 import { cn } from "@/atomic/utils/cn"
 import { usePathname } from "next/navigation"
 import { PageGenerationIndicator } from "./page-generation-indicator"
+import { PreRenderizzazioneCheck } from "./prerenderizzazione-check"
 
 const supabase = createClient()
 
@@ -90,9 +91,12 @@ export function Header() {
             </Text>
           </Link>
 
-          <div className="flex items-center space-x-4">
-            {/* Indicatore di stato della generazione */}
-            {pathname && <PageGenerationIndicator pathname={pathname} />}
+          <div className="flex items-center space-x-3">
+            {/* Indicatori di stato della pagina */}
+            <div className="flex space-x-2">
+              {pathname && <PageGenerationIndicator pathname={pathname} />}
+              <PreRenderizzazioneCheck />
+            </div>
             
             <div className="relative">
               <Button

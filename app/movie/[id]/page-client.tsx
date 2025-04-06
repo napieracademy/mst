@@ -68,11 +68,6 @@ export function MoviePageClient({
           releaseDate={releaseDate}
           trailers={trailers || []}
         />
-        
-        {/* Indicatore di prerenderizzazione */}
-        <div className="absolute bottom-4 right-4 z-50">
-          <PreRenderizzazioneCheck />
-        </div>
       </div>
 
       {/* Content Section */}
