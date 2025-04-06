@@ -24,6 +24,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Aggiungi rewrite per la sitemap
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: 'https://gbynhfiqlacmlwpjcxmp.supabase.co/storage/v1/object/public/site-assets/sitemap.xml',
+      },
+    ];
+  },
   images: {
     unoptimized: true,
     domains: ['image.tmdb.org'],

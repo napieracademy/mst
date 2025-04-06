@@ -59,14 +59,21 @@
     w = ":width"
     q = ":quality"
 
-# Scheduled Function per la generazione automatica della sitemap
-[functions.generate-sitemap]
-  schedule = "@hourly"
-  
+# Redirect per la sitemap generata da Supabase
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "https://gbynhfiqlacmlwpjcxmp.supabase.co/storage/v1/object/public/site-assets/sitemap.xml"
+  status = 200
+  force = true
+
 # CORS e headers per sitemap.xml
 [[headers]]
   for = "/sitemap.xml"
   [headers.values]
     Content-Type = "application/xml"
     Cache-Control = "public, max-age=3600"
-    Access-Control-Allow-Origin = "*" 
+    Access-Control-Allow-Origin = "*"
+
+# Scheduled Function per la generazione automatica della sitemap
+[functions.generate-sitemap]
+  schedule = "@hourly" 
