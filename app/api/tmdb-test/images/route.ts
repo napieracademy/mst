@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic'; // Forza il rendering dinamico
 export const revalidate = 3600; // Riconvalida ogni ora
 
 /**
