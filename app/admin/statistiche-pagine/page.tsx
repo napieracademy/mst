@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description: 'Dashboard statistiche pagine generate staticamente o on-demand'
 };
 
+// Forza il rendering dinamico della pagina ad ogni richiesta
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface SitemapAnalysisProps {
   totalDbRecords: number;
   totalSitemapUrls: number;
@@ -70,7 +74,7 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
     const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
     const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : sitemapUrl;
     
-    console.log(`SITEMAP ANALYZER: Ricerca sitemap su ${baseUrl}/sitemap.xml`);
+    console.log(`SITEMAP ANALYZER: Ricerca sitemap statica su ${baseUrl}/sitemap.xml`);
     
     // Configura la richiesta con un timeout più lungo (30 secondi)
     const fetchOptions = { 
@@ -84,15 +88,21 @@ async function analyzeSitemap(): Promise<SitemapAnalysisProps> {
       signal: AbortSignal.timeout(30000) // 30 secondi di timeout
     };
     
-    // Esegui la richiesta HTTP per ottenere la sitemap
+    // Esegui la richiesta HTTP per ottenere la sitemap (file statico)
     const response = await fetch(`${baseUrl}/sitemap.xml`, fetchOptions);
     if (!response.ok) {
-      console.error(`SITEMAP ANALYZER: Errore nel recupero della sitemap: ${response.status} ${response.statusText}`);
+      console.error(`SITEMAP ANALYZER: Errore nel recupero della sitemap statica: ${response.status} ${response.statusText}`);
       throw new Error(`Errore nel recupero della sitemap: ${response.status}`);
     }
     
     // Ottieni il contenuto completo della sitemap
     const sitemapXml = await response.text();
+    
+    // Log per verifica della versione della sitemap
+    const generationInfo = sitemapXml.match(/<!-- Generata il: (.*?) con (\d+) URL -->/);
+    if (generationInfo) {
+      console.log(`SITEMAP ANALYZER: Sitemap generata il ${generationInfo[1]} con ${generationInfo[2]} URL`);
+    }
     
     console.log(`SITEMAP ANALYZER: Dimensione sitemap recuperata: ${Math.round(sitemapXml.length/1024)} KB`);
     console.log('SITEMAP ANALYZER: Prime 200 caratteri:', sitemapXml.substring(0, 200));
@@ -491,6 +501,14 @@ const StatsDashboard = async ({
               rel="noopener noreferrer"
             >
               Visualizza Sitemap XML
+            </Link>
+            
+            <Link 
+              href="/admin/statistiche-pagine" 
+              className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-gray-100"
+              prefetch={false}
+            >
+              Aggiorna statistiche
             </Link>
           </div>
         </div>
