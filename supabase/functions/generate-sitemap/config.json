@@ -1,0 +1,12 @@
+{
+  "name": "generate-sitemap",
+  "version": "1.0.0",
+  "description": "Genera sitemap.xml dai dati del database e la salva nello storage",
+  "schedules": [
+    {
+      "name": "generate-sitemap-daily",
+      "schedule": "0 2 * * *",
+      "description": "Genera la sitemap ogni giorno alle 2:00"
+    }
+  ]
+}

@@ -3,6 +3,10 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { FEATURES } from '@/lib/features-flags';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+// Carica il componente SitemapStats in modo dinamico solo lato client
+const SitemapStats = dynamic(() => import('@/components/sitemap-stats'), { ssr: false });
 
 export const metadata: Metadata = {
   title: 'Statistiche pagine generate | Mastroianni Admin',
@@ -419,81 +423,84 @@ const StatsDashboard = async ({
         </ul>
       </div>
       
-      {/* Analisi Sitemap */}
+      {/* Analisi Sitemap con componente SitemapStats */}
       <div className="mb-8 border border-gray-300 p-4">
-        <h2 className="text-xl font-semibold mb-2">Analisi sitemap</h2>
-        <div className="mb-4">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <h3 className="font-medium mb-2">Database</h3>
-              <ul className="list-disc pl-5">
-                <li>Record totali: <strong>{sitemapAnalysis.totalDbRecords}</strong></li>
-                <li>Film: <strong>{sitemapAnalysis.filmDbRecords}</strong></li>
-                <li>Serie: <strong>{sitemapAnalysis.serieDbRecords}</strong></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-medium mb-2">Sitemap</h3>
-              <ul className="list-disc pl-5">
-                <li>URL totali: <strong>{sitemapAnalysis.totalSitemapUrls}</strong></li>
-                <li>Film: <strong>{sitemapAnalysis.filmSitemapUrls}</strong></li>
-                <li>Serie: <strong>{sitemapAnalysis.serieSitemapUrls}</strong></li>
-              </ul>
-            </div>
+        <h2 className="text-xl font-semibold mb-2">Gestione Sitemap</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+          {/* Colonna 1: Componente SitemapStats */}
+          <div>
+            <h3 className="font-medium mb-2">Stato Sitemap</h3>
+            <SitemapStats />
           </div>
           
-          <div className="mt-4">
-            <h3 className="font-medium mb-2">Discrepanza: <strong>{sitemapAnalysis.totalDbRecords - sitemapAnalysis.totalSitemapUrls}</strong> record non inclusi nella sitemap</h3>
-            
-            {sitemapAnalysis.invalidSlugs.length > 0 ? (
-              <div className="overflow-auto max-h-80">
-                <table className="w-full border-collapse border border-gray-300 text-sm">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-300 px-3 py-2 text-left">Tipo</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left">Slug</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left">Motivo esclusione</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sitemapAnalysis.invalidSlugs.slice(0, 100).map((item, index) => (
-                      <tr key={`${item.slug}-${index}`} className={index % 2 === 0 ? "" : "bg-gray-50"}>
-                        <td className="border border-gray-300 px-3 py-2">{item.page_type}</td>
-                        <td className="border border-gray-300 px-3 py-2">
-                          <a href={`/${item.page_type}/${item.slug}`} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                            {item.slug}
-                          </a>
-                        </td>
-                        <td className="border border-gray-300 px-3 py-2">{item.reason}</td>
-                      </tr>
-                    ))}
-                    {sitemapAnalysis.invalidSlugs.length > 100 && (
-                      <tr>
-                        <td colSpan={3} className="border border-gray-300 px-3 py-2 text-center">
-                          ... e altri {sitemapAnalysis.invalidSlugs.length - 100} record
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+          {/* Colonna 2: Analisi tradizionale */}
+          <div>
+            <h3 className="font-medium mb-2">Analisi sitemap</h3>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <h4 className="font-medium mb-2">Database</h4>
+                <ul className="list-disc pl-5">
+                  <li>Record totali: <strong>{sitemapAnalysis.totalDbRecords}</strong></li>
+                  <li>Film: <strong>{sitemapAnalysis.filmDbRecords}</strong></li>
+                  <li>Serie: <strong>{sitemapAnalysis.serieDbRecords}</strong></li>
+                </ul>
               </div>
-            ) : (
-              <p>Non sono stati trovati problemi di sincronizzazione tra database e sitemap.</p>
-            )}
+              <div>
+                <h4 className="font-medium mb-2">Sitemap</h4>
+                <ul className="list-disc pl-5">
+                  <li>URL totali: <strong>{sitemapAnalysis.totalSitemapUrls}</strong></li>
+                  <li>Film: <strong>{sitemapAnalysis.filmSitemapUrls}</strong></li>
+                  <li>Serie: <strong>{sitemapAnalysis.serieSitemapUrls}</strong></li>
+                </ul>
+              </div>
+            </div>
           </div>
+        </div>
+        
+        <div className="mt-4">
+          <h3 className="font-medium mb-2">Discrepanza: <strong>{sitemapAnalysis.totalDbRecords - sitemapAnalysis.totalSitemapUrls}</strong> record non inclusi nella sitemap</h3>
+          
+          {sitemapAnalysis.invalidSlugs.length > 0 ? (
+            <div className="overflow-auto max-h-80">
+              <table className="w-full border-collapse border border-gray-300 text-sm">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-3 py-2 text-left">Tipo</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left">Slug</th>
+                    <th className="border border-gray-300 px-3 py-2 text-left">Motivo esclusione</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sitemapAnalysis.invalidSlugs.slice(0, 100).map((item, index) => (
+                    <tr key={`${item.slug}-${index}`} className={index % 2 === 0 ? "" : "bg-gray-50"}>
+                      <td className="border border-gray-300 px-3 py-2">{item.page_type}</td>
+                      <td className="border border-gray-300 px-3 py-2">
+                        <a href={`/${item.page_type}/${item.slug}`} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                          {item.slug}
+                        </a>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2">{item.reason}</td>
+                    </tr>
+                  ))}
+                  {sitemapAnalysis.invalidSlugs.length > 100 && (
+                    <tr>
+                      <td colSpan={3} className="border border-gray-300 px-3 py-2 text-center">
+                        ... e altri {sitemapAnalysis.invalidSlugs.length - 100} record
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>Non sono stati trovati problemi di sincronizzazione tra database e sitemap.</p>
+          )}
         </div>
         
         <div className="mt-4 text-xs text-gray-500">
           <p>Nota: Il confronto viene effettuato al momento del caricamento della pagina.</p>
           <div className="mt-2 flex space-x-3">
-            <Link 
-              href="/api/regenerate-sitemap?from=ui" 
-              className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-gray-100"
-              prefetch={false}
-            >
-              Rigenera Sitemap
-            </Link>
-            
             <Link 
               href="/sitemap.xml" 
               className="px-3 py-1 border border-gray-300 rounded text-xs hover:bg-gray-100"
