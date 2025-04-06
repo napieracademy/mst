@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createApiSupabaseClient } from '@/lib/supabase-server'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowPathIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+// Rimuoviamo l'import di heroicons e usiamo emoji Unicode per le icone
 import { formatDistanceToNow } from 'date-fns'
 import { it } from 'date-fns/locale'
 
@@ -112,7 +112,7 @@ export default function SitemapStats() {
           <CardDescription>Caricamento in corso...</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center p-6">
-          <ArrowPathIcon className="h-10 w-10 animate-spin text-gray-400" />
+          <div className="h-10 w-10 animate-spin text-gray-400">⟳</div>
         </CardContent>
       </Card>
     )
@@ -123,7 +123,7 @@ export default function SitemapStats() {
       <Card className="w-full max-w-md border-red-200">
         <CardHeader className="bg-red-50">
           <CardTitle className="flex items-center gap-2">
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+            <span className="text-red-500 text-xl">⚠</span>
             <span>Errore Statistiche</span>
           </CardTitle>
         </CardHeader>
@@ -165,8 +165,8 @@ export default function SitemapStats() {
       <CardHeader className={stats.is_error ? 'bg-red-50' : 'bg-green-50'}>
         <CardTitle className="flex items-center gap-2">
           {stats.is_error 
-            ? <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            : <CheckCircleIcon className="h-5 w-5 text-green-500" />
+            ? <span className="text-red-500 text-xl">⚠</span>
+            : <span className="text-green-500 text-xl">✓</span>
           }
           <span>Statistiche Sitemap</span>
         </CardTitle>
@@ -215,7 +215,7 @@ export default function SitemapStats() {
       
       <CardFooter className="bg-slate-50 justify-between">
         <Button variant="outline" size="sm" onClick={fetchStats} disabled={generating}>
-          <ArrowPathIcon className={`mr-1 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <span className={`mr-1 ${loading ? 'animate-spin' : ''}`}>⟳</span>
           Aggiorna
         </Button>
         <Button onClick={triggerSitemapGeneration} disabled={generating} size="sm">

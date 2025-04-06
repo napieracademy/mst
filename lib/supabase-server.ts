@@ -1,12 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+// Importiamo cookies in modo condizionale per evitare problemi durante il build
+// Questo import è richiesto solo quando viene eseguito lato server
 
 // Cache per il client API (non dipendente dai cookie)
 let apiClient: ReturnType<typeof createClient> | null = null;
 
 export const createServerSupabaseClient = async () => {
-  const cookieStore = await cookies()
+  // Importa cookies dinamicamente solo quando la funzione viene chiamata
+  // Questo evita problemi durante il build
+  const { cookies } = await import('next/headers')
+  const cookieStore = cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

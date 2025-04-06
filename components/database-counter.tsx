@@ -139,9 +139,9 @@ export function DatabaseCounter() {
           <div className="text-sm font-medium mb-2 text-white flex items-center gap-2">
             <span>Statistiche contenuti</span>
             {stats.isError ? (
-              <span className="text-red-500">⚠️</span>
+              <span className="text-red-500 text-lg">⚠</span>
             ) : (
-              <span className="text-green-500">✓</span>
+              <span className="text-green-500 text-lg">✓</span>
             )}
           </div>
           
