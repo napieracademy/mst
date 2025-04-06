@@ -243,7 +243,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                   
                   {/* Trailer Button - Sempre allineato a sinistra */}
                   {trailers && trailers.length > 0 && (
-                    <div className="mt-2 sm:mt-4">
+                    <div className="mt-4">
                       <DraggableContent
                         dragConstraints={{ top: -30, right: 60, bottom: 30, left: -60 }}
                         snapBackDuration={0.5}
@@ -251,7 +251,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                       >
                         <button
                           onClick={() => setIsTrailerOpen(true)}
-                          className="flex items-center gap-2 text-white bg-black/70 hover:bg-black/90 transition-all duration-200 px-4 py-2 rounded-full text-sm sm:text-base font-medium border border-white/20 hover:border-white/40"
+                          className="flex items-center gap-2 text-white bg-black px-4 py-2 rounded-md text-sm sm:text-base font-medium"
                         >
                           <Play className="w-4 h-4 sm:w-5 sm:h-5" fill="white" />
                           <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>

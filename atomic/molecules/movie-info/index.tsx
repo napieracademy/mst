@@ -14,9 +14,9 @@ export const MovieInfo: React.FC<MovieInfoProps> = ({
   onWatchTrailer 
 }) => {
   return (
-    <div className="movie-info text-left mt-2 sm:mt-0">
+    <div className="movie-info text-left mt-2 sm:mt-0 space-y-1"> {/* Added space-y-1 class */}
       {releaseDate && (
-        <p className="text-sm sm:text-base text-yellow-400 mb-3 sm:mb-4">
+        <p className="text-sm sm:text-base text-yellow-400 mb-2"> {/* Modified mb class */}
           {releaseDate.includes('Data di uscita:') ? releaseDate : `Data di uscita: ${releaseDate}`}
         </p>
       )}
@@ -25,4 +25,4 @@ export const MovieInfo: React.FC<MovieInfoProps> = ({
       </h1>
     </div>
   );
-}; 
+};
