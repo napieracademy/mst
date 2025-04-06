@@ -28,59 +28,60 @@ jobs:
       
       - name: Genera sitemap
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          SITEMAP_PATH: './public/sitemap.xml'
         run: |
           echo "Inizia generazione sitemap..."
           node -e "
           const { createClient } = require('@supabase/supabase-js');
           const fs = require('fs');
-          
-          async function generateSitemap() {
-            console.log('🔄 Avvio generazione sitemap...');
-            
+
+          (async () => {
+            const supabaseUrl = process.env.SUPABASE_URL;
+            const supabaseKey = process.env.SUPABASE_KEY;
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
+            const SITEMAP_PATH = process.env.SITEMAP_PATH || './public/sitemap.xml';
+
+            console.log(\`🌐 URL base: \${baseUrl}\`);
+
+            if (!supabaseUrl || !supabaseKey) {
+              console.error('❌ Mancano le variabili Supabase URL o KEY');
+              process.exit(1);
+            }
+
+            const supabase = createClient(supabaseUrl, supabaseKey);
+
             try {
-              // Parametri base
-              const SITEMAP_PATH = './public/sitemap.xml';
-              const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
-              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-              const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-              
-              console.log(\`🌐 URL base: \${baseUrl}\`);
-              
-              // Verifica variabili
-              if (!supabaseUrl || !supabaseKey) {
-                throw new Error('Mancano le variabili Supabase URL o KEY');
-              }
-              
-              // Crea client Supabase
-              const supabase = createClient(supabaseUrl, supabaseKey);
-              
               // Recupera conteggio totale
               const { count: totalCount, error: countError } = await supabase
                 .from('generated_pages')
                 .select('*', { count: 'exact', head: true });
-              
+
               if (countError) {
                 throw new Error(\`Errore conteggio: \${countError.message}\`);
               }
-              
+
               console.log(\`🔢 Totale record nel DB: \${totalCount || 0}\`);
-              
+
               // Recupera tutti i record
               const { data: filmPages, error: filmError } = await supabase
                 .from('generated_pages')
                 .select('slug')
                 .eq('page_type', 'film');
-                
+
               const { data: seriePages, error: serieError } = await supabase
                 .from('generated_pages')
                 .select('slug')
                 .eq('page_type', 'serie');
+
+              if (filmError) {
+                throw new Error(\`Errore query film: \${filmError.message}\`);
+              }
               
-              if (filmError || serieError) {
-                throw new Error(\`Errore query: \${filmError?.message || serieError?.message}\`);
+              if (serieError) {
+                throw new Error(\`Errore query serie: \${serieError.message}\`);
               }
               
               // Filtra slug vuoti
@@ -156,26 +157,10 @@ jobs:
                 console.log(\`⚠️ Errore durante aggiornamento statistiche: \${statsError.message}\`);
               }
               
-              return {
-                success: true,
-                message: \`Sitemap generata con successo (\${totalUrls} URL)\`,
-                timestamp: new Date().toISOString(),
-                dbCount: totalCount,
-                urlCount: totalUrls,
-                filmCount: filmSlugs.length,
-                serieCount: serieSlugs.length
-              };
             } catch (error) {
               console.error(\`❌ ERRORE: \${error.message}\`);
-              return { success: false, error: error.message };
+              process.exit(1);
             }
-          }
-          
-          // Esegui la generazione
-          (async () => {
-            const result = await generateSitemap();
-            console.log(JSON.stringify(result, null, 2));
-            if (!result.success) process.exit(1);
           })();
           "
       
