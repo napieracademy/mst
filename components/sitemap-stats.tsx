@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { it } from 'date-fns/locale'
 
+// Definizione delle variabili d'ambiente da lato client
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
 export type SitemapStats = {
   id: number
   last_generation: string
@@ -35,21 +39,62 @@ export default function SitemapStats() {
     setError(null)
 
     try {
-      const supabase = await createApiSupabaseClient()
-      const { data, error } = await supabase
-        .from('sitemap_stats')
-        .select('*')
-        .eq('id', 1)
-        .single()
+      // Implementazione con retry automatico
+      const maxRetries = 2
+      let attempt = 0
+      let success = false
+      let lastError: Error | null = null
+      
+      while (attempt <= maxRetries && !success) {
+        try {
+          attempt++
+          
+          if (attempt > 1) {
+            console.log(`Tentativo ${attempt}/${maxRetries + 1} di recupero statistiche...`)
+          }
+          
+          const supabase = await createApiSupabaseClient()
+          const { data, error } = await supabase
+            .from('sitemap_stats')
+            .select('*')
+            .eq('id', 1)
+            .single()
 
-      if (error) {
-        throw new Error(`Errore nel recupero delle statistiche: ${error.message}`)
+          if (error) {
+            // Errore specifico di Supabase
+            throw new Error(`Errore query (${error.code}): ${error.message}`)
+          }
+
+          if (!data) {
+            throw new Error('Nessun dato ricevuto dal database')
+          }
+
+          // Se arriviamo qui, il recupero è riuscito
+          setStats(data as SitemapStats)
+          success = true
+          
+        } catch (e) {
+          lastError = e instanceof Error ? e : new Error(String(e))
+          
+          if (attempt <= maxRetries) {
+            // Attendi prima del retry con backoff esponenziale
+            const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 3000)
+            console.log(`In attesa di ${waitTime}ms prima del nuovo tentativo...`)
+            await new Promise(resolve => setTimeout(resolve, waitTime))
+          }
+        }
       }
-
-      setStats(data as SitemapStats)
+      
+      // Se tutti i tentativi sono falliti, lancia l'ultimo errore
+      if (!success && lastError) {
+        throw lastError
+      }
     } catch (err) {
-      setError(`Errore: ${err instanceof Error ? err.message : String(err)}`)
-      console.error('Errore nel recupero delle statistiche sitemap:', err)
+      // Formatta l'errore in modo più chiaro
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      const formattedError = `Impossibile recuperare le statistiche della sitemap: ${errorMessage}`
+      setError(formattedError)
+      console.error(formattedError, err)
     } finally {
       setLoading(false)
     }
@@ -57,40 +102,74 @@ export default function SitemapStats() {
 
   async function triggerSitemapGeneration() {
     setGenerating(true)
+    setError(null)
     
     try {
       // URL della funzione edge di Supabase
-      const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-sitemap`
+      const apiUrl = SUPABASE_URL
+        ? `${SUPABASE_URL}/functions/v1/generate-sitemap`
         : null
         
       if (!apiUrl) {
         throw new Error('URL Supabase non configurato')
       }
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
-        }
-      })
+      // Implementa retry automatico
+      const maxRetries = 2
+      let attempt = 0
+      let success = false
+      let lastError: Error | null = null
       
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Errore nella generazione sitemap: ${errorText}`)
+      while (attempt <= maxRetries && !success) {
+        try {
+          attempt++
+          
+          if (attempt > 1) {
+            console.log(`Tentativo ${attempt}/${maxRetries + 1} di generazione sitemap...`)
+          }
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          })
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Errore HTTP ${response.status}: ${errorText}`)
+          }
+          
+          const result = await response.json()
+          
+          if (result.success) {
+            success = true
+            console.log('Generazione sitemap completata con successo')
+            await fetchStats() // Ricarica le statistiche
+          } else {
+            throw new Error(result.error || 'Risposta di errore dal server')
+          }
+        } catch (e) {
+          lastError = e instanceof Error ? e : new Error(String(e))
+          
+          if (attempt <= maxRetries) {
+            // Attendi prima del retry (backoff esponenziale)
+            const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+            console.log(`In attesa di ${waitTime}ms prima del nuovo tentativo...`)
+            await new Promise(resolve => setTimeout(resolve, waitTime))
+          }
+        }
       }
       
-      const result = await response.json()
-      
-      if (result.success) {
-        await fetchStats() // Ricarica le statistiche
-      } else {
-        throw new Error(result.error || 'Errore sconosciuto')
+      if (!success && lastError) {
+        throw lastError
       }
     } catch (err) {
-      setError(`Errore: ${err instanceof Error ? err.message : String(err)}`)
-      console.error('Errore nella generazione sitemap:', err)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      const formattedError = `Errore nella generazione sitemap: ${errorMessage}`
+      setError(formattedError)
+      console.error(formattedError, err)
     } finally {
       setGenerating(false)
     }

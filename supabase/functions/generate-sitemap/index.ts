@@ -22,16 +22,16 @@ serve(async (req) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://mastroianni.app'
     console.log(`URL base: ${siteUrl}`)
     
-    // 2. Crea il client Supabase
+    // 2. Recupera le informazioni di ambiente
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Mancano le variabili ambiente SUPABASE_URL o SUPABASE_ANON_KEY')
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Mancano le variabili ambiente SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY')
     }
     
-    console.log('Creazione client Supabase...')
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Crea client Supabase con service role key (per avere più permessi di storage)
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
     
     // 3. Recupera il conteggio totale dei record
     const { count: totalCount, error: countError } = await supabase
@@ -198,7 +198,7 @@ serve(async (req) => {
     const backupKey = `sitemap-backup-${timestamp}.xml`
     
     // Bucket di storage
-    const bucketName = 'public'
+    const bucketName = 'site-assets'
     
     // Carica la sitemap nel bucket di storage
     try {
