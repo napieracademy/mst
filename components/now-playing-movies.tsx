@@ -13,15 +13,25 @@ interface NowPlayingMoviesProps {
   movies: Movie[]
 }
 
-export function NowPlayingMovies({ movies }: NowPlayingMoviesProps) {
+export function NowPlayingMovies({ movies = [], title = "Film ora al cinema" }: NowPlayingMoviesProps & { title?: string }) {
   const [isLoaded, setIsLoaded] = useState(false);
   
   // Log per debugging
   console.log(`NowPlayingMovies component received ${movies?.length || 0} items`);
   
+  // Se non ci sono film, mostra un messaggio invece di nascondere il componente
   if (!movies || movies.length === 0) {
-    console.log("NowPlayingMovies: nessun film trovato, componente non renderizzato");
-    return null;
+    console.log("NowPlayingMovies: nessun film trovato, mostrando messaggio alternativo");
+    return (
+      <section className="mt-24 pt-8 border-t border-gray-800">
+        <Container>
+          <div className="mb-6">
+            <Text variant="h2">{title}</Text>
+          </div>
+          <p className="text-gray-400">Non sono disponibili informazioni sui film attualmente al cinema.</p>
+        </Container>
+      </section>
+    );
   }
 
   // Limitiamo la quantità di film mostrati (max 10)
@@ -32,7 +42,7 @@ export function NowPlayingMovies({ movies }: NowPlayingMoviesProps) {
       <Container>
         <div className="mb-6">
           <Text variant="h2">
-            Film ora al cinema
+            {title}
           </Text>
         </div>
         

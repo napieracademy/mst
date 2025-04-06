@@ -1,4 +1,4 @@
-import { getMovieDetails, getTrailers, getSimilarMovies } from "@/lib/tmdb"
+import { getMovieDetails, getTrailers, getNowPlayingMovies } from "@/lib/tmdb"
 import { notFound, redirect } from "next/navigation"
 import { MoviePageClient } from "./page-client"
 import { isValidFilm, generateSlug } from "@/lib/utils"

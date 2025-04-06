@@ -174,12 +174,25 @@ export default async function FilmPage({ params }: { params: { slug: string } })
     const trailers = await getTrailers(id, "movie").catch(() => []) || [];
     
     // Ottieni i film ora al cinema
-    const nowPlayingMovies = await getNowPlayingMovies().catch(error => {
+    let nowPlayingMovies = await getNowPlayingMovies().catch(error => {
       console.error("Errore nel recupero dei film al cinema:", error);
       return [];
     }) || [];
     
     console.log(`Recuperati ${nowPlayingMovies.length} film ora al cinema`);
+    
+    // Se non abbiamo film al cinema, utilizziamo i film popolari come fallback
+    let sectionTitle = "Film ora al cinema";
+    if (!nowPlayingMovies || nowPlayingMovies.length === 0) {
+      console.log("Nessun film al cinema trovato, utilizzo film popolari come fallback");
+      nowPlayingMovies = await getPopularMovies().catch(error => {
+        console.error("Errore nel recupero dei film popolari:", error);
+        return [];
+      }) || [];
+      if (nowPlayingMovies && nowPlayingMovies.length > 0) {
+        sectionTitle = "Film popolari"; // Cambia il titolo per riflettere il contenuto
+      }
+    }
     
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {
@@ -228,6 +241,7 @@ export default async function FilmPage({ params }: { params: { slug: string } })
           releaseYear={releaseYear}
           trailers={trailers}
           nowPlayingMovies={nowPlayingMovies}
+          nowPlayingTitle={sectionTitle}
           id={id}
           director={director}
           writers={writers}

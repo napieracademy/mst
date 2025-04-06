@@ -24,6 +24,7 @@ interface MoviePageClientProps {
   releaseYear: string | null
   trailers: any[]
   nowPlayingMovies: any[]
+  nowPlayingTitle?: string
   id: string
   director: any
   writers: any[]
@@ -38,11 +39,17 @@ export function MoviePageClient({
   releaseYear,
   trailers,
   nowPlayingMovies,
+  nowPlayingTitle = "Film ora al cinema",
   id,
   director,
   writers,
   producers
 }: MoviePageClientProps) {
+  console.log("MoviePageClient inizializzato con", {
+    hasMovie: !!movie,
+    hasNowPlayingMovies: !!nowPlayingMovies,
+    nowPlayingCount: nowPlayingMovies?.length || 0
+  });
   const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false);
   
   // Prepariamo i known_for_credits se esistono
@@ -234,8 +241,9 @@ export function MoviePageClient({
         {/* Now Playing Movies */}
         <FadeInSection delay={500} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
-            <h2 className="text-sm text-gray-400 mb-8">FILM ATTUALMENTE AL CINEMA</h2>
-            <NowPlayingMovies movies={nowPlayingMovies} />
+            <h2 className="text-sm text-gray-400 mb-8">{nowPlayingTitle.toUpperCase()}</h2>
+            {console.log(`MoviePageClient: Passando ${nowPlayingMovies?.length || 0} film al cinema al componente`)}
+            <NowPlayingMovies movies={nowPlayingMovies || []} title={nowPlayingTitle} />
           </div>
         </FadeInSection>
       </Container>

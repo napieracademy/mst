@@ -162,8 +162,15 @@ export async function getUpcomingMovies(): Promise<Movie[]> {
 
 // Ottieni i film attualmente al cinema
 export async function getNowPlayingMovies(): Promise<Movie[]> {
-  const data = await fetchFromTMDB("/movie/now_playing")
-  return data?.results || []
+  try {
+    console.log("Chiamata a getNowPlayingMovies avviata");
+    const data = await fetchFromTMDB("/movie/now_playing");
+    console.log(`getNowPlayingMovies: ricevuti ${data?.results?.length || 0} film`);
+    return data?.results || [];
+  } catch (error) {
+    console.error("Errore in getNowPlayingMovies:", error);
+    return [];
+  }
 }
 
 // Ottieni le serie TV popolari
