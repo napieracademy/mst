@@ -1,0 +1,22 @@
+{
+  "deno.enable": false,
+  "deno.lint": false,
+  "deno.config": "./supabase/functions/deno.json",
+  "deno.enablePaths": ["./supabase/functions"],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.validate.enable": true,
+  "typescript.workspaceSymbols.excludeLibrarySymbols": true,
+  "typescript.validate.enableSemanticCheck": false,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true
+  },
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": ["**/supabase/functions"]
+  }
+} 

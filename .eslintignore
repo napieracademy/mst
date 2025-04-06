@@ -1,0 +1,2 @@
+# Ignora le funzioni Supabase/Deno
+supabase/functions/**/* 

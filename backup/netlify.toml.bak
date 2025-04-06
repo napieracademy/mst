@@ -1,21 +1,22 @@
 [build]
-  command = "./netlify-build.sh"
+  command = "npm ci --legacy-peer-deps && NEXT_PUBLIC_RUNTIME_ENV=production NODE_ENV=production CI=false npm run clean-cache && npm run build:optimized"
   publish = ".next"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./app ./components ./lib"
+  # Temporaneamente disabilitato per forzare un nuovo build con le modifiche recenti
+  # ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./app ./components ./lib"
 
 [build.environment]
-  NODE_VERSION = "18"
-  NPM_VERSION = "9"
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
   NPM_FLAGS = "--legacy-peer-deps"
-  NODE_OPTIONS = "--max-old-space-size=3584"
-  # Le chiavi API sono gestite nel pannello di controllo Netlify Environment Variables
+  NEXT_PUBLIC_TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
+  TMDB_API_KEY = "c1fccb37538d185ce09b51ea97fe1da3"
   NEXT_PUBLIC_SITE_URL = "https://mastroianni.app"
-  # Riattiviamo temporaneamente il flag per disabilitare il plugin Next.js
-  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NEXT_PUBLIC_RUNTIME_ENV = "production"
+  NODE_OPTIONS = "--max-old-space-size=4096"
 
 [functions]
   node_bundler = "esbuild"
-  included_files = [".next/standalone/**/*", ".next/server/**/*"]
+  included_files = [".next/server/**/*", ".next/standalone/**/*"]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -59,12 +60,9 @@
     w = ":width"
     q = ":quality"
 
-# Redirect per la sitemap generata da Supabase
-[[redirects]]
-  from = "/sitemap.xml"
-  to = "https://gbynhfiqlacmlwpjcxmp.supabase.co/storage/v1/object/public/site-assets/sitemap.xml"
-  status = 200
-  force = true
+# Scheduled Function per la generazione automatica della sitemap
+[functions.generate-sitemap]
+  schedule = "@hourly"
 
 # CORS e headers per sitemap.xml
 [[headers]]

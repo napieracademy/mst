@@ -1,0 +1,5 @@
+{
+  "name": "configure-storage-policies",
+  "version": "1.0.0",
+  "description": "Configura le policy RLS per il bucket site-assets"
+} 

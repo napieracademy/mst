@@ -1,0 +1,5 @@
+{
+  "name": "execute-sql-for-storage",
+  "version": "1.0.0",
+  "description": "Esegue SQL diretto per configurare il bucket site-assets e le sue policy RLS"
+} 
