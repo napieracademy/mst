@@ -1,3 +1,5 @@
+import { environment } from './environment';
+
 // Configurazione dell'applicazione
 export const config = {
   // Impostare a false per disabilitare tutte le chiamate API a TMDB
@@ -9,8 +11,11 @@ export const config = {
   // Configurazione del servizio centralizzato delle chiavi API
   apiKeys: {
     // Determina automaticamente se usare il servizio centralizzato
-    // Il servizio è disabilitato durante la fase di build, ma abilitato in produzione
-    useApiKeysService: process.env.NEXT_PHASE !== 'build' && process.env.NODE_ENV !== 'development',
+    // Il servizio è disabilitato durante la fase di build, in sviluppo e su Replit
+    // Override esplicito: SKIP_API_KEY_SERVICE=true
+    useApiKeysService: process.env.SKIP_API_KEY_SERVICE === 'true' 
+      ? false 
+      : environment.features.useApiKeysService,
     
     // Tempo di cache in secondi (0 = nessuna cache)
     cacheTime: 3600, // 1 ora
@@ -32,6 +37,9 @@ export const config = {
     
     // Temperatura di default
     defaultTemperature: 0.7
-  }
+  },
+
+  // Riferimento all'ambiente corrente
+  env: environment
 }
 

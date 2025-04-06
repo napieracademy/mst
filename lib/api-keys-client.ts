@@ -47,13 +47,14 @@ export async function getApiKey(
   keyType: ApiKeyType, 
   forceRefresh = false
 ): Promise<string | null> {
-  // Verifica se siamo in fase di build (disabilita sempre il servizio in fase di build)
-  const isBuildPhase = process.env.NEXT_PHASE === 'build';
-  
-  // Se siamo in fase di build o il servizio è disabilitato, usa direttamente le variabili d'ambiente
-  if (isBuildPhase || !config.apiKeys.useApiKeysService) {
-    if (isBuildPhase) {
+  // Verifica se il servizio centralizzato è disabilitato
+  // Le ragioni possono essere: fase di build, ambiente di sviluppo, Replit, o configurazione esplicita
+  if (!config.apiKeys.useApiKeysService) {
+    // Log diversi in base all'ambiente
+    if (config.env.isBuildPhase) {
       console.log(`[BUILD] Usando variabili d'ambiente per chiave ${keyType} (fase di build)`);
+    } else if (config.env.isReplit) {
+      console.log(`[REPLIT] Usando variabili d'ambiente per chiave ${keyType} (ambiente Replit)`);
     }
     return getKeyFromEnvironment(keyType);
   }
