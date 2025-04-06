@@ -160,6 +160,12 @@ export async function getUpcomingMovies(): Promise<Movie[]> {
   return data?.results || []
 }
 
+// Ottieni i film attualmente al cinema
+export async function getNowPlayingMovies(): Promise<Movie[]> {
+  const data = await fetchFromTMDB("/movie/now_playing")
+  return data?.results || []
+}
+
 // Ottieni le serie TV popolari
 export async function getPopularTVShows(): Promise<Movie[]> {
   const data = await fetchFromTMDB("/tv/popular")
