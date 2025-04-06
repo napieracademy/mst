@@ -50,7 +50,7 @@ jobs:
               console.log(\`🌐 URL base: \${baseUrl}\`);
               
               // Verifica variabili
-              if (\!supabaseUrl || \!supabaseKey) {
+              if (!supabaseUrl || !supabaseKey) {
                 throw new Error('Mancano le variabili Supabase URL o KEY');
               }
               
@@ -86,11 +86,11 @@ jobs:
               // Filtra slug vuoti
               const filmSlugs = (filmPages || [])
                 .map(page => page.slug)
-                .filter(slug => slug && slug.trim() \!== '');
+                .filter(slug => slug && slug.trim() !== '');
                 
               const serieSlugs = (seriePages || [])
                 .map(page => page.slug)
-                .filter(slug => slug && slug.trim() \!== '');
+                .filter(slug => slug && slug.trim() !== '');
               
               console.log(\`🎬 Film: \${filmSlugs.length}, 📺 Serie: \${serieSlugs.length}\`);
               
@@ -101,9 +101,9 @@ jobs:
               console.log(\`📊 Totale URL sitemap: \${totalUrls}\`);
               
               // Genera sitemap
-              const xml = \`<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>
-          <\!-- Generata il: \${new Date().toISOString()} con \${totalUrls} URL -->
-          <urlset xmlns=\\"http://www.sitemaps.org/schemas/sitemap/0.9\\" count=\\"\${totalUrls}\\">
+              const xml = \`<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+          <!-- Generata il: \${new Date().toISOString()} con \${totalUrls} URL -->
+          <urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" count=\"\${totalUrls}\">
             \${staticRoutes.map(route => \`
               <url>
                 <loc>\${baseUrl}\${route}</loc>
@@ -174,7 +174,7 @@ jobs:
           // Esegui la generazione
           generateSitemap().then(result => {
             console.log(JSON.stringify(result, null, 2));
-            if (\!result.success) process.exit(1);
+            if (!result.success) process.exit(1);
           });
           "
       
