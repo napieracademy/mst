@@ -23,7 +23,17 @@ export function MovieImage({
 }: MovieImageProps) {
   const baseImageUrl = "https://image.tmdb.org/t/p";
   const imageSize = fill ? "w500" : "w342";
-  const imageUrl = src ? `${baseImageUrl}/${imageSize}${src}` : "/images/placeholder-poster.jpg";
+  
+  // Debug
+  console.log(`MovieImage component received src: "${src}"`);
+  
+  // Se src è valido (cioè è una stringa non vuota) e inizia con /, costruisci l'URL TMDB
+  // Altrimenti, usa l'immagine placeholder
+  const imageUrl = (src && typeof src === 'string' && src.startsWith('/')) 
+    ? `${baseImageUrl}/${imageSize}${src}` 
+    : "/images/placeholder-poster.jpg";
+    
+  console.log(`MovieImage: using URL: ${imageUrl}`);
 
   return (
     <Image

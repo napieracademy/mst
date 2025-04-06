@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { extractIdFromSlug, isValidFilm, slugify } from '@/lib/utils';
-import { getMovieDetails, getTrailers, getSimilarMovies, getPopularMovies, getNowPlayingMovies } from "@/lib/tmdb";
+import { getMovieDetails, getTrailers, getPopularMovies, getUpcomingMovies } from "@/lib/tmdb";
 import { MoviePageClient } from '@/app/movie/[id]/page-client';
 import fs from 'fs';
 import path from 'path';
@@ -173,26 +173,16 @@ export default async function FilmPage({ params }: { params: { slug: string } })
     // Ottieni dati correlati
     const trailers = await getTrailers(id, "movie").catch(() => []) || [];
     
-    // Ottieni i film ora al cinema
-    let nowPlayingMovies = await getNowPlayingMovies().catch(error => {
-      console.error("Errore nel recupero dei film al cinema:", error);
+    // Ottieni i film in uscita (esattamente come nella home)
+    let upcomingMovies = await getUpcomingMovies().catch(error => {
+      console.error("Errore nel recupero dei film in uscita:", error);
       return [];
     }) || [];
     
-    console.log(`Recuperati ${nowPlayingMovies.length} film ora al cinema`);
+    console.log(`Recuperati ${upcomingMovies.length} film in uscita`);
     
-    // Se non abbiamo film al cinema, utilizziamo i film popolari come fallback
-    let sectionTitle = "Film ora al cinema";
-    if (!nowPlayingMovies || nowPlayingMovies.length === 0) {
-      console.log("Nessun film al cinema trovato, utilizzo film popolari come fallback");
-      nowPlayingMovies = await getPopularMovies().catch(error => {
-        console.error("Errore nel recupero dei film popolari:", error);
-        return [];
-      }) || [];
-      if (nowPlayingMovies && nowPlayingMovies.length > 0) {
-        sectionTitle = "Film popolari"; // Cambia il titolo per riflettere il contenuto
-      }
-    }
+    // Utilizziamo lo stesso titolo della home
+    const sectionTitle = "Ora al Cinema";
     
     // Prepara dati per il rendering
     const checkImagePath = (path: string | null | undefined): boolean => {
@@ -240,7 +230,7 @@ export default async function FilmPage({ params }: { params: { slug: string } })
           releaseDate={releaseDate}
           releaseYear={releaseYear}
           trailers={trailers}
-          nowPlayingMovies={nowPlayingMovies}
+          nowPlayingMovies={upcomingMovies.slice(0, 20)}
           nowPlayingTitle={sectionTitle}
           id={id}
           director={director}

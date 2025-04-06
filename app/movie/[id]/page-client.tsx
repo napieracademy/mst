@@ -5,7 +5,7 @@ import { EditableBio } from "@/components/editable-bio"
 import Link from "next/link"
 import { CastCarousel } from "@/components/cast-carousel"
 import { MovieGallery } from "@/components/movie-gallery"
-import { NowPlayingMovies } from "@/components/now-playing-movies"
+import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
 import { MovieHero } from "@/components/movie-hero"
 import { Footer } from "@/components/footer"
 import { Movie } from "@/lib/types"
@@ -238,12 +238,15 @@ export function MoviePageClient({
           </div>
         </FadeInSection>
 
-        {/* Now Playing Movies */}
+        {/* Ora al Cinema - Identico alla home */}
         <FadeInSection delay={500} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
-            <h2 className="text-sm text-gray-400 mb-8">{nowPlayingTitle.toUpperCase()}</h2>
-            {console.log(`MoviePageClient: Passando ${nowPlayingMovies?.length || 0} film al cinema al componente`)}
-            <NowPlayingMovies movies={nowPlayingMovies || []} title={nowPlayingTitle} />
+            {/* Rimuoviamo l'h2 per replicare esattamente la struttura della home */}
+            <MovieSectionInterattivo 
+              title={nowPlayingTitle} 
+              movies={nowPlayingMovies || []} 
+              showDirector={false} 
+            />
           </div>
         </FadeInSection>
       </Container>

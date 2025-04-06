@@ -68,6 +68,7 @@
 
 # CORS e headers per sitemap.xml
 [[headers]]
+
   for = "/sitemap.xml"
   [headers.values]
     Content-Type = "application/xml"
