@@ -46,21 +46,45 @@ jobs:
           const fs = require('fs');
 
           (async () => {
-            const supabaseUrl = process.env.SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_KEY;
-            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
-            const SITEMAP_PATH = process.env.SITEMAP_PATH || './public/sitemap.xml';
-
-            console.log(\`🌐 URL base: \${baseUrl}\`);
-
-            if (!supabaseUrl || !supabaseKey) {
-              console.error('❌ Mancano le variabili Supabase URL o KEY');
-              process.exit(1);
-            }
-
-            const supabase = createClient(supabaseUrl, supabaseKey);
-
             try {
+              // Ottieni e verifica le variabili d'ambiente
+              const supabaseUrl = process.env.SUPABASE_URL;
+              const supabaseKey = process.env.SUPABASE_KEY;
+              const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
+              const SITEMAP_PATH = process.env.SITEMAP_PATH || './public/sitemap.xml';
+
+              console.log(\`🌐 URL base: \${baseUrl}\`);
+              console.log(\`📄 Percorso sitemap: \${SITEMAP_PATH}\`);
+              
+              // Log dei valori parziali oscurati per debug
+              if (supabaseUrl) {
+                console.log(\`🔑 SUPABASE_URL trovato (inizia con: \${supabaseUrl.substring(0, 10)}...)\`);
+              } else {
+                console.error('❌ SUPABASE_URL non trovato!');
+              }
+              
+              if (supabaseKey) {
+                console.log(\`🔑 SUPABASE_KEY trovato (lunghezza: \${supabaseKey.length})\`);
+              } else {
+                console.error('❌ SUPABASE_KEY non trovato!');
+              }
+
+              if (!supabaseUrl || !supabaseKey) {
+                console.error('❌ Mancano le variabili Supabase URL o KEY');
+                process.exit(1);
+              }
+
+              // Inizializza client con opzioni esplicite
+              console.log('🔄 Inizializzazione client Supabase...');
+              const supabase = createClient(supabaseUrl, supabaseKey, {
+                auth: {
+                  persistSession: false,
+                  autoRefreshToken: false
+                }
+              });
+              console.log('✅ Client Supabase inizializzato con successo');
+
+              console.log('🔄 Recupero conteggio totale...');
               // Recupera conteggio totale
               const { count: totalCount, error: countError } = await supabase
                 .from('generated_pages')
@@ -73,20 +97,22 @@ jobs:
               console.log(\`🔢 Totale record nel DB: \${totalCount || 0}\`);
 
               // Recupera tutti i record
+              console.log('🔄 Recupero film...');
               const { data: filmPages, error: filmError } = await supabase
                 .from('generated_pages')
                 .select('slug')
                 .eq('page_type', 'film');
 
+              if (filmError) {
+                throw new Error(\`Errore query film: \${filmError.message}\`);
+              }
+              
+              console.log('🔄 Recupero serie...');
               const { data: seriePages, error: serieError } = await supabase
                 .from('generated_pages')
                 .select('slug')
                 .eq('page_type', 'serie');
 
-              if (filmError) {
-                throw new Error(\`Errore query film: \${filmError.message}\`);
-              }
-              
               if (serieError) {
                 throw new Error(\`Errore query serie: \${serieError.message}\`);
               }
