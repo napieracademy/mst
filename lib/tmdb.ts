@@ -7,8 +7,9 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3"
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p"
 
 // Fallback in caso il servizio centralizzato non sia disponibile
-// NOTA: Priorità alle diverse variabili d'ambiente possibili
-const TMDB_API_KEY_FALLBACK = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY || ''
+// NOTA: Chiave API hardcoded temporanea per assicurare il funzionamento del sito
+// TODO: Questa chiave dovrebbe essere rimossa e sostituita con un sistema di chiavi sicuro
+const TMDB_API_KEY_FALLBACK = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY || "c1fc5e25cb3b95d6c49a2c3da36c7da3"
 
 // Funzione per verificare se un percorso immagine è valido
 export function isValidImagePath(path: string | null | undefined): boolean {
