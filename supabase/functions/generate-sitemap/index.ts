@@ -64,7 +64,7 @@ serve(async (req) => {
       try {
         const { data, error } = await supabase
           .from('generated_pages')
-          .select('*')
+          .select('slug, page_type')
           .range(from, to)
         
         if (error) {
@@ -89,8 +89,12 @@ serve(async (req) => {
     // 5. Dividi i record per tipo
     const filmRecords = allRecords.filter(record => record.page_type === 'film')
     const serieRecords = allRecords.filter(record => record.page_type === 'serie')
+    const personRecords = allRecords.filter(record => 
+      record.page_type !== 'film' && 
+      record.page_type !== 'serie'
+    )
     
-    console.log(`Record film: ${filmRecords.length}, serie: ${serieRecords.length}`)
+    console.log(`Record film: ${filmRecords.length}, serie: ${serieRecords.length}, persone: ${personRecords.length}`)
     
     // 6. Estrai gli slug dai record (filtrando quelli non validi)
     const filmSlugs = filmRecords
@@ -101,14 +105,53 @@ serve(async (req) => {
       .map(record => record.slug)
       .filter(slug => slug && slug.trim() !== '')
     
-    console.log(`Slug validi - ${filmSlugs.length} film e ${serieSlugs.length} serie`)
+    // 7. Raggruppa le persone per tipo
+    const personSlugs = {}
+    personRecords.forEach(record => {
+      if (record.slug && record.slug.trim() !== '') {
+        const tipo = record.page_type || 'person'
+        if (!personSlugs[tipo]) personSlugs[tipo] = []
+        personSlugs[tipo].push(record.slug)
+      }
+    })
     
-    // 7. Definisci le rotte statiche
+    // Calcola il numero totale di persone
+    const totalPersons = Object.values(personSlugs).reduce(
+      (total, slugs) => total + slugs.length, 0
+    )
+    
+    console.log(`Slug validi - ${filmSlugs.length} film, ${serieSlugs.length} serie, ${totalPersons} persone`)
+    
+    // Log dettagliato persone per tipo
+    Object.entries(personSlugs).forEach(([tipo, slugs]) => {
+      console.log(`    - ${tipo}: ${slugs.length} pagine`)
+    })
+    
+    // Funzione per determinare il percorso corretto per ogni tipo di persona
+    const getPersonPath = (tipo, slug) => {
+      switch (tipo.toLowerCase()) {
+        case 'actor':
+        case 'attore':
+          return `/attore/${slug}`
+        case 'director':
+        case 'regista':
+          return `/regista/${slug}`
+        case 'cast':
+          return `/cast/${slug}`
+        case 'crew':
+          return `/crew/${slug}`
+        case 'person':
+        default:
+          return `/person/${slug}`
+      }
+    }
+    
+    // 8. Definisci le rotte statiche
     const staticRoutes = ['', '/search', '/login', '/about']
     console.log(`Rotte statiche: ${staticRoutes.length}`)
     
-    // 8. Genera il contenuto XML
-    const urlCount = staticRoutes.length + filmSlugs.length + serieSlugs.length
+    // 9. Genera il contenuto XML
+    const urlCount = staticRoutes.length + filmSlugs.length + serieSlugs.length + totalPersons
     console.log(`Conteggio totale URL nella sitemap: ${urlCount}`)
     
     const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -137,9 +180,18 @@ serve(async (req) => {
           <priority>0.7</priority>
         </url>
       `).join('')}
+      
+      ${Object.entries(personSlugs).flatMap(([tipo, slugs]) => 
+        slugs.map(slug => `
+        <url>
+          <loc>${siteUrl}${getPersonPath(tipo, slug)}</loc>
+          <changefreq>monthly</changefreq>
+          <priority>0.6</priority>
+        </url>
+      `)).join('')}
     </urlset>`
     
-    // 9. Salva la sitemap nel bucket di storage
+    // 10. Salva la sitemap nel bucket di storage
     // Ottieni il timestamp corrente per il nome file
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const sitemapKey = 'sitemap.xml'
@@ -204,6 +256,7 @@ serve(async (req) => {
             urls_count: urlCount,
             film_count: filmSlugs.length,
             serie_count: serieSlugs.length,
+            person_count: totalPersons,
             is_error: false,
             error_message: null
           }])
@@ -221,6 +274,9 @@ serve(async (req) => {
           timestamp: new Date().toISOString(),
           recordCount: allRecords.length,
           urlCount,
+          filmCount: filmSlugs.length,
+          serieCount: serieSlugs.length,
+          personCount: totalPersons,
           publicUrl: publicUrl.publicUrl,
           message: 'Sitemap generata con successo'
         }),
@@ -234,6 +290,25 @@ serve(async (req) => {
       )
     } catch (storageError) {
       console.error('Errore di storage:', storageError)
+      
+      // Tenta di registrare l'errore nelle statistiche
+      try {
+        await supabase
+          .from('sitemap_stats')
+          .upsert([{
+            id: 1,
+            last_generation: new Date().toISOString(),
+            urls_count: 0,
+            film_count: 0,
+            serie_count: 0,
+            person_count: 0,
+            is_error: true,
+            error_message: `Errore storage: ${storageError.message}`
+          }])
+      } catch (e) {
+        console.error('Impossibile aggiornare le statistiche con l\'errore:', e)
+      }
+      
       return new Response(
         JSON.stringify({
           success: false,
@@ -250,14 +325,16 @@ serve(async (req) => {
       )
     }
   } catch (error) {
-    console.error('Errore nella funzione generate-sitemap:', error)
+    console.error('Errore generale:', error)
     
-    // Aggiorna il record statistiche con errore
+    // Tenta di registrare l'errore nelle statistiche
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
       const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+      
       if (supabaseUrl && supabaseKey) {
         const supabase = createClient(supabaseUrl, supabaseKey)
+        
         await supabase
           .from('sitemap_stats')
           .upsert([{
@@ -266,19 +343,19 @@ serve(async (req) => {
             urls_count: 0,
             film_count: 0,
             serie_count: 0,
+            person_count: 0,
             is_error: true,
-            error_message: error.message
+            error_message: `Errore generale: ${error.message}`
           }])
       }
-    } catch (statError) {
-      console.warn('Errore nel salvataggio statistiche errore:', statError)
+    } catch (e) {
+      console.error('Impossibile aggiornare le statistiche con l\'errore:', e)
     }
     
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
-        stack: error.stack
+        error: `Errore generale: ${error.message}`
       }),
       {
         status: 500,
