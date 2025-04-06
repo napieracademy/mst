@@ -4,6 +4,10 @@ import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
+// Disabilita SSG/SSR per questa pagina che richiede variabili d'ambiente a runtime
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default function ErrorDebugPage() {
   const [errorInfo, setErrorInfo] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)

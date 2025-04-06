@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createApiSupabaseClient } from '@/lib/supabase-server';
 
+// Disabilitiamo la generazione statica di questa route
+export const dynamic = 'force-dynamic';
+
 /**
  * API per recuperare le statistiche della sitemap
  * Questo endpoint restituisce:
@@ -10,6 +13,16 @@ import { createApiSupabaseClient } from '@/lib/supabase-server';
 export async function GET(request: NextRequest) {
   try {
     const supabase = createApiSupabaseClient();
+    
+    // Controlla se Supabase è configurato
+    if (!supabase) {
+      return NextResponse.json({
+        success: false,
+        error: 'Configurazione Supabase mancante',
+        totalCount: 0,
+        sitemapCount: 0
+      }, { status: 200 });
+    }
     
     // 1. Recupera conteggio totale dei record
     const { count: totalCount, error: countError } = await supabase
