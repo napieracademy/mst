@@ -273,7 +273,7 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
                       >
                         <button
                           onClick={() => setIsTrailerOpen(true)}
-                          className="flex items-center gap-3 text-white bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl"
+                          className="flex items-center gap-2 text-white bg-black/70 hover:bg-black/90 transition-all duration-200 px-4 py-2 rounded-full text-sm sm:text-base font-medium border border-white/20 hover:border-white/40"
                         >
                           <Play className="w-6 h-6" fill="white" />
                           <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
