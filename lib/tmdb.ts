@@ -8,9 +8,7 @@ const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p"
 
 // Fallback in caso il servizio centralizzato non sia disponibile
 // NOTA: Priorità alle diverse variabili d'ambiente possibili
-const TMDB_API_KEY_FALLBACK = process.env.NEXT_PUBLIC_TMDB_API_KEY || 
-                             process.env.TMDB_API_KEY ||
-                             "c1fc5e25cb3b95d6c49a2c3da36c7da3" // Chiave hardcoded temporanea
+const TMDB_API_KEY_FALLBACK = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY || ''
 
 // Funzione per verificare se un percorso immagine è valido
 export function isValidImagePath(path: string | null | undefined): boolean {

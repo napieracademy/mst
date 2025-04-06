@@ -47,9 +47,15 @@ export async function getApiKey(
   keyType: ApiKeyType, 
   forceRefresh = false
 ): Promise<string | null> {
-  // Se il servizio è disabilitato, usa direttamente le variabili d'ambiente
-  if (!config.apiKeys.useApiKeysService) {
-    return getKeyFromEnvironment(keyType)
+  // Verifica se siamo in fase di build (disabilita sempre il servizio in fase di build)
+  const isBuildPhase = process.env.NEXT_PHASE === 'build';
+  
+  // Se siamo in fase di build o il servizio è disabilitato, usa direttamente le variabili d'ambiente
+  if (isBuildPhase || !config.apiKeys.useApiKeysService) {
+    if (isBuildPhase) {
+      console.log(`[BUILD] Usando variabili d'ambiente per chiave ${keyType} (fase di build)`);
+    }
+    return getKeyFromEnvironment(keyType);
   }
   
   // Verifica se c'è una cache valida (non scaduta e non forzata a refreshare)
@@ -96,7 +102,7 @@ export async function getApiKey(
     
     if (sessionError || !session) {
       console.error('Sessione non disponibile:', sessionError?.message)
-      return null
+      return getKeyFromEnvironment(keyType) // Fallback a variabili d'ambiente se non c'è sessione
     }
     
     // Ottieni il token di accesso

@@ -113,7 +113,8 @@ serve(async (req) => {
         user_id: user.id,
         platform: requestData.platform,
         key_type: requestData.keyType,
-        ip_address: req.headers.get('x-forwarded-for') || 'unknown'
+        ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+        created_at: new Date().toISOString()
       })
     } catch (logError) {
       // Solo log, non blocchiamo l'operazione se fallisce
