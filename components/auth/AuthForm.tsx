@@ -4,10 +4,11 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 
 export default function AuthForm() {
-  const supabase = createClientComponentClient()
+  // Creiamo il client solo una volta usando useMemo
+  const supabase = useMemo(() => createClientComponentClient(), []);
   const [origin, setOrigin] = useState('')
 
   useEffect(() => {

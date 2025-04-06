@@ -56,4 +56,16 @@
   [redirects.query]
     url = ":url"
     w = ":width"
-    q = ":quality" 
+    q = ":quality"
+
+# Scheduled Function per la generazione automatica della sitemap
+[functions.generate-sitemap]
+  schedule = "@hourly"
+  
+# CORS e headers per sitemap.xml
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml"
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*" 
