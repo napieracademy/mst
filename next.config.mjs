@@ -1,8 +1,19 @@
 let userConfig = undefined
 try {
-  userConfig = await import('./v0-user-next.config')
+  // Prova a importare il file di configurazione utente
+  userConfig = await import('./v0-user-next.config.mjs').catch(() => 
+    // Fallback: prova con estensione .js
+    import('./v0-user-next.config.js').catch(() => {
+      console.log('Nessun file di configurazione utente trovato, uso configurazione default.');
+      return { default: {} };
+    })
+  );
+  
+  // Estrai il default export dal modulo
+  userConfig = userConfig.default || {};
 } catch (e) {
-  // ignore error
+  console.log('Errore nel caricamento della configurazione utente:', e.message);
+  userConfig = {};
 }
 
 /** @type {import('next').NextConfig} */
@@ -29,6 +40,8 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    ppr: false,  // Disabilita Progressive Rendering per evitare errori
+    staticWorkerRequestDeduping: true, // Deduplicazione per migliorare performance
   },
   outputFileTracingIncludes: {
     '/**': ['./public/**/*', './app/globals.css', './styles/**/*', './.next/static/css/**/*']
@@ -75,24 +88,27 @@ const nextConfig = {
   },
 }
 
-mergeConfig(nextConfig, userConfig)
+// Applica la configurazione utente alla configurazione base
+mergeConfig(nextConfig, userConfig);
 
+// Funzione per combinare le configurazioni
 function mergeConfig(nextConfig, userConfig) {
-  if (!userConfig) {
-    return
+  if (!userConfig || typeof userConfig !== 'object') {
+    return;
   }
 
   for (const key in userConfig) {
     if (
       typeof nextConfig[key] === 'object' &&
+      typeof userConfig[key] === 'object' &&
       !Array.isArray(nextConfig[key])
     ) {
       nextConfig[key] = {
         ...nextConfig[key],
         ...userConfig[key],
-      }
+      };
     } else {
-      nextConfig[key] = userConfig[key]
+      nextConfig[key] = userConfig[key];
     }
   }
 }
