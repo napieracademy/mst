@@ -170,24 +170,32 @@ export async function getApiKey(
  * Usato come fallback se il servizio centralizzato non è disponibile
  */
 function getKeyFromEnvironment(keyType: ApiKeyType): string | null {
+  // Controllo dell'ambiente: nel browser utilizziamo solo chiavi pubbliche,
+  // nel server possiamo accedere a tutte le chiavi
+  const isBrowser = typeof window !== 'undefined'
+  
   switch (keyType) {
     case 'tmdb':
-      return process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY || null
+      // Nel browser usiamo solo NEXT_PUBLIC_, nel server privilagiamo le chiavi private
+      return isBrowser ? process.env.NEXT_PUBLIC_TMDB_API_KEY || null : process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY || null
     case 'netlify':
-      return process.env.NETLIFY_AUTH_TOKEN || null
+      // API tokens dovrebbero essere solo server-side
+      return isBrowser ? null : process.env.NETLIFY_AUTH_TOKEN || null
     case 'supabase_service_role':
-      // Non dovrebbe mai essere disponibile in client
-      return process.env.SUPABASE_SERVICE_ROLE_KEY || null
+      // Chiave service role deve essere solo server-side
+      return isBrowser ? null : process.env.SUPABASE_SERVICE_ROLE_KEY || null
     case 'openai':
-      return process.env.OPENAI_API_KEY || null
+      // OpenAI API key deve essere solo server-side
+      return isBrowser ? null : process.env.OPENAI_API_KEY || null
     case 'google_ai':
-      return process.env.GOOGLE_AI_API_KEY || null
+      return isBrowser ? null : process.env.GOOGLE_AI_API_KEY || null
     case 'perplexity':
-      return process.env.PERPLEXITY_API_KEY || null
+      return isBrowser ? null : process.env.PERPLEXITY_API_KEY || null
     case 'tinymce':
-      return process.env.TINYMCE_API_KEY || null
+      // TinyMCE può avere una chiave pubblica
+      return process.env.NEXT_PUBLIC_TINYMCE_API_KEY || process.env.TINYMCE_API_KEY || null
     case 'other':
-      return process.env.OTHER_API_KEY || null
+      return isBrowser ? null : process.env.OTHER_API_KEY || null
     default:
       return null
   }
