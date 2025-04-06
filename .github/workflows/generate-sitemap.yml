@@ -1,51 +1,187 @@
-name: Generate Static Sitemap
+name: Genera Sitemap
 
 on:
-  # Esecuzione manuale dal dashboard di GitHub
-  workflow_dispatch:
-  
-  # Esecuzione automatica ogni notte
+  # Esegui ogni giorno alle 2:00 UTC (4:00 in Italia)
   schedule:
-    # Esegue ogni notte alle 2:00 UTC (4:00 CEST) - La sintassi è "minuti ore * * giorno(0-6, dove 0=domenica)"
     - cron: '0 2 * * *'
   
-  # Esegui anche dopo ogni push sul main (opzionale)
-  push:
-    branches:
-      - main
-    paths:
-      # Esegui solo se sono stati modificati file rilevanti per la sitemap
-      - 'app/sitemap.xml/**'
-      - 'scripts/generate-static-sitemap.js'
-      - '.github/workflows/generate-sitemap.yml'
+  # Consente di eseguirlo manualmente dalla UI di GitHub
+  workflow_dispatch:
 
 jobs:
-  generate-sitemap:
+  generate:
+    name: Genera e pubblica sitemap
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-
-      - name: Install dependencies
+      
+      - name: Installa dipendenze
         run: npm ci
-
-      - name: Generate static sitemap
-        run: npm run generate-static-sitemap
+      
+      - name: Genera sitemap
         env:
-          # Passa le variabili d'ambiente necessarie
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
-      - name: Commit sitemap file
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Aggiorna sitemap.xml statica"
-          file_pattern: "public/sitemap.xml" 
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+        run: |
+          echo "Inizia generazione sitemap..."
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const fs = require('fs');
+          
+          async function generateSitemap() {
+            console.log('🔄 Avvio generazione sitemap...');
+            
+            try {
+              // Parametri base
+              const SITEMAP_PATH = './public/sitemap.xml';
+              const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app';
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+              const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+              
+              console.log(\`🌐 URL base: \${baseUrl}\`);
+              
+              // Verifica variabili
+              if (\!supabaseUrl || \!supabaseKey) {
+                throw new Error('Mancano le variabili Supabase URL o KEY');
+              }
+              
+              // Crea client Supabase
+              const supabase = createClient(supabaseUrl, supabaseKey);
+              
+              // Recupera conteggio totale
+              const { count: totalCount, error: countError } = await supabase
+                .from('generated_pages')
+                .select('*', { count: 'exact', head: true });
+              
+              if (countError) {
+                throw new Error(\`Errore conteggio: \${countError.message}\`);
+              }
+              
+              console.log(\`🔢 Totale record nel DB: \${totalCount || 0}\`);
+              
+              // Recupera tutti i record
+              const { data: filmPages, error: filmError } = await supabase
+                .from('generated_pages')
+                .select('slug')
+                .eq('page_type', 'film');
+                
+              const { data: seriePages, error: serieError } = await supabase
+                .from('generated_pages')
+                .select('slug')
+                .eq('page_type', 'serie');
+              
+              if (filmError || serieError) {
+                throw new Error(\`Errore query: \${filmError?.message || serieError?.message}\`);
+              }
+              
+              // Filtra slug vuoti
+              const filmSlugs = (filmPages || [])
+                .map(page => page.slug)
+                .filter(slug => slug && slug.trim() \!== '');
+                
+              const serieSlugs = (seriePages || [])
+                .map(page => page.slug)
+                .filter(slug => slug && slug.trim() \!== '');
+              
+              console.log(\`🎬 Film: \${filmSlugs.length}, 📺 Serie: \${serieSlugs.length}\`);
+              
+              // Rotte statiche
+              const staticRoutes = ['', '/search', '/login', '/about'];
+              const totalUrls = staticRoutes.length + filmSlugs.length + serieSlugs.length;
+              
+              console.log(\`📊 Totale URL sitemap: \${totalUrls}\`);
+              
+              // Genera sitemap
+              const xml = \`<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>
+          <\!-- Generata il: \${new Date().toISOString()} con \${totalUrls} URL -->
+          <urlset xmlns=\\"http://www.sitemaps.org/schemas/sitemap/0.9\\" count=\\"\${totalUrls}\\">
+            \${staticRoutes.map(route => \`
+              <url>
+                <loc>\${baseUrl}\${route}</loc>
+                <changefreq>weekly</changefreq>
+                <priority>\${route === '' ? '1.0' : '0.8'}</priority>
+              </url>
+            \`).join('')}
+            
+            \${filmSlugs.map(slug => \`
+              <url>
+                <loc>\${baseUrl}/film/\${slug}</loc>
+                <changefreq>monthly</changefreq>
+                <priority>0.7</priority>
+              </url>
+            \`).join('')}
+            
+            \${serieSlugs.map(slug => \`
+              <url>
+                <loc>\${baseUrl}/serie/\${slug}</loc>
+                <changefreq>monthly</changefreq>
+                <priority>0.7</priority>
+              </url>
+            \`).join('')}
+          </urlset>\`;
+              
+              // Salva sitemap
+              fs.writeFileSync(SITEMAP_PATH, xml);
+              console.log(\`✅ Sitemap generata con successo in \${SITEMAP_PATH}\`);
+              
+              // Aggiorna statistiche se possibile
+              try {
+                const { error: statsError } = await supabase
+                  .from('sitemap_stats')
+                  .upsert([{
+                    id: 1,
+                    last_generation: new Date().toISOString(),
+                    urls_count: totalUrls,
+                    film_count: filmSlugs.length,
+                    serie_count: serieSlugs.length,
+                    is_error: false,
+                    error_message: null
+                  }]);
+                  
+                if (statsError) {
+                  console.log(\`⚠️ Errore aggiornamento statistiche: \${statsError.message}\`);
+                } else {
+                  console.log('📊 Statistiche aggiornate con successo');
+                }
+              } catch (statsError) {
+                console.log(\`⚠️ Errore durante aggiornamento statistiche: \${statsError.message}\`);
+              }
+              
+              return {
+                success: true,
+                message: \`Sitemap generata con successo (\${totalUrls} URL)\`,
+                timestamp: new Date().toISOString(),
+                dbCount: totalCount,
+                urlCount: totalUrls,
+                filmCount: filmSlugs.length,
+                serieCount: serieSlugs.length
+              };
+            } catch (error) {
+              console.error(\`❌ ERRORE: \${error.message}\`);
+              return { success: false, error: error.message };
+            }
+          }
+          
+          // Esegui la generazione
+          generateSitemap().then(result => {
+            console.log(JSON.stringify(result, null, 2));
+            if (\!result.success) process.exit(1);
+          });
+          "
+      
+      - name: Commit e push sitemap
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          git add public/sitemap.xml
+          git commit -m "Aggiorna sitemap.xml [skip ci]" || echo "Nessuna modifica da committare"
+          git push
