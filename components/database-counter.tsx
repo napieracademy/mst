@@ -1,116 +1,92 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from '@/lib/supabase';
+import { ArrowPathIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 // Interfaccia per le statistiche della sitemap
 interface SitemapStats {
-  id: number;
-  last_generation: string;
-  urls_count: number;
-  film_count: number;
-  serie_count: number;
-  is_error: boolean;
-  error_message: string | null;
+  totalCount: number;
+  sitemapCount: number;
+  lastGeneration: string;
+  filmCount: number;
+  serieCount: number;
+  isError: boolean;
+  errorMessage: string | null;
 }
 
 export function DatabaseCounter() {
-  const [dbCount, setDbCount] = useState<number | null>(null);
-  const [sitemapCount, setSitemapCount] = useState<number | null>(null);
-  const [sitemapStats, setSitemapStats] = useState<SitemapStats | null>(null);
-  const [lastGeneration, setLastGeneration] = useState<string | null>(null);
+  const [stats, setStats] = useState<SitemapStats | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   
   useEffect(() => {
-    async function fetchCounts() {
+    async function fetchStats() {
       try {
         setLoading(true);
         setError(null);
         
-        // 1. Fetch database count 
-        const dbResponse = await fetch('/api/check-api-key?check=db-count', {
+        // Usa il nuovo endpoint che fornisce tutte le statistiche
+        const response = await fetch('/api/sitemap-stats', {
           cache: 'no-store'
         });
-        const dbData = await dbResponse.json();
         
-        if (dbData.count) {
-          setDbCount(dbData.count);
+        if (!response.ok) {
+          throw new Error(`Errore API: ${response.status}`);
         }
-
-        // 2. Recupera statistiche della sitemap dalla tabella sitemap_stats
-        try {
-          const supabase = createClient();
-          const { data, error } = await supabase
-            .from('sitemap_stats')
-            .select('*')
-            .eq('id', 1)
-            .single();
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Errore sconosciuto');
+        }
+        
+        setStats({
+          totalCount: data.totalCount || 0,
+          sitemapCount: data.sitemapCount || 0,
+          lastGeneration: data.lastGeneration || null,
+          filmCount: data.filmCount || 0,
+          serieCount: data.serieCount || 0,
+          isError: data.isError || false,
+          errorMessage: data.errorMessage || null
+        });
+        
+        // Formatta la data dell'ultima generazione
+        if (data.lastGeneration) {
+          try {
+            const date = new Date(data.lastGeneration);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
             
-          if (error) {
-            console.error("Errore nel recupero statistiche sitemap:", error);
-            
-            // Fallback al metodo precedente se il nuovo non funziona
-            const sitemapResponse = await fetch('/sitemap.xml', {
-              cache: 'no-store',
-              method: 'GET',
-              headers: {
-                'Range': 'bytes=0-500' // Solo i primi 500 bytes per leggere l'intestazione
-              }
-            });
-            
-            const sitemapText = await sitemapResponse.text();
-            const countMatch = sitemapText.match(/con (\d+) URL/);
-            
-            if (countMatch && countMatch[1]) {
-              setSitemapCount(parseInt(countMatch[1], 10));
+            if (diffHours < 1) {
+              setLastUpdate(`${Math.floor(diffMs / (1000 * 60))} minuti fa`);
+            } else if (diffHours < 24) {
+              setLastUpdate(`${diffHours} ore fa`);
+            } else {
+              setLastUpdate(`${Math.floor(diffHours / 24)} giorni fa`);
             }
-          } else if (data) {
-            // Usa i dati dalla tabella sitemap_stats
-            setSitemapStats(data as SitemapStats);
-            setSitemapCount(data.urls_count);
-            
-            // Formatta la data dell'ultima generazione
-            if (data.last_generation) {
-              try {
-                const date = new Date(data.last_generation);
-                const now = new Date();
-                const diffMs = now.getTime() - date.getTime();
-                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                
-                if (diffHours < 1) {
-                  setLastGeneration(`${Math.floor(diffMs / (1000 * 60))} minuti fa`);
-                } else if (diffHours < 24) {
-                  setLastGeneration(`${diffHours} ore fa`);
-                } else {
-                  setLastGeneration(`${Math.floor(diffHours / 24)} giorni fa`);
-                }
-              } catch (e) {
-                setLastGeneration(null);
-              }
-            }
+          } catch (e) {
+            setLastUpdate(null);
           }
-        } catch (supabaseError) {
-          console.error("Errore Supabase:", supabaseError);
-          setError("Errore nel caricamento delle statistiche sitemap");
         }
       } catch (error) {
-        console.error("Errore nel recupero conteggi:", error);
-        setError("Errore nel recupero dei conteggi");
+        console.error("Errore nel recupero statistiche:", error);
+        setError(error instanceof Error ? error.message : 'Errore sconosciuto');
       } finally {
         setLoading(false);
       }
     }
     
-    fetchCounts();
+    fetchStats();
     
     // Aggiorna ogni 5 minuti
-    const interval = setInterval(fetchCounts, 5 * 60 * 1000);
+    const interval = setInterval(fetchStats, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading || (!dbCount && !sitemapCount)) {
+  if (loading) {
     return (
       <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-black/50 border border-gray-700">
         <div className="w-3 h-3 rounded-full bg-gray-500 animate-pulse" />
@@ -121,14 +97,25 @@ export function DatabaseCounter() {
     );
   }
   
+  if (error || !stats) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-black/50 border border-red-700">
+        <div className="w-3 h-3 rounded-full bg-red-500" />
+        <span className="text-xs text-white hidden sm:inline">
+          Errore stats
+        </span>
+      </div>
+    );
+  }
+  
   // Verifica se c'è una discrepanza significativa
-  const hasMismatch = dbCount && sitemapCount && (dbCount - sitemapCount > 50);
+  const hasMismatch = stats.totalCount && stats.sitemapCount && (stats.totalCount - stats.sitemapCount > 50);
   
   // Determina il colore dell'indicatore
   let indicatorColor = "bg-blue-500"; // Default: blu
   if (hasMismatch) {
     indicatorColor = "bg-yellow-500"; // Discrepanza: giallo
-  } else if (sitemapStats?.is_error) {
+  } else if (stats.isError) {
     indicatorColor = "bg-red-500"; // Errore: rosso
   }
   
@@ -142,66 +129,61 @@ export function DatabaseCounter() {
       >
         <div className={`w-3 h-3 rounded-full ${indicatorColor} transition-colors`} />
         <span className="text-xs text-white hidden sm:inline">
-          {dbCount !== null ? `DB: ${dbCount}` : ''} 
-          {dbCount !== null && sitemapCount !== null ? ' | ' : ''}
-          {sitemapCount !== null ? `XML: ${sitemapCount}` : ''}
+          {stats.totalCount ? `DB: ${stats.totalCount.toLocaleString()}` : ''} 
+          {stats.totalCount && stats.sitemapCount ? ' | ' : ''}
+          {stats.sitemapCount ? `XML: ${stats.sitemapCount.toLocaleString()}` : ''}
         </span>
       </button>
       
       {showInfo && (
         <div className="absolute top-full right-0 mt-2 p-3 rounded-lg bg-black/90 backdrop-blur-md border border-gray-800 shadow-lg z-50 w-72">
-          <div className="text-sm font-medium mb-2 text-white">
-            Statistiche contenuti
+          <div className="text-sm font-medium mb-2 text-white flex items-center gap-2">
+            <span>Statistiche contenuti</span>
+            {stats.isError ? (
+              <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
+            ) : (
+              <CheckCircleIcon className="h-4 w-4 text-green-500" />
+            )}
           </div>
           
-          {error ? (
-            <p className="text-xs text-red-400 mb-2">{error}</p>
-          ) : (
-            <>
-              <div className="text-xs text-gray-300 mb-2">
-                <div className="flex justify-between mb-1">
-                  <span>Record nel database:</span>
-                  <span className="font-bold">{dbCount?.toLocaleString() || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between mb-1">
-                  <span>URL nella sitemap:</span>
-                  <span className="font-bold">{sitemapCount?.toLocaleString() || 'N/A'}</span>
-                </div>
-                
-                {sitemapStats && (
-                  <>
-                    <div className="flex justify-between mb-1">
-                      <span>Film nella sitemap:</span>
-                      <span className="font-bold">{sitemapStats.film_count.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between mb-1">
-                      <span>Serie nella sitemap:</span>
-                      <span className="font-bold">{sitemapStats.serie_count.toLocaleString()}</span>
-                    </div>
-                  </>
-                )}
-                
-                {lastGeneration && (
-                  <div className="flex justify-between mb-1">
-                    <span>Ultimo aggiornamento:</span>
-                    <span className="font-bold">{lastGeneration}</span>
-                  </div>
-                )}
-                
-                {hasMismatch && (
-                  <div className="mt-2 text-yellow-400 font-medium">
-                    Attenzione: {dbCount! - sitemapCount!} record non inclusi nella sitemap
-                  </div>
-                )}
-                
-                {sitemapStats?.is_error && (
-                  <div className="mt-2 text-red-400 font-medium">
-                    Errore nell'ultima generazione sitemap
-                  </div>
-                )}
+          <div className="text-xs text-gray-300 mb-2">
+            <div className="flex justify-between mb-1">
+              <span>Record nel database:</span>
+              <span className="font-bold">{stats.totalCount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between mb-1">
+              <span>URL nella sitemap:</span>
+              <span className="font-bold">{stats.sitemapCount.toLocaleString()}</span>
+            </div>
+            
+            <div className="flex justify-between mb-1">
+              <span>Film nella sitemap:</span>
+              <span className="font-bold">{stats.filmCount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between mb-1">
+              <span>Serie nella sitemap:</span>
+              <span className="font-bold">{stats.serieCount.toLocaleString()}</span>
+            </div>
+            
+            {lastUpdate && (
+              <div className="flex justify-between mb-1">
+                <span>Ultimo aggiornamento:</span>
+                <span className="font-bold">{lastUpdate}</span>
               </div>
-            </>
-          )}
+            )}
+            
+            {hasMismatch && (
+              <div className="mt-2 text-yellow-400 font-medium">
+                Attenzione: {stats.totalCount - stats.sitemapCount} record non inclusi nella sitemap
+              </div>
+            )}
+            
+            {stats.isError && stats.errorMessage && (
+              <div className="mt-2 text-red-400 font-medium">
+                Errore: {stats.errorMessage}
+              </div>
+            )}
+          </div>
           
           <div className="text-xs text-gray-400 mt-3">
             <a href="/admin/statistiche-pagine" className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
