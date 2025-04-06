@@ -110,76 +110,68 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
       <Header />
       
       <div className="pt-24 pb-16">
-        <Container>
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Colonna sinistra: immagine e info */}
-            <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-              <div className="rounded-lg overflow-hidden relative aspect-[2/3] mb-6">
+        <Container maxWidth="custom">
+          <div className="flex flex-col items-start max-w-4xl mx-auto">
+            {/* Hero Section con avatar tondo e info principali */}
+            <div className="flex flex-col md:flex-row w-full mb-12 gap-8">
+              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden relative flex-shrink-0 self-start">
                 <Image
                   src={profileUrl}
                   alt={director.name}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 300px"
+                  sizes="(max-width: 768px) 12rem, 16rem"
                 />
               </div>
               
-              <div className="space-y-4 text-gray-300">
-                {birthDate && (
-                  <div>
-                    <h3 className="text-white text-sm font-medium mb-1">Data di nascita</h3>
-                    <p className="text-sm">{birthDate}</p>
-                  </div>
-                )}
+              <div className="flex flex-col">
+                <h1 className="text-3xl md:text-4xl font-bold mb-4">{director.name}</h1>
                 
-                {deathDate && (
-                  <div>
-                    <h3 className="text-white text-sm font-medium mb-1">Data di morte</h3>
-                    <p className="text-sm">{deathDate}</p>
-                  </div>
-                )}
-                
-                {director.place_of_birth && (
-                  <div>
-                    <h3 className="text-white text-sm font-medium mb-1">Luogo di nascita</h3>
-                    <p className="text-sm">{director.place_of_birth}</p>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-6 text-gray-300 mb-4">
+                  {birthDate && (
+                    <div>
+                      <h3 className="text-white text-sm font-medium mb-1">Data di nascita</h3>
+                      <p className="text-sm">{birthDate}</p>
+                    </div>
+                  )}
+                  
+                  {deathDate && (
+                    <div>
+                      <h3 className="text-white text-sm font-medium mb-1">Data di morte</h3>
+                      <p className="text-sm">{deathDate}</p>
+                    </div>
+                  )}
+                  
+                  {director.place_of_birth && (
+                    <div>
+                      <h3 className="text-white text-sm font-medium mb-1">Luogo di nascita</h3>
+                      <p className="text-sm">{director.place_of_birth}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
-            {/* Colonna destra: biografia e filmografia */}
-            <div className="w-full md:w-2/3 lg:w-3/4">
-              <h1 className="text-3xl md:text-4xl font-bold mb-6">{director.name}</h1>
-              
+            {/* Contenuto principale */}
+            <div className="w-full">
               {/* Biografia */}
               {fullBio && (
                 <div className="mb-12">
-                  <h2 className="text-xl font-semibold mb-4">Biografia</h2>
-                  <div className="text-gray-300">
-                    {bioExpanded ? (
-                      <>
-                        <p className="mb-4">{fullBio}</p>
-                        <button 
-                          onClick={() => setBioExpanded(false)}
-                          className="text-sm text-red-500 hover:text-red-400 transition-colors"
-                        >
-                          Mostra meno
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mb-4">{shortBio}</p>
-                        {fullBio.length > 300 && (
-                          <button 
-                            onClick={() => setBioExpanded(true)}
-                            className="text-sm text-red-500 hover:text-red-400 transition-colors"
-                          >
-                            Leggi la biografia completa
-                          </button>
-                        )}
-                      </>
+                  <div className="flex items-center mb-4">
+                    <h2 className="text-xl font-semibold">Biografia</h2>
+                    {fullBio.length > 300 && (
+                      <button 
+                        onClick={() => setBioExpanded(!bioExpanded)}
+                        className="ml-4 flex items-center justify-center w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+                        aria-label={bioExpanded ? "Riduci biografia" : "Espandi biografia"}
+                      >
+                        <span className="text-xl font-semibold">{bioExpanded ? "-" : "+"}</span>
+                      </button>
                     )}
+                  </div>
+                  
+                  <div className="text-gray-300">
+                    <p className="mb-4">{bioExpanded ? fullBio : shortBio}</p>
                   </div>
                 </div>
               )}
