@@ -55,35 +55,39 @@ export default async function Home() {
 
       {/* Hero Section */}
       <section className="relative h-[50vh] md:h-[90vh]">
-        {/* Immagine di background casuale dai film "Ora al Cinema" - cambia ad ogni refresh */}
-        {upcomingMovies.length > 0 &&
-          (() => {
-            // Usiamo il timestamp attuale come parte del calcolo per garantire variabilità
-            const timestamp = Date.now();
-            const randomIndex = Math.floor((Math.random() * timestamp) % upcomingMovies.length)
-            const randomMovie = upcomingMovies[randomIndex]
-            const backdropUrl = randomMovie.backdrop_path
-              ? `https://image.tmdb.org/t/p/original${randomMovie.backdrop_path}`
-              : null
+        {/* Immagine di background casuale dai film "Ora al Cinema" */}
+        {upcomingMovies.length > 0 && (
+          <>
+            {(() => {
+              const timestamp = Date.now();
+              const randomIndex = Math.floor((Math.random() * timestamp) % upcomingMovies.length);
+              const randomMovie = upcomingMovies[randomIndex];
+              const backdropUrl = randomMovie.backdrop_path
+                ? `https://image.tmdb.org/t/p/original${randomMovie.backdrop_path}`
+                : null;
 
-            return backdropUrl ? (
-              <div className="absolute inset-0 w-full h-full">
-                <Image
-                  src={backdropUrl || "/placeholder.svg"}
-                  alt={randomMovie.title || "Movie backdrop"}
-                  fill
-                  className="object-cover object-center"
-                  sizes="100vw"
-                  priority
-                  quality={90}
-                />
-                {/* Gradiente sopra l'immagine */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black"></div>
-              </div>
-            ) : (
-              <div className="absolute inset-0 bg-black"></div>
-            )
-          })()}
+              if (!backdropUrl) {
+                return <div className="absolute inset-0 bg-black" />;
+              }
+
+              return (
+                <div className="absolute inset-0 w-full h-full">
+                  <Image
+                    src={backdropUrl}
+                    alt={randomMovie.title || "Movie backdrop"}
+                    fill
+                    className="object-cover object-center"
+                    sizes="100vw"
+                    priority
+                    quality={90}
+                  />
+                  {/* Gradiente sopra l'immagine */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black" />
+                </div>
+              );
+            })()}
+          </>
+        )}
 
         {/* Barra di ricerca centrale */}
         <div className="absolute inset-0 flex items-center justify-center px-5 sm:px-8 lg:px-16 z-10">
