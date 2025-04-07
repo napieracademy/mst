@@ -89,12 +89,28 @@ serve(async (req) => {
     // 5. Dividi i record per tipo
     const filmRecords = allRecords.filter(record => record.page_type === 'film')
     const serieRecords = allRecords.filter(record => record.page_type === 'serie')
+    const attoriRecords = allRecords.filter(record => record.page_type === 'attore')
+    const registiRecords = allRecords.filter(record => record.page_type === 'regista')
+    const castRecords = allRecords.filter(record => record.page_type === 'cast')
+    const crewRecords = allRecords.filter(record => record.page_type === 'crew')
     const personRecords = allRecords.filter(record => 
-      record.page_type !== 'film' && 
-      record.page_type !== 'serie'
+      record.page_type === 'person' ||
+      record.page_type === 'attore' ||
+      record.page_type === 'regista' ||
+      record.page_type === 'cast' ||
+      record.page_type === 'crew'
     )
     
-    console.log(`Record film: ${filmRecords.length}, serie: ${serieRecords.length}, persone: ${personRecords.length}`)
+    console.log(`
+      Record trovati:
+      - Film: ${filmRecords.length}
+      - Serie: ${serieRecords.length}
+      - Attori: ${attoriRecords.length}
+      - Registi: ${registiRecords.length}
+      - Cast: ${castRecords.length}
+      - Crew: ${crewRecords.length}
+      - Persone totali: ${personRecords.length}
+    `)
     
     // 6. Estrai gli slug dai record (filtrando quelli non validi)
     const filmSlugs = filmRecords
@@ -246,19 +262,26 @@ serve(async (req) => {
         
       console.log(`Sitemap disponibile pubblicamente a: ${publicUrl.publicUrl}`)
       
-      // Aggiorna il record statistiche
+      // Aggiorna il record statistiche con i nuovi conteggi
       try {
+        const startTime = performance.now()
         const { error: statError } = await supabase
           .from('sitemap_stats')
           .upsert([{
             id: 1,
             last_generation: new Date().toISOString(),
             urls_count: urlCount,
-            film_count: filmSlugs.length,
-            serie_count: serieSlugs.length,
-            person_count: totalPersons,
+            film_count: filmRecords.length,
+            serie_count: serieRecords.length,
+            attori_count: attoriRecords.length,
+            registi_count: registiRecords.length,
+            cast_count: castRecords.length,
+            crew_count: crewRecords.length,
+            person_count: personRecords.length,
+            static_pages_count: staticRoutes.length,
             is_error: false,
-            error_message: null
+            error_message: null,
+            generation_time_ms: Math.round(performance.now() - startTime)
           }])
           
         if (statError) {

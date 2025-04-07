@@ -9,6 +9,8 @@ interface SitemapStats {
   lastGeneration: string;
   filmCount: number;
   serieCount: number;
+  attoriCount: number;
+  registiCount: number;
   isError: boolean;
   errorMessage: string | null;
 }
@@ -37,8 +39,8 @@ export function DatabaseCounter() {
         
         const data = await response.json();
         
-        if (!data.success) {
-          throw new Error(data.error || 'Errore sconosciuto');
+        if (data.error) {
+          throw new Error(data.error);
         }
         
         setStats({
@@ -47,6 +49,8 @@ export function DatabaseCounter() {
           lastGeneration: data.lastGeneration || null,
           filmCount: data.filmCount || 0,
           serieCount: data.serieCount || 0,
+          attoriCount: data.attoriCount || 0,
+          registiCount: data.registiCount || 0,
           isError: data.isError || false,
           errorMessage: data.errorMessage || null
         });
@@ -162,6 +166,14 @@ export function DatabaseCounter() {
             <div className="flex justify-between mb-1">
               <span>Serie nella sitemap:</span>
               <span className="font-bold">{stats.serieCount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between mb-1">
+              <span>Attori nella sitemap:</span>
+              <span className="font-bold">{stats.attoriCount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between mb-1">
+              <span>Registi nella sitemap:</span>
+              <span className="font-bold">{stats.registiCount.toLocaleString()}</span>
             </div>
             
             {lastUpdate && (

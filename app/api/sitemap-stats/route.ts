@@ -14,96 +14,59 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createApiSupabaseClient();
     
-    // Controlla se Supabase è configurato
     if (!supabase) {
       return NextResponse.json({
         success: false,
-        error: 'Configurazione Supabase mancante',
-        totalCount: 0,
-        sitemapCount: 0
-      }, { status: 200 });
+        error: 'Configurazione Supabase mancante'
+      });
     }
-    
-    // 1. Recupera conteggio totale dei record
-    const { count: totalCount, error: countError } = await supabase
-      .from('generated_pages')
-      .select('*', { count: 'exact', head: true });
-    
-    if (countError) {
-      console.error('Errore nel conteggio dei record:', countError);
+
+    // Get counts from generated_pages using raw query
+    const { data: pageCounts, error: pageError } = await supabase
+      .rpc('get_page_type_counts');
+
+    if (pageError) {
       return NextResponse.json({ 
         success: false, 
-        error: countError.message 
-      }, { status: 500 });
+        error: pageError.message 
+      });
     }
-    
-    // 2. Recupera statistiche della sitemap dalla tabella sitemap_stats
-    const { data: sitemapStats, error: statsError } = await supabase
+
+    // Get sitemap stats
+    const { data: stats, error: statsError } = await supabase
       .from('sitemap_stats')
       .select('*')
-      .eq('id', 1)
+      .order('last_generation', { ascending: false })
+      .limit(1)
       .single();
-    
-    let sitemapCount = 0;
-    let lastGeneration = null;
-    let filmCount = 0;
-    let serieCount = 0;
-    let isError = false;
-    let errorMessage = null;
-    
+
     if (statsError) {
-      // Se non c'è ancora il record sitemap_stats, leggi i conteggi dalla sitemap XML
-      console.log('Record sitemap_stats non trovato, recupero informazioni dalla sitemap');
-      
-      try {
-        // Fallback: estrai le informazioni dall'intestazione della sitemap
-        const sitemapResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://mastroianni.app'}/sitemap.xml`, {
-          cache: 'no-store',
-          headers: {
-            'Range': 'bytes=0-500' // Solo i primi bytes per leggere l'intestazione
-          }
-        });
-        
-        if (sitemapResponse.ok) {
-          const sitemapText = await sitemapResponse.text();
-          const countMatch = sitemapText.match(/con (\d+) URL/);
-          const dateMatch = sitemapText.match(/Generata il: ([^<]+)/);
-          
-          if (countMatch && countMatch[1]) {
-            sitemapCount = parseInt(countMatch[1], 10);
-          }
-          
-          if (dateMatch && dateMatch[1]) {
-            lastGeneration = dateMatch[1];
-          }
-        } else {
-          errorMessage = `Impossibile leggere la sitemap: ${sitemapResponse.status}`;
-          isError = true;
-        }
-      } catch (fetchError) {
-        console.error('Errore nel recupero della sitemap:', fetchError);
-        errorMessage = 'Errore nel recupero della sitemap';
-        isError = true;
-      }
-    } else if (sitemapStats) {
-      // Usa i dati dalla tabella sitemap_stats
-      sitemapCount = sitemapStats.urls_count;
-      lastGeneration = sitemapStats.last_generation;
-      filmCount = sitemapStats.film_count;
-      serieCount = sitemapStats.serie_count;
-      isError = sitemapStats.is_error;
-      errorMessage = sitemapStats.error_message;
+      return NextResponse.json({ 
+        success: false, 
+        error: statsError.message 
+      });
     }
-    
+
+    interface PageCount {
+      page_type: string;
+      count: number;
+    }
+
+    const filmCount = (pageCounts as PageCount[] | null)?.find(p => p.page_type === 'film')?.count || 0;
+    const serieCount = (pageCounts as PageCount[] | null)?.find(p => p.page_type === 'serie')?.count || 0;
+    const attoriCount = (pageCounts as PageCount[] | null)?.find(p => p.page_type === 'attore')?.count || 0;
+    const registiCount = (pageCounts as PageCount[] | null)?.find(p => p.page_type === 'regista')?.count || 0;
+
     return NextResponse.json({
-      success: true,
-      totalCount,
-      sitemapCount,
-      lastGeneration,
+      totalCount: stats.total_count,
+      sitemapCount: stats.sitemap_count,
+      lastGeneration: stats.last_generation,
       filmCount,
       serieCount,
-      isError,
-      errorMessage
+      attoriCount,
+      registiCount,
+      isError: false,
+      errorMessage: null
     });
     
   } catch (error) {
@@ -111,6 +74,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Errore sconosciuto'
-    }, { status: 500 });
+    });
   }
 }
