@@ -195,7 +195,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
               src={backdropUrl || posterUrl}
               alt={movie.title}
               fill
-              className="object-cover object-center"
+              className="object-cover object-top"
               style={{ width: '100%', height: '100%' }}
               sizes="100vw"
               priority

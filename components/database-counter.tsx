@@ -28,7 +28,6 @@ export function DatabaseCounter() {
         setLoading(true);
         setError(null);
         
-        // Usa il nuovo endpoint che fornisce tutte le statistiche
         const response = await fetch('/api/sitemap-stats', {
           cache: 'no-store'
         });
@@ -132,9 +131,7 @@ export function DatabaseCounter() {
       >
         <div className={`w-3 h-3 rounded-full ${indicatorColor} transition-colors`} />
         <span className="text-xs text-white hidden sm:inline">
-          {stats.totalCount ? `DB: ${stats.totalCount.toLocaleString()}` : ''} 
-          {stats.totalCount && stats.sitemapCount ? ' | ' : ''}
-          {stats.sitemapCount ? `XML: ${stats.sitemapCount.toLocaleString()}` : ''}
+          {stats.filmCount + stats.serieCount + stats.attoriCount + stats.registiCount} contenuti
         </span>
       </button>
       
@@ -149,16 +146,7 @@ export function DatabaseCounter() {
             )}
           </div>
           
-          <div className="text-xs text-gray-300 mb-2">
-            <div className="flex justify-between mb-1">
-              <span>Record nel database:</span>
-              <span className="font-bold">{stats.totalCount.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between mb-1">
-              <span>URL nella sitemap:</span>
-              <span className="font-bold">{stats.sitemapCount.toLocaleString()}</span>
-            </div>
-            
+          <div className="text-xs text-gray-300 mb-2">            
             <div className="flex justify-between mb-1">
               <span>Film nella sitemap:</span>
               <span className="font-bold">{stats.filmCount.toLocaleString()}</span>
@@ -183,23 +171,11 @@ export function DatabaseCounter() {
               </div>
             )}
             
-            {hasMismatch && (
-              <div className="mt-2 text-yellow-400 font-medium">
-                Attenzione: {stats.totalCount - stats.sitemapCount} record non inclusi nella sitemap
-              </div>
-            )}
-            
             {stats.isError && stats.errorMessage && (
               <div className="mt-2 text-red-400 font-medium">
                 Errore: {stats.errorMessage}
               </div>
             )}
-          </div>
-          
-          <div className="text-xs text-gray-400 mt-3">
-            <a href="/admin/statistiche-pagine" className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-              Visualizza statistiche complete
-            </a>
           </div>
         </div>
       )}
