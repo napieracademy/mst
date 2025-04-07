@@ -8,7 +8,8 @@ import { getApiKey } from './api-keys-client'
 
 // Configurazione di base per OMDB
 const OMDB_API_URL = 'https://www.omdbapi.com'
-const OMDB_API_KEY = 'e039393b' // Utilizziamo direttamente la chiave per debuggare il problema
+// Legge la chiave API dalle variabili d'ambiente, con fallback al valore hardcoded per lo sviluppo
+const OMDB_API_KEY = process.env.OMDB_API_KEY || 'e039393b'
 
 // Classe di errore per le API OMDB
 class OMDBError extends Error {
