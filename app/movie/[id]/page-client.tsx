@@ -15,6 +15,7 @@ import Image from "next/image"
 import { Container } from "@/components/container"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { PersonFilmography } from "@/components/person-filmography"
+import { MovieRatings } from "@/components/movie-ratings"
 
 interface MoviePageClientProps {
   movie: Movie
@@ -215,6 +216,16 @@ export function MoviePageClient({
             </FadeInSection>
           </div>
         </div>
+        
+        {/* Ratings Section */}
+        <FadeInSection delay={350}>
+          <MovieRatings 
+            tmdbId={id} 
+            imdbId={movie.external_ids?.imdb_id} 
+            tmdbRating={movie.vote_average} 
+            tmdbVoteCount={movie.vote_count} 
+          />
+        </FadeInSection>
 
         {/* Cast Section */}
         <FadeInSection delay={300} threshold={0.05}>

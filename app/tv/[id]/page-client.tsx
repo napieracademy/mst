@@ -15,6 +15,7 @@ import { useState } from "react"
 import { generateSlug } from "@/lib/utils"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { Container } from "@/components/container"
+import { TVRatings } from "@/components/tv-ratings"
 
 // Interfaccia compatibile con quella del TVHero
 interface Show {
@@ -293,6 +294,16 @@ export function TVPageClient({
             </FadeInSection>
           </div>
         </div>
+        
+        {/* Ratings Section */}
+        <FadeInSection delay={350}>
+          <TVRatings 
+            tmdbId={id} 
+            imdbId={show.external_ids?.imdb_id} 
+            tmdbRating={show.vote_average} 
+            tmdbVoteCount={show.vote_count} 
+          />
+        </FadeInSection>
 
         {/* Seasons Section */}
         <FadeInSection delay={200} threshold={0.05}>
