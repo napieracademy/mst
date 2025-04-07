@@ -27,15 +27,12 @@ interface PersonFilmographyProps {
 }
 
 export function PersonFilmography({ credits, name, knownForCredits = [] }: PersonFilmographyProps) {
-  console.log("PersonFilmography - knownForCredits:", knownForCredits.length, knownForCredits);
-
   const [activeTab, setActiveTab] = useState<"all" | "known_for" | "acting" | "directing" | "movie" | "tv">("all")
   
   // Set the initial active tab to "known_for" if there are known_for credits
   useEffect(() => {
     if (knownForCredits && knownForCredits.length > 0) {
       setActiveTab("known_for");
-      console.log("Tab iniziale impostata su 'known_for' perché ci sono", knownForCredits.length, "crediti");
     }
   }, [knownForCredits]);
 
@@ -50,7 +47,10 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
 
   // Filtra i crediti in base al tab attivo
   const filteredCredits = allCredits.filter((credit) => {
-    if (activeTab === "all") return true;
+    if (activeTab === "all") {
+      // Per "Tutti i ruoli" mostriamo solo attore e regista
+      return credit.role === "acting" || credit.role === "directing" || credit.role === "both";
+    }
     if (activeTab === "known_for") {
       // Mostriamo SOLO i film presenti in knownForCredits
       return knownForCredits.some(kfc => kfc.id === credit.id && kfc.media_type === credit.media_type);
@@ -146,7 +146,7 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
 
       {/* Griglia di film/serie */}
       {sortedCredits.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {sortedCredits.map((credit, index) => {
             const mediaType = credit.media_type;
             const title = credit.title || credit.name || "";
@@ -187,7 +187,7 @@ export function PersonFilmography({ credits, name, knownForCredits = [] }: Perso
                       src={`https://image.tmdb.org/t/p/w500${posterPath}`}
                       alt={title}
                       fill
-                      sizes="(max-width: 768px) 50vw, 20vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                       className="object-cover"
                     />
                   ) : (

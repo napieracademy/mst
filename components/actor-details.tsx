@@ -48,16 +48,40 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
   // Prepara la filmografia
   const credits: Credit[] = []
 
-  // Prepara i dati dell'attore
-
   // Aggiungi i film dove ha recitato
   if (actor.combined_credits?.cast) {
-    actor.combined_credits.cast.forEach(credit => {
-      credits.push({
-        ...credit,
-        role: "acting"
+    // Filtra solo i ruoli di attore, escludendo apparizioni come "Self" e apparizioni minori in TV
+    actor.combined_credits.cast
+      .filter(credit => {
+        // Escludiamo apparizioni come "Self" in qualsiasi media
+        const isSelf = 
+          credit.character === 'Self' || 
+          credit.character?.toLowerCase().includes('self') ||
+          credit.character?.toLowerCase().includes('himself') ||
+          credit.character?.toLowerCase().includes('herself');
+        
+        // Escludiamo guest appearances in TV
+        const isGuestAppearance = 
+          credit.category === 'guest_star' ||
+          credit.character?.toLowerCase().includes('guest') ||
+          credit.character?.toLowerCase().includes('host');
+          
+        // Escludiamo apparizioni minori in serie TV (1 episodio)
+        const isMinorTVAppearance = 
+          credit.media_type === 'tv' && 
+          (credit.episode_count === 1 || credit.episode_count === undefined);
+          
+        // Includi se è un film e non è un'apparizione come Self, oppure
+        // se è una serie TV e non è una guest appearance o un'apparizione minore
+        return (credit.media_type === 'movie' && !isSelf) || 
+               (credit.media_type === 'tv' && !isSelf && !isGuestAppearance && !isMinorTVAppearance);
       })
-    })
+      .forEach(credit => {
+        credits.push({
+          ...credit,
+          role: "acting"
+        })
+      })
   }
 
   // Aggiungi i film dove ha lavorato come regista

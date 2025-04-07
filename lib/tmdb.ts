@@ -386,78 +386,162 @@ export async function getPersonDetails(id: string): Promise<any | null> {
     };
     
     // Ottieni direttamente i known_for attraverso l'endpoint person/popular
-    // Nota: questo è un workaround dato che non c'è un endpoint diretto per known_for
     try {
       const popularPersons = await fetchFromTMDB(`/person/popular`, {}, "it-IT");
       const personInPopular = popularPersons.results?.find((p: any) => p.id === parseInt(id, 10));
       
-      if (personInPopular && personInPopular.known_for && Array.isArray(personInPopular.known_for)) {
-        console.log(`Person ${id} trovato nei popolari con ${personInPopular.known_for.length} known_for`);
+      // Filtra i crediti escludendo talk show, reality, news e altri programmi non rilevanti
+      const relevantCredits = [...(data.combined_credits?.cast || []), ...(data.combined_credits?.crew || [])]
+        .filter(credit => {
+          // Log per debug
+          if (credit.media_type === 'tv' && credit.name?.toLowerCase().includes('late night')) {
+            console.log('Filtering TV credit:', {
+              title: credit.title || credit.name,
+              character: credit.character,
+              category: credit.category,
+              genreIds: credit.genre_ids,
+              episodeCount: credit.episode_count
+            });
+          }
+
+          // Escludiamo i generi non rilevanti
+          const excludedGenreIds = [
+            10767, // Talk Show
+            10764, // Reality
+            10763  // News
+          ];
+
+          // Verifica se è un talk show o programma simile
+          const isTalkShow = credit.genre_ids?.some((genreId: number) => excludedGenreIds.includes(genreId)) || false;
+
+          // Verifica se è un'apparizione come "Self" (se stesso)
+          const isSelf = 
+            credit.character === 'Self' || 
+            credit.character?.toLowerCase().includes('self') ||
+            credit.character?.toLowerCase().includes('himself') ||
+            credit.character?.toLowerCase().includes('herself');
+
+          // Verifica se è un'apparizione come ospite
+          const isGuestAppearance = 
+            credit.category === 'guest_star' ||
+            credit.character?.toLowerCase().includes('guest') ||
+            credit.character?.toLowerCase().includes('host');
+
+          // Verifica se è una serie TV con genere talk show
+          const isTalkShowSeries = 
+            credit.media_type === 'tv' && 
+            (isTalkShow || 
+             credit.name?.toLowerCase().includes('late night') ||
+             credit.name?.toLowerCase().includes('talk show') ||
+             credit.name?.toLowerCase().includes('tonight show'));
+
+          // Per le serie TV, escludiamo anche quelle con pochi episodi (apparizioni sporadiche)
+          const isMinorTVAppearance = 
+            credit.media_type === 'tv' && 
+            (credit.episode_count === 1 || credit.episode_count === undefined);
+
+          // La logica finale di inclusione - dobbiamo escludere tutti i tipi di apparizioni come self o guest
+          const shouldInclude = 
+            // Per i film, includi tutti tranne quelli in cui appare come "self"
+            (credit.media_type === 'movie' && !isSelf) ||
+            // Per le serie TV, applica filtri più severi
+            (credit.media_type === 'tv' && 
+             !isTalkShow && 
+             !isTalkShowSeries && 
+             !isSelf && 
+             !isGuestAppearance && 
+             !isMinorTVAppearance && 
+             credit.episode_count > 1);
+
+          // Solo per debug: registra qualsiasi apparizione come Self o Guest che viene comunque inclusa
+          if (shouldInclude && 
+              (isSelf || isGuestAppearance || isTalkShowSeries || isMinorTVAppearance)) {
+            console.log('WARNING: Including potentially unwanted credit:', {
+              title: credit.title || credit.name,
+              character: credit.character,
+              category: credit.category,
+              genreIds: credit.genre_ids,
+              episodeCount: credit.episode_count,
+              mediaType: credit.media_type,
+              isSelf,
+              isGuestAppearance,
+              isTalkShowSeries,
+              isMinorTVAppearance
+            });
+          }
+
+          return shouldInclude;
+        });
+
+      // Ordina i crediti per punteggio
+      const scoredCredits = relevantCredits.map(credit => {
+        let score = 0;
         
-        // Estrai gli ID dei film/serie per cui la persona è nota
-        const knownForIds = personInPopular.known_for.map((item: any) => item.id);
-        console.log(`Person ${id} known_for IDs:`, knownForIds);
+        // Base: popolarità e voto
+        score += (credit.popularity || 0) * 0.3;  // 30% popolarità
+        score += (credit.vote_average || 0) * 0.2; // 20% voto medio
+        score += (credit.vote_count || 0) * 0.1;   // 10% numero di voti
         
-        // Filtra i crediti per includere solo known_for
-        let knownForCredits: any[] = [];
+        // Bonus per film vs TV
+        score *= credit.media_type === 'movie' ? 1.5 : 1; // 50% bonus per film
         
-        if (data.combined_credits?.cast) {
-          const knownForCast = data.combined_credits.cast.filter((item: any) => 
-            knownForIds.includes(item.id)
-          );
-          knownForCredits.push(...knownForCast);
+        // Bonus per ruoli recenti
+        const releaseDate = credit.release_date || credit.first_air_date;
+        if (releaseDate) {
+          const yearsSinceRelease = new Date().getFullYear() - new Date(releaseDate).getFullYear();
+          if (yearsSinceRelease <= 10) {
+            score *= 1 + ((10 - yearsSinceRelease) * 0.05);
+          }
         }
-        
-        if (data.combined_credits?.crew) {
-          const knownForCrew = data.combined_credits.crew.filter((item: any) => 
-            knownForIds.includes(item.id) && item.job === "Director"
-          );
-          knownForCredits.push(...knownForCrew);
-        }
-        
-        // Assegna i crediti filtrati
-        data.known_for_credits = knownForCredits;
-        
-        console.log(`Person ${id} known for ${knownForIds.length} titles, extracted ${data.known_for_credits.length} matching credits`);
-        console.log(`Known for credits sample:`, data.known_for_credits.slice(0, 2));
-      } else {
-        // Se la persona non è tra i popolari, usa un approccio alternativo
-        // Seleziona i film/serie con più voti o più popolari dai crediti
-        console.log(`Person ${id} non trovato nei popolari, utilizzo metodo alternativo`);
-        
-        const allCredits = [];
-        if (data.combined_credits?.cast) allCredits.push(...data.combined_credits.cast);
-        if (data.combined_credits?.crew) {
-          const directorCredits = data.combined_credits.crew.filter((c: any) => c.job === "Director");
-          allCredits.push(...directorCredits);
-        }
-        
-        // Ordina per popolarità e prendi i primi 5
-        const topCredits = [...allCredits]
-          .sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
-          .slice(0, 5);
-        
-        data.known_for_credits = topCredits;
-        console.log(`Person ${id} alternate method: found ${topCredits.length} top credits`);
-      }
+
+        return { ...credit, score };
+      });
+
+      // Ordina per punteggio e prendi i primi 12 invece di 5
+      const sortedCredits = scoredCredits
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 12);
+
+      data.known_for_credits = sortedCredits;
+      console.log(`Person ${id}: found ${sortedCredits.length} most notable credits`);
+
     } catch (error) {
       console.error(`Error fetching known_for for person ${id}:`, error);
-      // In caso di errore nell'ottenere i known_for, utilizziamo un approccio di fallback
-      // Basato sui credits più popolari che abbiamo già
+      // In caso di errore, usa un approccio di fallback simile
       const allCredits = [];
-      if (data.combined_credits?.cast) allCredits.push(...data.combined_credits.cast);
+      if (data.combined_credits?.cast) {
+        allCredits.push(...data.combined_credits.cast.map((credit: any) => ({
+          ...credit,
+          type: "cast"
+        })));
+      }
       if (data.combined_credits?.crew) {
-        const directorCredits = data.combined_credits.crew.filter((c: any) => c.job === "Director");
+        const directorCredits = data.combined_credits.crew
+          .filter((c: any) => c.job === "Director")
+          .map((credit: any) => ({
+            ...credit,
+            type: "crew"
+          }));
         allCredits.push(...directorCredits);
       }
-      
-      // Ordina per popolarità e prendi i primi 5
-      const topCredits = [...allCredits]
-        .sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
-        .slice(0, 5);
-      
+
+      const sortedCredits = allCredits.sort((a: any, b: any) => {
+        const scoreA = (a.popularity || 0) * 0.7 + (a.vote_average || 0) * 0.3;
+        const scoreB = (b.popularity || 0) * 0.7 + (b.vote_average || 0) * 0.3;
+        return scoreB - scoreA;
+      });
+
+      const topCredits = sortedCredits.slice(0, 12).map((credit: any) => {
+        const isDirector = credit.type === "crew" && credit.job === "Director";
+        return {
+          ...credit,
+          media_type: credit.media_type || (credit.first_air_date ? "tv" : "movie"),
+          role: isDirector ? "directing" : "acting"
+        };
+      });
+
       data.known_for_credits = topCredits;
-      console.log(`Person ${id} fallback: found ${topCredits.length} top credits`);
+      console.log(`Person ${id} fallback: found ${topCredits.length} most notable credits`);
     }
     
     // Log esteso per debug delle immagini
