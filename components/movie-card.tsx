@@ -50,7 +50,16 @@ export function MovieCard({ movie, showDirector = false }: MovieCardProps) {
         </div>
       </Link>
 
-      {/* Title removed as requested */}
+      <div className="mt-2">
+        <Text variant="h3" className="text-sm font-medium line-clamp-2">
+          {title}
+        </Text>
+        {showDirector && director && (
+          <Text variant="p" className="text-xs text-gray-400 mt-1">
+            {director.name}
+          </Text>
+        )}
+      </div>
     </div>
   )
 }
