@@ -11,16 +11,16 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 }
 
-// Tipi delle chiavi supportate
-type ApiKeyType = 
-  'tmdb' | 
-  'netlify' | 
-  'supabase_service_role' | 
-  'openai' | 
-  'google_ai' |
-  'perplexity' |
-  'tinymce' |
-  'other'
+// Tipi di chiavi API supportate
+export type ApiKeyType = 
+  'tmdb' |
+  'openai' |
+  'vercel' |
+  'railway' |
+  'replit';
+
+// Piattaforme supportate
+export type Platform = 'web' | 'server' | 'vercel' | 'railway' | 'replit';
 
 // Interfaccia per la richiesta in body
 interface KeyRequest {
@@ -122,7 +122,7 @@ serve(async (req) => {
     }
 
     // Recupera la chiave richiesta in base al tipo
-    const key = getApiKey(requestData.keyType)
+    const key = getApiKey(requestData.keyType, requestData.platform as Platform)
     
     if (!key) {
       return new Response(
@@ -162,31 +162,20 @@ serve(async (req) => {
   }
 })
 
-/**
- * Recupera una chiave API in base al tipo
- * Utilizza le variabili d'ambiente impostate nella configurazione della funzione
- */
-function getApiKey(keyType: ApiKeyType): string | null {
+// Recupera la chiave API dal posto appropriato
+export function getApiKey(keyType: ApiKeyType, platform: Platform): string | null {
   switch (keyType) {
     case 'tmdb':
-      return Deno.env.get('TMDB_API_KEY') || null
-    case 'netlify': 
-      // Nota: questa chiave non è attualmente configurata
-      return null
-    case 'supabase_service_role':
-      return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || null
+      return process.env.NEXT_PUBLIC_TMDB_API_KEY || null;
     case 'openai':
-      return Deno.env.get('OPENAI_API_KEY') || null
-    case 'google_ai':  // Aggiungiamo Google AI, che è disponibile
-      return Deno.env.get('GOOGLE_AI_API_KEY') || null
-    case 'perplexity': // Aggiungiamo Perplexity, che è disponibile
-      return Deno.env.get('PERPLEXITY_API_KEY') || null
-    case 'tinymce':    // Aggiungiamo TinyMCE, che è disponibile
-      return Deno.env.get('TINYMCE_API_KEY') || null
-    case 'other':
-      // Fallback per altri tipi di chiavi
-      return null
+      return process.env.OPENAI_API_KEY || null;
+    case 'vercel':
+      return process.env.VERCEL_AUTH_TOKEN || null;
+    case 'railway':
+      return process.env.RAILWAY_TOKEN || null;
+    case 'replit':
+      return process.env.REPLIT_DB_URL || null;
     default:
-      return null
+      return null;
   }
 }

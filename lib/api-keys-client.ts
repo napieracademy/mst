@@ -8,14 +8,11 @@ import { config } from './config'
 
 // Tipi chiavi supportate
 export type ApiKeyType = 
-  'tmdb' | 
-  'netlify' | 
-  'supabase_service_role' | 
-  'openai' | 
-  'google_ai' |
-  'perplexity' |
-  'tinymce' |
-  'other'
+  'tmdb' |
+  'openai' |
+  'vercel' |
+  'railway' |
+  'replit';
 
 // Interfaccia della risposta
 interface ApiKeyResponse {
@@ -178,24 +175,15 @@ function getKeyFromEnvironment(keyType: ApiKeyType): string | null {
     case 'tmdb':
       // Nel browser usiamo solo NEXT_PUBLIC_, nel server privilagiamo le chiavi private
       return isBrowser ? process.env.NEXT_PUBLIC_TMDB_API_KEY || null : process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY || null
-    case 'netlify':
-      // API tokens dovrebbero essere solo server-side
-      return isBrowser ? null : process.env.NETLIFY_AUTH_TOKEN || null
-    case 'supabase_service_role':
-      // Chiave service role deve essere solo server-side
-      return isBrowser ? null : process.env.SUPABASE_SERVICE_ROLE_KEY || null
     case 'openai':
       // OpenAI API key deve essere solo server-side
       return isBrowser ? null : process.env.OPENAI_API_KEY || null
-    case 'google_ai':
-      return isBrowser ? null : process.env.GOOGLE_AI_API_KEY || null
-    case 'perplexity':
-      return isBrowser ? null : process.env.PERPLEXITY_API_KEY || null
-    case 'tinymce':
-      // TinyMCE può avere una chiave pubblica
-      return process.env.NEXT_PUBLIC_TINYMCE_API_KEY || process.env.TINYMCE_API_KEY || null
-    case 'other':
-      return isBrowser ? null : process.env.OTHER_API_KEY || null
+    case 'vercel':
+      return isBrowser ? null : process.env.VERCEL_AUTH_TOKEN || null
+    case 'railway':
+      return isBrowser ? null : process.env.RAILWAY_TOKEN || null
+    case 'replit':
+      return isBrowser ? null : process.env.REPLIT_DB_URL || null
     default:
       return null
   }

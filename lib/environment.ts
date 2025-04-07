@@ -3,6 +3,8 @@
  * Questo modulo fornisce funzioni per rilevare e gestire diversi ambienti di esecuzione
  */
 
+import { headers } from 'next/headers';
+
 /**
  * Rileva l'ambiente di esecuzione corrente
  */
@@ -17,9 +19,6 @@ export function detectEnvironment() {
   
   // Rileva ambiente di sviluppo locale
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  // Netlify
-  const isNetlify = Boolean(process.env.NETLIFY);
   
   // Vercel
   const isVercel = Boolean(process.env.VERCEL);
@@ -36,11 +35,10 @@ export function detectEnvironment() {
     isBuildPhase,
     isDevelopment,
     isProduction,
-    isNetlify,
     isVercel,
     isRailway,
     // Nome dell'ambiente per il logging
-    name: determineEnvironmentName({isReplit, isDevelopment, isProduction, isNetlify, isVercel, isRailway, isBuildPhase}),
+    name: determineEnvironmentName({isReplit, isDevelopment, isProduction, isVercel, isRailway, isBuildPhase}),
     // Flag per funzionalità specifiche
     features: {
       // Il servizio centralizzato API keys dovrebbe essere usato solo in produzione
@@ -62,7 +60,6 @@ function determineEnvironmentName(env: any): string {
   if (env.isBuildPhase) return 'build';
   if (env.isReplit) return 'replit';
   if (env.isDevelopment) return 'development';
-  if (env.isNetlify) return 'netlify';
   if (env.isVercel) return 'vercel';
   if (env.isRailway) return 'railway';
   if (env.isProduction) return 'production';
@@ -81,7 +78,6 @@ export function getEnvironmentInfo() {
     isDevelopment: env.isDevelopment,
     isBuildPhase: env.isBuildPhase,
     platform: env.isReplit ? 'replit' : 
-              env.isNetlify ? 'netlify' : 
               env.isVercel ? 'vercel' : 
               env.isRailway ? 'railway' : 'standard',
     features: Object.entries(env.features)
