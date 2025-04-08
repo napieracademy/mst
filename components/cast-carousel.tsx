@@ -188,7 +188,8 @@ export function CastCarousel({ cast }: CastCarouselProps) {
               >
                 <div className="relative h-24 w-24 md:h-28 md:w-28 mx-auto mb-2">
                   <div className="w-full h-full rounded-full border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                    <Link href={`/attore/${generateSlug(person.name, null, person.id)}`} className="block w-full h-full">
+                    {/* Removed nested Link, using a div instead */}
+                    <div className="block w-full h-full">
                       {person.profile_path ? (
                         <Image 
                           src={buildImageUrl(person.profile_path, 'w185') || ''} 
@@ -219,7 +220,7 @@ export function CastCarousel({ cast }: CastCarouselProps) {
                           ) : null}
                         </div>
                       )}
-                    </Link>
+                    </div>
                   </div>
                 </div>
                 <div className="text-center">
