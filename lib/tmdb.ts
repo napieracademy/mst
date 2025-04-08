@@ -583,28 +583,35 @@ export async function getPersonDetails(id: number): Promise<PersonDetails | null
 
 // Lista dei film vincitori dell'Oscar come "Miglior Film" dal 2004 al 2025
 const oscarBestPictureWinners = [
-  { title: "Oppenheimer", year: 2025, tmdb_id: 872585 },
-  { title: "Poor Things", year: 2024, tmdb_id: 792307 },
-  { title: "Everything Everywhere All at Once", year: 2023, tmdb_id: 545611 },
-  { title: "CODA", year: 2022, tmdb_id: 776503 },
-  { title: "Nomadland", year: 2021, tmdb_id: 581734 },
-  { title: "Parasite", year: 2020, tmdb_id: 496243 },
-  { title: "Green Book", year: 2019, tmdb_id: 490132 },
-  { title: "The Shape of Water", year: 2018, tmdb_id: 399055 },
-  { title: "Moonlight", year: 2017, tmdb_id: 376867 },
-  { title: "Spotlight", year: 2016, tmdb_id: 314365 },
-  { title: "Birdman", year: 2015, tmdb_id: 194662 },
-  { title: "12 Years a Slave", year: 2014, tmdb_id: 76203 },
-  { title: "Argo", year: 2013, tmdb_id: 68734 },
-  { title: "The Artist", year: 2012, tmdb_id: 74643 },
-  { title: "The King's Speech", year: 2011, tmdb_id: 45269 },
-  { title: "The Hurt Locker", year: 2010, tmdb_id: 12162 },
-  { title: "Slumdog Millionaire", year: 2009, tmdb_id: 12405 },
-  { title: "No Country for Old Men", year: 2008, tmdb_id: 6977 },
-  { title: "The Departed", year: 2007, tmdb_id: 1422 },
-  { title: "Crash", year: 2006, tmdb_id: 1640 },
-  { title: "Million Dollar Baby", year: 2005, tmdb_id: 70 },
-  { title: "The Lord of the Rings: The Return of the King", year: 2004, tmdb_id: 122 }
+  { id: 915935, title: "Anatomia di una caduta", year: 2025 },
+  { id: 872585, title: "Barbie", year: 2025 },
+  { id: 466420, title: "Killers of the Flower Moon", year: 2025 },
+  { id: 753342, title: "Maestro", year: 2025 },
+  { id: 964980, title: "Past Lives", year: 2025 },
+  { id: 956962, title: "American Fiction", year: 2025 },
+  { id: 1072790, title: "The Holdovers", year: 2025 },
+  { id: 346698, title: "Oppenheimer", year: 2025 },
+  { id: 792307, title: "Rustin", year: 2025 },
+  { id: 940721, title: "Zone of Interest", year: 2025 },
+  { id: 674324, title: "Everything Everywhere All at Once", year: 2023 },
+  { id: 805320, title: "CODA", year: 2022 },
+  { id: 581734, title: "Nomadland", year: 2021 },
+  { id: 496243, title: "Parasite", year: 2020 },
+  { id: 490132, title: "Green Book", year: 2019 },
+  { id: 399055, title: "The Shape of Water", year: 2018 },
+  { id: 313369, title: "Moonlight", year: 2017 },
+  { id: 314365, title: "Spotlight", year: 2016 },
+  { id: 194662, title: "Birdman", year: 2015 },
+  { id: 76203, title: "12 Years a Slave", year: 2014 },
+  { id: 68734, title: "Argo", year: 2013 },
+  { id: 74643, title: "The Artist", year: 2012 },
+  { id: 44686, title: "The King's Speech", year: 2011 },
+  { id: 12405, title: "The Hurt Locker", year: 2010 },
+  { id: 12162, title: "Slumdog Millionaire", year: 2009 },
+  { id: 6977, title: "No Country for Old Men", year: 2008 },
+  { id: 1422, title: "The Departed", year: 2007 },
+  { id: 70, title: "Million Dollar Baby", year: 2005 },
+  { id: 1640, title: "The Lord of the Rings: The Return of the King", year: 2004 }
 ];
 
 // Ottieni i film vincitori dell'Oscar come "Miglior Film"
@@ -616,7 +623,7 @@ export async function getOscarBestPictureWinners(): Promise<Movie[]> {
     const moviesWithDetails = await Promise.all(
       oscarBestPictureWinners.map(async (winner) => {
         try {
-          const details = await fetchFromTMDB(`/movie/${winner.tmdb_id}`, {
+          const details = await fetchFromTMDB(`/movie/${winner.id}`, {
             append_to_response: "external_ids"
           });
           

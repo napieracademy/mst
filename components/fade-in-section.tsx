@@ -50,7 +50,7 @@ export function FadeInSection({
   return (
     <div
       ref={sectionRef}
-      className={`transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'} ${className}`}
+      className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'} ${className}`}
     >
       {children}
     </div>
