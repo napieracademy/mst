@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -35,7 +34,7 @@ export function SimilarMoviesUnified({
         {movies.map((movie) => (
           <div key={movie.id} className="flex flex-col">
             <ContentLink 
-              href={`/movie/${movie.id}`} 
+              href={`/film/${movie.id}`} 
               className="block rounded-lg overflow-hidden hover:scale-105 transition-transform"
             >
               <MovieImage 

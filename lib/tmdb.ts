@@ -256,10 +256,10 @@ export async function searchMovies(query: string): Promise<Movie[]> {
 }
 
 // Funzione per recuperare i credits con nomi internazionali
-async function getMovieCreditsEnglish(movieId: number) {
+async function getCreditsEnglish(id: number, type: "movie" | "tv") {
   try {
     // Prima recuperiamo i credits in inglese per avere i nomi internazionali
-    const englishData = await fetchFromTMDB(`/movie/${movieId}/credits`, {}, "en-US")
+    const englishData = await fetchFromTMDB(`/${type}/${id}/credits`, {}, "en-US")
     
     // Creiamo una mappa dei nomi internazionali
     const internationalNames = new Map()
@@ -271,7 +271,7 @@ async function getMovieCreditsEnglish(movieId: number) {
     })
 
     // Ora recuperiamo i credits in italiano per avere il resto delle informazioni localizzate
-    const italianData = await fetchFromTMDB(`/movie/${movieId}/credits`, {}, "it-IT")
+    const italianData = await fetchFromTMDB(`/${type}/${id}/credits`, {}, "it-IT")
 
     // Sostituiamo i nomi con quelli internazionali
     if (italianData.cast) {
@@ -290,7 +290,7 @@ async function getMovieCreditsEnglish(movieId: number) {
 
     return italianData
   } catch (error) {
-    console.error(`Error fetching credits for movie ${movieId}:`, error)
+    console.error(`Error fetching credits for ${type} ${id}:`, error)
     return null
   }
 }
@@ -440,7 +440,7 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
       }
       
       // Recupera i credits in inglese
-      const englishCredits = await getMovieCreditsEnglish(parseInt(id, 10))
+      const englishCredits = await getCreditsEnglish(parseInt(id, 10), type)
       
       // Se abbiamo i credits in inglese, sostituiscili
       if (englishCredits) {

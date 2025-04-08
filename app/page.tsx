@@ -62,6 +62,10 @@ export default async function Home() {
       {/* Header */}
       <Header />
 
+      {/* ElevenLabs Convai Widget */}
+      <elevenlabs-convai agent-id="dCfvKtT4U4EWOG64KSkG"></elevenlabs-convai>
+      <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+
       {/* Hero Section */}
       <section className="relative h-[50vh] md:h-[90vh]">
         {/* Immagine di background casuale dai film "Ora al Cinema" */}
