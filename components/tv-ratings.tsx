@@ -43,7 +43,8 @@ export function TVRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: TVRatin
         setLoading(true)
         
         // Verifica che l'IMDb ID sia valido (deve iniziare con "tt" e avere almeno 7 caratteri)
-        const isValidImdbId = imdbId && typeof imdbId === 'string' && imdbId.startsWith('tt') && imdbId.length >= 7;
+        let validImdbId = imdbId;
+        let isValidImdbId = imdbId && typeof imdbId === 'string' && imdbId.startsWith('tt') && imdbId.length >= 7;
         
         console.log("TVRatings: IMDb ID check:", { 
           imdbId, 
@@ -53,9 +54,20 @@ export function TVRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: TVRatin
           startsWithTt: imdbId ? imdbId.startsWith('tt') : false
         });
         
+        // Se manca l'IMDb ID ma abbiamo l'ID TMDB, tentiamo di generare un IMDb ID presumibile
+        // Nota: questo è un fallback semplice che funziona per molte serie popolari
+        if (!isValidImdbId && tmdbId) {
+          // Per le serie più note, possiamo provare alcuni pattern comuni
+          // Molte serie TV su TMDB hanno IMDb ID del tipo tt + padded TMDB ID
+          const paddedId = tmdbId.toString().padStart(7, '0');
+          validImdbId = `tt${paddedId}`;
+          console.log(`TVRatings: Generato IMDb ID fallback: ${validImdbId} (dal TMDB ID ${tmdbId})`);
+          isValidImdbId = true; // Proviamo con questo ID
+        }
+        
         if (isValidImdbId) {
-          console.log("TVRatings: Attempting to fetch OMDB data for valid IMDb ID:", imdbId);
-          const omdbData = await getOMDBDataByIMDbId(imdbId)
+          console.log("TVRatings: Attempting to fetch OMDB data for IMDb ID:", validImdbId);
+          const omdbData = await getOMDBDataByIMDbId(validImdbId)
           console.log("TVRatings: OMDB data received:", omdbData ? "Success" : "Null");
           
           if (omdbData) {

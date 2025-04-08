@@ -85,17 +85,26 @@ function normalizeRating(value: string): number {
 export async function getOMDBDataByIMDbId(imdbId: string): Promise<OMDBData | null> {
   // Se OMDB API è disabilitato, restituisci null
   if (!config.enableOMDBApi) {
+    console.log('OMDB API è disabilitato nelle impostazioni');
     return null
   }
   
   try {
-    // Utilizziamo direttamente la chiave API hardcoded
+    // Otteniamo la chiave API dalle variabili d'ambiente o usiamo il fallback
     const apiKey = OMDB_API_KEY
     
     if (!apiKey) {
-      console.error('OMDB API key non disponibile')
-      throw new OMDBError('OMDB API key non disponibile', 401)
+      console.error('OMDB API key non disponibile');
+      throw new OMDBError('OMDB API key non disponibile', 401);
     }
+    
+    // Log della configurazione (per debug)
+    console.log('OMDB API config:', {
+      apiKeyAvailable: !!apiKey,
+      apiKeyLength: apiKey.length,
+      enableOMDBApi: config.enableOMDBApi,
+      environment: process.env.NODE_ENV || 'unknown'
+    });
     
     // Verifica che l'IMDb ID sia valido
     if (!imdbId || typeof imdbId !== 'string' || !imdbId.startsWith('tt') || imdbId.length < 7) {
@@ -109,33 +118,88 @@ export async function getOMDBDataByIMDbId(imdbId: string): Promise<OMDBData | nu
     const safeUrl = `${OMDB_API_URL}?i=${imdbId}&apikey=***${apiKey.slice(-4)}`
     console.log(`DEBUG-OMDB: Requesting URL ${safeUrl}`)
     
-    // Effettua la richiesta
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    })
+    // Implementazione con retry automatico
+    const maxRetries = 2;
+    let attempt = 0;
+    let lastError: Error | null = null;
     
-    // Verifica se la risposta è ok
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null)
-      const errorMessage = errorData?.Error || `Error ${response.status}`
-      throw new OMDBError(errorMessage, response.status)
+    while (attempt <= maxRetries) {
+      try {
+        attempt++;
+        if (attempt > 1) {
+          console.log(`Tentativo ${attempt}/${maxRetries + 1} per IMDb ID ${imdbId}...`);
+        }
+        
+        // Effettua la richiesta
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // Evita l'uso della cache per ogni nuovo tentativo
+          cache: attempt === 1 ? 'default' : 'no-cache'
+        });
+        
+        console.log(`OMDB API response status: ${response.status}`);
+        
+        // Verifica se la risposta è ok
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          const errorMessage = errorData?.Error || `Error ${response.status}`;
+          throw new OMDBError(errorMessage, response.status);
+        }
+        
+        // Estrai i dati dalla risposta
+        const data = await response.json();
+        
+        // Verifica se la risposta contiene un errore
+        if (data.Response === 'False') {
+          if (data.Error === 'Error getting data.') {
+            return null; // Media non trovato
+          }
+          throw new OMDBError(data.Error || 'Error getting data');
+        }
+        
+        // Se arriviamo qui, il recupero è riuscito
+        return processOMDBResponse(data, imdbId);
+        
+      } catch (e) {
+        lastError = e instanceof Error ? e : new Error(String(e));
+        
+        if (attempt <= maxRetries) {
+          // Attesa prima del prossimo tentativo (backoff esponenziale)
+          const waitTime = Math.min(500 * Math.pow(2, attempt - 1), 2000);
+          console.log(`Attesa di ${waitTime}ms prima del tentativo successivo...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
     }
     
-    // Estrai i dati dalla risposta
-    const data = await response.json()
-    
-    // Verifica se la risposta contiene un errore
-    if (data.Response === 'False') {
-      if (data.Error === 'Error getting data.') {
-        return null // Media non trovato
-      }
-      throw new OMDBError(data.Error || 'Error getting data')
+    // Se arriviamo qui, tutti i tentativi sono falliti
+    console.error(`Tutti i ${maxRetries + 1} tentativi falliti per IMDb ID ${imdbId}:`, lastError);
+    throw lastError;
+  } catch (error) {
+    // Gestisci l'errore
+    if (error instanceof OMDBError) {
+      throw error
+    } else {
+      console.error('Error calling OMDB API:', error)
+      throw new OMDBError(
+        error instanceof Error ? error.message : 'Errore sconosciuto'
+      )
     }
-    
+  }
+}
+
+/**
+ * Funzione per processare la risposta da OMDB e formattarla per l'uso interno
+ * @param data Dati grezzi dalla risposta OMDB
+ * @param imdbId L'ID IMDb del media
+ * @returns I dati OMDB formattati
+ */
+function processOMDBResponse(data: any, imdbId: string): OMDBData {
+  try {
     // Normalizza e formatta i dati di rating esterni
     const ratings: ExternalRatings[] = (data.Ratings || []).map((rating: any) => {
       const source = rating.Source
@@ -191,13 +255,21 @@ export async function searchOMDB(
   }
   
   try {
-    // Utilizziamo direttamente la chiave API hardcoded
+    // Otteniamo la chiave API dalle variabili d'ambiente o usiamo il fallback
     const apiKey = OMDB_API_KEY
     
     if (!apiKey) {
       console.error('OMDB API key non disponibile')
       throw new OMDBError('OMDB API key non disponibile', 401)
     }
+    
+    // Log della configurazione (per debug)
+    console.log('OMDB Search API config:', {
+      apiKeyAvailable: !!apiKey,
+      apiKeyLength: apiKey.length,
+      enableOMDBApi: config.enableOMDBApi,
+      environment: process.env.NODE_ENV || 'unknown'
+    });
     
     // Prepara i parametri di ricerca
     const params = new URLSearchParams({

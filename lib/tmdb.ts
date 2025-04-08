@@ -212,8 +212,15 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
   try {
     // Ottieni i dettagli base in italiano
     const baseData = await fetchFromTMDB(`/${type}/${id}`, {
-      append_to_response: "videos,recommendations,similar",
+      append_to_response: "videos,recommendations,similar,external_ids",
     }, "it-IT");
+    
+    // Log specifico per external_ids (utile per debug)
+    console.log(`TMDB ${type} ${id} external_ids:`, {
+      hasExternalIds: !!baseData.external_ids,
+      imdbId: baseData.external_ids?.imdb_id || 'non disponibile',
+      keys: baseData.external_ids ? Object.keys(baseData.external_ids) : []
+    });
     
     console.log(`Dati simili per ${type} ${id}:`, {
       hasSimilar: !!baseData.similar,

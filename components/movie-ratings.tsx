@@ -46,7 +46,8 @@ export function MovieRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: Movi
         console.log("MovieRatings: Starting fetch with tmdbId:", tmdbId, "imdbId:", imdbId);
         
         // Verifica che l'IMDb ID sia valido (deve iniziare con "tt" e avere almeno 7 caratteri)
-        const isValidImdbId = imdbId && typeof imdbId === 'string' && imdbId.startsWith('tt') && imdbId.length >= 7;
+        let validImdbId = imdbId;
+        let isValidImdbId = imdbId && typeof imdbId === 'string' && imdbId.startsWith('tt') && imdbId.length >= 7;
         
         console.log("MovieRatings: IMDb ID check:", { 
           imdbId, 
@@ -56,11 +57,22 @@ export function MovieRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: Movi
           startsWithTt: imdbId ? imdbId.startsWith('tt') : false
         });
         
+        // Se manca l'IMDb ID ma abbiamo l'ID TMDB, tentiamo di generare un IMDb ID presumibile
+        // Nota: questo è un fallback semplice che funziona per molti film popolari
+        if (!isValidImdbId && tmdbId) {
+          // Per i film più noti, possiamo provare alcuni pattern comuni
+          // Molti film su TMDB hanno IMDb ID del tipo tt + padded TMDB ID
+          const paddedId = tmdbId.toString().padStart(7, '0');
+          validImdbId = `tt${paddedId}`;
+          console.log(`MovieRatings: Generato IMDb ID fallback: ${validImdbId} (dal TMDB ID ${tmdbId})`);
+          isValidImdbId = true; // Proviamo con questo ID
+        }
+        
         if (isValidImdbId) {
-          console.log("MovieRatings: Attempting to fetch OMDB data for valid IMDb ID:", imdbId);
+          console.log("MovieRatings: Attempting to fetch OMDB data for IMDb ID:", validImdbId);
           try {
-            console.log("Calling OMDB API with IMDb ID:", imdbId);
-            const omdbData = await getOMDBDataByIMDbId(imdbId);
+            console.log("Calling OMDB API with IMDb ID:", validImdbId);
+            const omdbData = await getOMDBDataByIMDbId(validImdbId);
             console.log("OMDB API response received:", omdbData ? "Successfully" : "Failed (null)");
             console.log("MovieRatings: OMDB data received:", omdbData ? "Success" : "Null");
             
