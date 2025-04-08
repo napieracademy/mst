@@ -28,10 +28,10 @@ interface RatingsData {
 
 // Costanti per i loghi ufficiali da Wikipedia
 const RATING_LOGOS = {
-  imdb: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/IMDB_Logo_2016.svg/575px-IMDB_Logo_2016.svg.png",
-  rottenTomatoes: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Rotten_Tomatoes.svg/2019px-Rotten_Tomatoes.svg.png",
-  metacritic: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Metacritic.svg/2048px-Metacritic.svg.png",
-  tmdb: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Tmdb.new.logo.svg/2000px-Tmdb.new.logo.svg.png"
+  imdb: "https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",
+  rottenTomatoes: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Rotten_Tomatoes.svg",
+  metacritic: "https://upload.wikimedia.org/wikipedia/commons/2/20/Metacritic.svg",
+  tmdb: "https://upload.wikimedia.org/wikipedia/commons/8/89/Tmdb.new.logo.svg"
 }
 
 export function MovieRatingsHero({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: MovieRatingsHeroProps) {
@@ -103,68 +103,58 @@ export function MovieRatingsHero({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: 
     <div className="flex flex-wrap items-center gap-6 text-sm mt-4">
       {/* IMDb */}
       {ratings.imdb && (
-        <div className="flex items-center gap-2">
-          <div className="relative w-16 h-8">
-            <Image
-              src={RATING_LOGOS.imdb}
-              alt="IMDb"
-              fill
-              className="object-contain brightness-200"
-              sizes="64px"
-              priority
-            />
-          </div>
+        <div className="flex items-center gap-6">
+          <Image
+            src={RATING_LOGOS.imdb}
+            alt="IMDb"
+            width={45}
+            height={22}
+            className="brightness-200"
+            priority
+          />
           <span className="text-white font-medium">{ratings.imdb.rating}/10</span>
         </div>
       )}
       
       {/* Rotten Tomatoes */}
       {ratings.rottenTomatoes && (
-        <div className="flex items-center gap-2">
-          <div className="relative w-8 h-8">
-            <Image
-              src={RATING_LOGOS.rottenTomatoes}
-              alt="Rotten Tomatoes"
-              fill
-              className="object-contain"
-              sizes="32px"
-              priority
-            />
-          </div>
+        <div className="flex items-center gap-6">
+          <Image
+            src={RATING_LOGOS.rottenTomatoes}
+            alt="Rotten Tomatoes"
+            width={22}
+            height={22}
+            priority
+          />
           <span className="text-white font-medium">{ratings.rottenTomatoes.rating}%</span>
         </div>
       )}
       
       {/* Metascore */}
       {ratings.metascore && (
-        <div className="flex items-center gap-2">
-          <div className="relative w-8 h-8">
-            <Image
-              src={RATING_LOGOS.metacritic}
-              alt="Metacritic"
-              fill
-              className="object-contain"
-              sizes="32px"
-              priority
-            />
-          </div>
+        <div className="flex items-center gap-6">
+          <Image
+            src={RATING_LOGOS.metacritic}
+            alt="Metacritic"
+            width={22}
+            height={22}
+            priority
+          />
           <span className="text-white font-medium">{ratings.metascore}/100</span>
         </div>
       )}
 
       {/* TMDB */}
       {ratings.tmdb && (
-        <div className="flex items-center gap-2">
-          <div className="relative w-8 h-8">
-            <Image
-              src={RATING_LOGOS.tmdb}
-              alt="TMDB"
-              fill
-              className="object-contain brightness-200"
-              sizes="32px"
-              priority
-            />
-          </div>
+        <div className="flex items-center gap-6">
+          <Image
+            src={RATING_LOGOS.tmdb}
+            alt="TMDB"
+            width={22}
+            height={22}
+            className="brightness-200"
+            priority
+          />
           <span className="text-white font-medium">{ratings.tmdb.rating.toFixed(1)}/10</span>
         </div>
       )}

@@ -3,50 +3,59 @@ import { Footer } from "@/components/footer"
 import { SearchBar } from "@/components/search-bar"
 import { MovieSection } from "@/components/movie-section"
 import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
+import { Hero } from "@/components/hero"
 import {
   getTrendingMovies,
   getPopularMovies,
   getTopRatedMovies,
   getUpcomingMovies,
   getPopularTVShows,
+  getNowPlayingMovies,
+  getOscarBestPictureWinners
 } from "@/lib/tmdb"
 import Image from "next/image"
 import type { Movie } from "@/lib/types"
+import { Suspense } from "react"
 
 // Disabilitiamo il caching per garantire un film diverso ad ogni refresh
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 3600;
 
 export default async function Home() {
   // Recupera i dati in parallelo con gestione degli errori
-  let nowPlayingMovies: Movie[] = []
-  let popularMovies: Movie[] = []
-  let topRatedMovies: Movie[] = []
-  let upcomingMovies: Movie[] = []
-  let popularTVShows: Movie[] = []
-
-  try {
-    // Utilizziamo Promise.allSettled per gestire meglio gli errori
-    const results = await Promise.allSettled([
-      getUpcomingMovies(),
-      getPopularMovies(),
-      getTopRatedMovies(),
-      getTrendingMovies(),
-      getPopularTVShows(),
-    ])
-
-    // Fix: Use a temporary array and then assign individual values
-    const processedResults = results.map((result) => (result.status === "fulfilled" ? result.value : []))
-
-    upcomingMovies = processedResults[0]
-    popularMovies = processedResults[1]
-    topRatedMovies = processedResults[2]
-    nowPlayingMovies = processedResults[3]
-    popularTVShows = processedResults[4]
-  } catch (error) {
-    console.error("Error fetching movie data:", error)
-    // Non facciamo nulla qui, useremo gli array vuoti inizializzati sopra
-  }
+  const [
+    trendingMovies,
+    popularMovies,
+    topRatedMovies,
+    upcomingMovies,
+    popularTVShows,
+    oscarWinners
+  ] = await Promise.all([
+    getTrendingMovies().catch(error => {
+      console.error("Errore nel recupero dei film di tendenza:", error);
+      return [];
+    }),
+    getPopularMovies().catch(error => {
+      console.error("Errore nel recupero dei film popolari:", error);
+      return [];
+    }),
+    getTopRatedMovies().catch(error => {
+      console.error("Errore nel recupero dei film più votati:", error);
+      return [];
+    }),
+    getUpcomingMovies().catch(error => {
+      console.error("Errore nel recupero dei film in uscita:", error);
+      return [];
+    }),
+    getPopularTVShows().catch(error => {
+      console.error("Errore nel recupero delle serie TV popolari:", error);
+      return [];
+    }),
+    getOscarBestPictureWinners().catch(error => {
+      console.error("Errore nel recupero dei film premiati agli Oscar:", error);
+      return [];
+    })
+  ]);
 
   return (
     <main className="min-h-screen bg-black text-white z-[50]">
@@ -109,8 +118,8 @@ export default async function Home() {
 
         {/* Film Premiati */}
         <MovieSectionInterattivo 
-          title="Film Premiati" 
-          movies={popularMovies.slice(0, 20)} 
+          title="Oscar Miglior Film (2004-2024)" 
+          movies={oscarWinners} 
           showDirector={true} 
         />
 

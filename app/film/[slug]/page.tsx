@@ -65,8 +65,10 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const slug = params.slug;
+  // Attendi che i parametri siano disponibili
+  const slug = await Promise.resolve(params.slug);
   const id = extractIdFromSlug(slug);
+  
   if (!id) {
     return {
       title: 'Film non trovato',
@@ -98,8 +100,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function FilmPage({ params }: { params: { slug: string } }) {
+  // Attendi che i parametri siano disponibili
+  const slug = await Promise.resolve(params.slug);
+  
   // Traccia la visita alla pagina (non bloccante)
-  const slug = params.slug;
   trackGeneratedPage(slug, 'film', false).catch(() => {
     // Non blocca il rendering in caso di errore
     console.debug(`Errore tracciamento per ${slug} (non bloccante)`);

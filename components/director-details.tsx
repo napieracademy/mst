@@ -19,6 +19,9 @@ interface Credit {
   job?: string
   media_type: "movie" | "tv"
   role?: "acting" | "directing" | "both"
+  episode_count?: number
+  department?: string
+  category?: string
 }
 
 interface DirectorDetailsProps {
@@ -51,7 +54,18 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
   // Aggiungi i film dove ha lavorato come regista
   if (director.combined_credits?.crew) {
     director.combined_credits.crew
-      .filter(credit => credit.job === "Director")
+      .filter(credit => {
+        // Verifica se è un regista
+        const isDirector = credit.job === "Director";
+        
+        // Escludiamo episodi TV singoli o progetti minori
+        const isMinorProject = 
+          (credit.media_type === 'tv' && credit.episode_count === 1) ||
+          credit.department === 'Second Unit Director' ||
+          credit.job?.toLowerCase().includes('assistant');
+        
+        return isDirector && !isMinorProject;
+      })
       .forEach(credit => {
         credits.push({
           ...credit,
@@ -60,11 +74,30 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
       })
   }
 
-  // Aggiungi i film dove ha recitato
+  // Aggiungi i film dove ha recitato (solo ruoli significativi)
   if (director.combined_credits?.cast) {
-    // Filtra solo i ruoli di attore
     director.combined_credits.cast
-      .filter(credit => credit.character || credit.job === "Actor")
+      .filter(credit => {
+        // Escludiamo apparizioni come "Self" in qualsiasi media
+        const isSelf = 
+          credit.character === 'Self' || 
+          credit.character?.toLowerCase().includes('self') ||
+          credit.character?.toLowerCase().includes('himself') ||
+          credit.character?.toLowerCase().includes('herself');
+        
+        // Escludiamo guest appearances e cameo
+        const isMinorRole = 
+          credit.character?.toLowerCase().includes('uncredited') ||
+          credit.character?.toLowerCase().includes('cameo') ||
+          credit.category === 'guest_star';
+        
+        // Escludiamo apparizioni minori in serie TV
+        const isMinorTVAppearance = 
+          credit.media_type === 'tv' && 
+          (credit.episode_count === 1 || credit.episode_count === undefined);
+        
+        return !isSelf && !isMinorRole && !isMinorTVAppearance;
+      })
       .forEach(credit => {
         // Verifica se è già presente come regista
         const existingCredit = credits.find(c => 

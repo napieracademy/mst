@@ -144,14 +144,64 @@ export async function getTrendingMovies(): Promise<Movie[]> {
 
 // Ottieni i film popolari
 export async function getPopularMovies(): Promise<Movie[]> {
-  const data = await fetchFromTMDB("/movie/popular")
-  return data?.results || []
+  try {
+    console.log("Fetching popular movies...");
+    const data = await fetchFromTMDB("/movie/popular");
+    const movies = data?.results || [];
+
+    // Recupera i dettagli completi per ogni film in parallelo
+    const moviesWithDetails = await Promise.all(
+      movies.map(async (movie: any) => {
+        try {
+          const details = await fetchFromTMDB(`/movie/${movie.id}`);
+          return {
+            ...movie,
+            imdb_id: details.imdb_id
+          };
+        } catch (error) {
+          console.error(`Error fetching details for movie ${movie.id}:`, error);
+          return movie;
+        }
+      })
+    );
+
+    console.log(`Got ${moviesWithDetails.length} movies with IMDB IDs`);
+    return moviesWithDetails;
+  } catch (error) {
+    console.error("Error in getPopularMovies:", error);
+    return [];
+  }
 }
 
 // Ottieni i film con le migliori recensioni
 export async function getTopRatedMovies(): Promise<Movie[]> {
-  const data = await fetchFromTMDB("/movie/top_rated")
-  return data?.results || []
+  try {
+    console.log("Fetching top rated movies...");
+    const data = await fetchFromTMDB("/movie/top_rated");
+    const movies = data?.results || [];
+
+    // Recupera i dettagli completi per ogni film in parallelo
+    const moviesWithDetails = await Promise.all(
+      movies.map(async (movie: any) => {
+        try {
+          const details = await fetchFromTMDB(`/movie/${movie.id}`);
+          return {
+            ...movie,
+            imdb_id: details.imdb_id
+          };
+        } catch (error) {
+          console.error(`Error fetching details for movie ${movie.id}:`, error);
+          return movie;
+        }
+      })
+    );
+
+    console.log(`Got ${moviesWithDetails.length} movies with IMDB IDs`);
+    return moviesWithDetails;
+  } catch (error) {
+    console.error("Error in getTopRatedMovies:", error);
+    return [];
+  }
 }
 
 // Ottieni i film in uscita
@@ -203,6 +253,83 @@ export async function searchMovies(query: string): Promise<Movie[]> {
       };
     }
   });
+}
+
+// Funzione per recuperare i credits con nomi internazionali
+async function getMovieCreditsEnglish(movieId: number) {
+  try {
+    // Prima recuperiamo i credits in inglese per avere i nomi internazionali
+    const englishData = await fetchFromTMDB(`/movie/${movieId}/credits`, {}, "en-US")
+    
+    // Creiamo una mappa dei nomi internazionali
+    const internationalNames = new Map()
+    englishData.cast?.forEach((person: any) => {
+      internationalNames.set(person.id, person.name)
+    })
+    englishData.crew?.forEach((person: any) => {
+      internationalNames.set(person.id, person.name)
+    })
+
+    // Ora recuperiamo i credits in italiano per avere il resto delle informazioni localizzate
+    const italianData = await fetchFromTMDB(`/movie/${movieId}/credits`, {}, "it-IT")
+
+    // Sostituiamo i nomi con quelli internazionali
+    if (italianData.cast) {
+      italianData.cast = italianData.cast.map((person: any) => ({
+        ...person,
+        name: internationalNames.get(person.id) || person.name
+      }))
+    }
+
+    if (italianData.crew) {
+      italianData.crew = italianData.crew.map((person: any) => ({
+        ...person,
+        name: internationalNames.get(person.id) || person.name
+      }))
+    }
+
+    return italianData
+  } catch (error) {
+    console.error(`Error fetching credits for movie ${movieId}:`, error)
+    return null
+  }
+}
+
+// Funzione per calcolare il punteggio di un credit
+function calculateCreditScore(credit: any) {
+  let score = 0;
+  
+  // Base: popolarità e voto
+  score += (credit.popularity || 0) * 0.3;  // 30% popolarità
+  score += (credit.vote_average || 0) * 0.2; // 20% voto medio
+  score += (credit.vote_count || 0) * 0.1;   // 10% numero di voti
+  
+  // Bonus per ruolo
+  if (credit.job === "Director") {
+    score *= 2.0; // Bonus del 100% per registi
+  } else if (credit.order !== undefined && credit.order < 10) {
+    score *= 1.5; // Bonus del 50% per ruoli principali nel cast
+  }
+  
+  // Bonus per film vs TV
+  score *= credit.media_type === 'movie' ? 1.5 : 1; // 50% bonus per film
+  
+  // Bonus per ruoli recenti
+  const releaseDate = credit.release_date || credit.first_air_date;
+  if (releaseDate) {
+    const yearsSinceRelease = new Date().getFullYear() - new Date(releaseDate).getFullYear();
+    if (yearsSinceRelease <= 10) {
+      score *= 1 + ((10 - yearsSinceRelease) * 0.05);
+    }
+  }
+
+  // Penalità per apparizioni minori
+  if (credit.character?.toLowerCase().includes('uncredited') || 
+      credit.character?.toLowerCase().includes('cameo')) {
+    score *= 0.5;
+  }
+
+  return score;
 }
 
 // Ottieni dettagli di un film o serie TV
@@ -312,6 +439,14 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
         });
       }
       
+      // Recupera i credits in inglese
+      const englishCredits = await getMovieCreditsEnglish(parseInt(id, 10))
+      
+      // Se abbiamo i credits in inglese, sostituiscili
+      if (englishCredits) {
+        data.credits = englishCredits
+      }
+
       return data as Movie
     }
 
@@ -503,31 +638,13 @@ export async function getPersonDetails(id: string): Promise<any | null> {
           return shouldInclude;
         });
 
-      // Ordina i crediti per punteggio
-      const scoredCredits = relevantCredits.map(credit => {
-        let score = 0;
-        
-        // Base: popolarità e voto
-        score += (credit.popularity || 0) * 0.3;  // 30% popolarità
-        score += (credit.vote_average || 0) * 0.2; // 20% voto medio
-        score += (credit.vote_count || 0) * 0.1;   // 10% numero di voti
-        
-        // Bonus per film vs TV
-        score *= credit.media_type === 'movie' ? 1.5 : 1; // 50% bonus per film
-        
-        // Bonus per ruoli recenti
-        const releaseDate = credit.release_date || credit.first_air_date;
-        if (releaseDate) {
-          const yearsSinceRelease = new Date().getFullYear() - new Date(releaseDate).getFullYear();
-          if (yearsSinceRelease <= 10) {
-            score *= 1 + ((10 - yearsSinceRelease) * 0.05);
-          }
-        }
+      // Nella funzione getPersonDetails, sostituisci il blocco di scoring esistente con:
+      const scoredCredits = relevantCredits.map(credit => ({
+        ...credit,
+        score: calculateCreditScore(credit)
+      }));
 
-        return { ...credit, score };
-      });
-
-      // Ordina per punteggio e prendi i primi 12 invece di 5
+      // Ordina per punteggio e prendi i primi 12
       const sortedCredits = scoredCredits
         .sort((a, b) => b.score - a.score)
         .slice(0, 12);
@@ -599,5 +716,68 @@ export async function getPersonDetails(id: string): Promise<any | null> {
   } catch (error) {
     console.error("Error fetching person details:", error)
     throw error // Rilancia l'errore
+  }
+}
+
+// Lista dei film vincitori dell'Oscar come "Miglior Film" dal 2004 al 2025
+const oscarBestPictureWinners = [
+  { title: "Poor Things", year: 2025, tmdb_id: 792307 },
+  { title: "Oppenheimer", year: 2024, tmdb_id: 872585 },
+  { title: "Everything Everywhere All at Once", year: 2023, tmdb_id: 545611 },
+  { title: "CODA", year: 2022, tmdb_id: 776503 },
+  { title: "Nomadland", year: 2021, tmdb_id: 581734 },
+  { title: "Parasite", year: 2020, tmdb_id: 496243 },
+  { title: "Green Book", year: 2019, tmdb_id: 490132 },
+  { title: "The Shape of Water", year: 2018, tmdb_id: 399055 },
+  { title: "Moonlight", year: 2017, tmdb_id: 376867 },
+  { title: "Spotlight", year: 2016, tmdb_id: 314365 },
+  { title: "Birdman", year: 2015, tmdb_id: 194662 },
+  { title: "12 Years a Slave", year: 2014, tmdb_id: 76203 },
+  { title: "Argo", year: 2013, tmdb_id: 68734 },
+  { title: "The Artist", year: 2012, tmdb_id: 74643 },
+  { title: "The King's Speech", year: 2011, tmdb_id: 45269 },
+  { title: "The Hurt Locker", year: 2010, tmdb_id: 12162 },
+  { title: "Slumdog Millionaire", year: 2009, tmdb_id: 12405 },
+  { title: "No Country for Old Men", year: 2008, tmdb_id: 6977 },
+  { title: "The Departed", year: 2007, tmdb_id: 1422 },
+  { title: "Crash", year: 2006, tmdb_id: 1640 },
+  { title: "Million Dollar Baby", year: 2005, tmdb_id: 70 },
+  { title: "The Lord of the Rings: The Return of the King", year: 2004, tmdb_id: 122 }
+];
+
+// Ottieni i film vincitori dell'Oscar come "Miglior Film"
+export async function getOscarBestPictureWinners(): Promise<Movie[]> {
+  try {
+    console.log("Fetching Oscar Best Picture winners...");
+    
+    // Recupera i dettagli di ogni film in parallelo
+    const moviesWithDetails = await Promise.all(
+      oscarBestPictureWinners.map(async (winner) => {
+        try {
+          const details = await fetchFromTMDB(`/movie/${winner.tmdb_id}`, {
+            append_to_response: "external_ids"
+          });
+          
+          return {
+            ...details,
+            oscar_win_year: winner.year
+          };
+        } catch (error) {
+          console.error(`Error fetching details for movie ${winner.title}:`, error);
+          return null;
+        }
+      })
+    );
+
+    // Filtra eventuali errori e ordina per anno di vittoria (più recente prima)
+    const validMovies = moviesWithDetails
+      .filter((movie): movie is Movie => movie !== null)
+      .sort((a, b) => (b.oscar_win_year || 0) - (a.oscar_win_year || 0));
+
+    console.log(`Got ${validMovies.length} Oscar Best Picture winners`);
+    return validMovies;
+  } catch (error) {
+    console.error("Error in getOscarBestPictureWinners:", error);
+    return [];
   }
 }

@@ -20,6 +20,7 @@ interface PersonDetails {
   images?: {
     profiles?: Array<{ file_path: string }>
   }
+  deathday?: string | null
 }
 
 // Interfaccia per le props del componente
@@ -62,15 +63,15 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
   };
 
   // Calcola l'età
-  const calculateAge = (birthday: string | null) => {
+  const calculateAge = (birthday: string | null, deathday: string | null) => {
     if (!birthday) return null;
     
     const birthDate = new Date(birthday);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const endDate = deathday ? new Date(deathday) : new Date();
+    let age = endDate.getFullYear() - birthDate.getFullYear();
+    const monthDiff = endDate.getMonth() - birthDate.getMonth();
     
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
       age--;
     }
     
@@ -198,6 +199,23 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
               {director.name.charAt(0)}
             </div>
           )}
+          
+          {/* Age/Death Indicator - Mostrato sempre */}
+          <div 
+            className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border border-gray-700 ${
+              directorDetails?.deathday ? 'text-red-400' : 'text-white'
+            }`}
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : directorDetails?.deathday ? (
+              '✝'
+            ) : directorDetails?.birthday ? (
+              calculateAge(directorDetails?.birthday || null, directorDetails?.deathday || null)
+            ) : (
+              '?'
+            )}
+          </div>
         </Link>
       </div>
       <div>
@@ -236,8 +254,8 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
               {directorDetails.birthday && (
                 <p className="text-center text-gray-300">
                   {formatDate(directorDetails.birthday)}
-                  {calculateAge(directorDetails.birthday) && (
-                    <span> ({calculateAge(directorDetails.birthday)} anni)</span>
+                  {calculateAge(directorDetails.birthday || null, directorDetails.deathday || null) && (
+                    <span> ({calculateAge(directorDetails.birthday || null, directorDetails.deathday || null)} anni)</span>
                   )}
                 </p>
               )}

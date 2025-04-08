@@ -83,187 +83,61 @@ function normalizeRating(value: string): number {
  * @returns I dati OMDB inclusi rating IMDb e altri rating esterni
  */
 export async function getOMDBDataByIMDbId(imdbId: string): Promise<OMDBData | null> {
-  // Se OMDB API è disabilitato, restituisci null
   if (!config.enableOMDBApi) {
     console.log('OMDB API è disabilitato nelle impostazioni');
-    return null
+    return null;
   }
-  
+
   try {
-    // Otteniamo la chiave API dalle variabili d'ambiente o usiamo il fallback
-    const apiKey = OMDB_API_KEY
+    const apiKey = OMDB_API_KEY;
     
     if (!apiKey) {
       console.error('OMDB API key non disponibile');
-      throw new OMDBError('OMDB API key non disponibile', 401);
+      return null;
     }
-    
-    // Log della configurazione (per debug)
-    console.log('OMDB API config:', {
-      apiKeyAvailable: !!apiKey,
-      apiKeyLength: apiKey.length,
-      enableOMDBApi: config.enableOMDBApi,
-      environment: process.env.NODE_ENV || 'unknown'
-    });
-    
+
     // Verifica che l'IMDb ID sia valido
     if (!imdbId || typeof imdbId !== 'string' || !imdbId.startsWith('tt') || imdbId.length < 7) {
       console.error('OMDB API: IMDb ID non valido:', imdbId);
-      throw new OMDBError(`IMDb ID non valido: ${imdbId}`, 400);
+      return null;
     }
-    
-    // Utilizziamo il proxy API per evitare problemi CORS in produzione
-    const isServer = typeof window === 'undefined';
-    let url: string;
-    
-    if (isServer) {
-      // Se siamo sul server, possiamo chiamare l'API direttamente
-      url = `${OMDB_API_URL}?i=${imdbId}&apikey=${apiKey}`;
-      console.log(`DEBUG-OMDB: Calling OMDB API directly from server for IMDb ID ${imdbId}`);
-    } else {
-      // Se siamo sul client, utilizziamo il nostro proxy API
-      // Costruisci l'URL relativo per il nostro proxy
-      const origin = window.location.origin;
-      url = `${origin}/api/omdb-proxy?imdbId=${imdbId}`;
-      console.log(`DEBUG-OMDB: Using proxy API for IMDb ID ${imdbId}`);
-    }
-    
-    // Implementazione con retry automatico
-    const maxRetries = 2;
-    let attempt = 0;
-    let lastError: Error | null = null;
-    
-    while (attempt <= maxRetries) {
-      try {
-        attempt++;
-        if (attempt > 1) {
-          console.log(`Tentativo ${attempt}/${maxRetries + 1} per IMDb ID ${imdbId}...`);
-        }
-        
-        // Effettua la richiesta
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          },
-          // Evita l'uso della cache per ogni nuovo tentativo
-          cache: attempt === 1 ? 'default' : 'no-cache'
-        });
-        
-        console.log(`OMDB API response status: ${response.status}`);
-        
-        // Verifica se la risposta è ok
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          const errorMessage = errorData?.Error || `Error ${response.status}`;
-          throw new OMDBError(errorMessage, response.status);
-        }
-        
-        // Estrai i dati dalla risposta
-        const data = await response.json();
-        
-        // Verifica se la risposta contiene un errore
-        if (data.Response === 'False') {
-          if (data.Error === 'Error getting data.') {
-            return null; // Media non trovato
-          }
-          throw new OMDBError(data.Error || 'Error getting data');
-        }
-        
-        // Se arriviamo qui, il recupero è riuscito
-        return processOMDBResponse(data, imdbId);
-        
-      } catch (e) {
-        lastError = e instanceof Error ? e : new Error(String(e));
-        
-        if (attempt <= maxRetries) {
-          // Attesa prima del prossimo tentativo (backoff esponenziale)
-          const waitTime = Math.min(500 * Math.pow(2, attempt - 1), 2000);
-          console.log(`Attesa di ${waitTime}ms prima del tentativo successivo...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-      }
-    }
-    
-    // Se arriviamo qui, tutti i tentativi sono falliti
-    console.error(`Tutti i ${maxRetries + 1} tentativi falliti per IMDb ID ${imdbId}:`, lastError);
-    throw lastError;
-  } catch (error) {
-    // Gestisci l'errore
-    if (error instanceof OMDBError) {
-      throw error
-    } else {
-      console.error('Error calling OMDB API:', error)
-      throw new OMDBError(
-        error instanceof Error ? error.message : 'Errore sconosciuto'
-      )
-    }
-  }
-}
 
-/**
- * Funzione per processare la risposta da OMDB e formattarla per l'uso interno
- * @param data Dati grezzi dalla risposta OMDB
- * @param imdbId L'ID IMDb del media
- * @returns I dati OMDB formattati
- */
-function processOMDBResponse(data: any, imdbId: string): OMDBData {
-  try {
-    // Normalizza e formatta i dati di rating esterni
-    const ratings: ExternalRatings[] = (data.Ratings || []).map((rating: any) => {
-      const source = rating.Source // Manteniamo il formato originale del Source
-      const value = rating.Value
-      
-      // Normalizza il valore numerico
-      let normalizedValue = normalizeRating(value)
-      
-      // Per Metacritic, usa anche il campo Metascore se disponibile
-      if (source === "Metacritic" && data.Metascore) {
-        normalizedValue = parseInt(data.Metascore, 10)
-      }
-      
-      // Per IMDb, usa anche il campo imdbRating se disponibile
-      if (source === "Internet Movie Database" && data.imdbRating) {
-        normalizedValue = parseFloat(data.imdbRating) * 10
-      }
-      
-      return {
-        source,
-        value,
-        normalizedValue
-      }
-    })
-    
-    // Gestione sicura dei voti IMDb
-    let imdbVotes = 0;
-    if (data.imdbVotes) {
-      // Rimuovi le virgole solo se imdbVotes è una stringa
-      const votesStr = typeof data.imdbVotes === 'string' ? data.imdbVotes.replace(/,/g, '') : data.imdbVotes;
-      imdbVotes = parseInt(votesStr, 10) || 0;
+    // Usa il proxy API sul client, chiamata diretta sul server
+    const isServer = typeof window === 'undefined';
+    const url = isServer 
+      ? `${OMDB_API_URL}?i=${imdbId}&apikey=${apiKey}`
+      : `/api/omdb-proxy?imdbId=${imdbId}`;
+
+    console.log('OMDB API chiamata:', { isServer, url: url.split('?')[0] });
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok || data.Response === 'False') {
+      console.error('OMDB API errore:', data.Error || response.statusText);
+      return null;
     }
-    
-    // Formatta i dati OMDB
+
     return {
       imdb_id: data.imdbID,
       title: data.Title,
       year: data.Year,
       imdb_rating: parseFloat(data.imdbRating) || 0,
-      imdb_votes: imdbVotes,
-      ratings,
-      metascore: data.Metascore ? parseInt(data.Metascore, 10) : undefined,
-      type: data.Type === 'movie' ? 'movie' : 'series',
-      fullResponse: data // Aggiungiamo i dati originali completi
-    }
+      imdb_votes: typeof data.imdbVotes === 'string' ? 
+        parseInt(data.imdbVotes.replace(/,/g, ''), 10) : 
+        parseInt(String(data.imdbVotes || '0'), 10),
+      ratings: data.Ratings?.map((r: any) => ({
+        source: r.Source,
+        value: r.Value,
+        normalizedValue: normalizeRating(r.Value)
+      })) || [],
+      metascore: parseInt(data.Metascore) || undefined,
+      type: data.Type as 'movie' | 'series',
+      fullResponse: data
+    };
   } catch (error) {
-    // Gestisci l'errore
-    if (error instanceof OMDBError) {
-      throw error
-    } else {
-      console.error('Error processing OMDB response:', error)
-      throw new OMDBError(
-        error instanceof Error ? error.message : 'Errore nel processamento dei dati OMDB'
-      )
-    }
+    console.error('OMDB API errore:', error);
+    return null;
   }
 }
 
@@ -383,5 +257,55 @@ export async function searchOMDB(
         error instanceof Error ? error.message : 'Errore sconosciuto'
       )
     }
+  }
+}
+
+function processOMDBResponse(data: any): OMDBData {
+  // Normalizza i rating esterni
+  const ratings = data.Ratings?.map((rating: any) => {
+    let normalizedValue = 0
+    
+    switch (rating.Source) {
+      case 'Internet Movie Database':
+        normalizedValue = parseFloat(rating.Value.split('/')[0]) * 10
+        break
+      case 'Rotten Tomatoes':
+        normalizedValue = parseInt(rating.Value)
+        break
+      case 'Metacritic':
+        normalizedValue = parseInt(rating.Value)
+        break
+      default:
+        normalizedValue = 0
+    }
+    
+    return {
+      source: rating.Source,
+      value: rating.Value,
+      normalizedValue
+    }
+  }) || []
+
+  // Gestisci i voti IMDb
+  let imdbVotes = 0
+  if (typeof data.imdbVotes === 'string') {
+    imdbVotes = parseInt(data.imdbVotes.replace(/,/g, ''))
+  } else if (typeof data.imdbVotes === 'number') {
+    imdbVotes = data.imdbVotes
+  }
+
+  // Normalizza il Metascore
+  const metascore = data.Metascore ? parseInt(data.Metascore) : undefined
+
+  return {
+    imdb_id: data.imdbID,
+    title: data.Title,
+    year: data.Year,
+    imdb_rating: parseFloat(data.imdbRating) || 0,
+    imdb_votes: imdbVotes,
+    ratings,
+    metascore,
+    type: data.Type as 'movie' | 'series',
+    fullResponse: data
   }
 }

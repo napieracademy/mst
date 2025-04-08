@@ -1,33 +1,34 @@
 import Link from 'next/link';
 import { generateSlug } from '@/lib/utils';
+import { cn } from '@/atomic/utils/cn';
 
 interface ContentLinkProps {
   id: number;
   title: string;
-  year?: string | number | null;
-  type: 'film' | 'attore' | 'regista';
-  children: React.ReactNode;
+  year?: string | null;
+  type: 'film' | 'serie' | 'attore' | 'regista';
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function ContentLink({ id, title, year, type, children, className }: ContentLinkProps) {
+export function ContentLink({ id, title, year, type, className, children }: ContentLinkProps) {
   // Forzare year a essere string | number | null per soddisfare il tipo atteso
   const safeYear = year === undefined ? null : year;
   
   // Genera lo slug SEO-friendly
   const slug = generateSlug(title, safeYear, id);
   
-  // Genera l'URL basato sul tipo di contenuto
-  let href = '';
+  // Determina l'URL base in base al tipo
+  const baseUrl = {
+    film: '/film',
+    serie: '/serie',
+    attore: '/attore',
+    regista: '/regista'
+  }[type];
   
-  if (type === 'film') {
-    href = `/film/${slug}`;
-  } else if (type === 'attore') {
-    href = `/attore/${slug}`;
-  } else if (type === 'regista') {
-    href = `/regista/${slug}`;
-  }
-  
+  // Costruisci l'URL completo
+  const href = `${baseUrl}/${slug}`;
+
   return (
     <Link href={href} className={className}>
       {children}

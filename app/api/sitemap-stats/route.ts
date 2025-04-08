@@ -15,10 +15,18 @@ export async function GET(request: NextRequest) {
     const supabase = createApiSupabaseClient();
     
     if (!supabase) {
+      console.error('Configurazione Supabase mancante');
       return NextResponse.json({
-        success: false,
-        error: 'Configurazione Supabase mancante'
-      });
+        totalCount: 0,
+        sitemapCount: 0,
+        lastGeneration: null,
+        filmCount: 0,
+        serieCount: 0,
+        attoriCount: 0,
+        registiCount: 0,
+        isError: true,
+        errorMessage: 'Configurazione Supabase mancante'
+      }, { status: 200 });
     }
 
     // Get counts from generated_pages using raw query
@@ -26,10 +34,18 @@ export async function GET(request: NextRequest) {
       .rpc('get_page_type_counts');
 
     if (pageError) {
-      return NextResponse.json({ 
-        success: false, 
-        error: pageError.message 
-      });
+      console.error('Errore nel recupero dei conteggi:', pageError);
+      return NextResponse.json({
+        totalCount: 0,
+        sitemapCount: 0,
+        lastGeneration: null,
+        filmCount: 0,
+        serieCount: 0,
+        attoriCount: 0,
+        registiCount: 0,
+        isError: true,
+        errorMessage: pageError.message
+      }, { status: 200 });
     }
 
     // Get sitemap stats
@@ -41,10 +57,18 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (statsError) {
-      return NextResponse.json({ 
-        success: false, 
-        error: statsError.message 
-      });
+      console.error('Errore nel recupero delle statistiche:', statsError);
+      return NextResponse.json({
+        totalCount: 0,
+        sitemapCount: 0,
+        lastGeneration: null,
+        filmCount: 0,
+        serieCount: 0,
+        attoriCount: 0,
+        registiCount: 0,
+        isError: true,
+        errorMessage: statsError.message
+      }, { status: 200 });
     }
 
     interface PageCount {
@@ -58,22 +82,29 @@ export async function GET(request: NextRequest) {
     const registiCount = (pageCounts as PageCount[] | null)?.find(p => p.page_type === 'regista')?.count || 0;
 
     return NextResponse.json({
-      totalCount: stats.total_count,
-      sitemapCount: stats.sitemap_count,
-      lastGeneration: stats.last_generation,
+      totalCount: stats?.total_count || 0,
+      sitemapCount: stats?.sitemap_count || 0,
+      lastGeneration: stats?.last_generation || null,
       filmCount,
       serieCount,
       attoriCount,
       registiCount,
       isError: false,
       errorMessage: null
-    });
+    }, { status: 200 });
     
   } catch (error) {
     console.error('Errore nel recupero delle statistiche:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Errore sconosciuto'
-    });
+    return NextResponse.json({
+      totalCount: 0,
+      sitemapCount: 0,
+      lastGeneration: null,
+      filmCount: 0,
+      serieCount: 0,
+      attoriCount: 0,
+      registiCount: 0,
+      isError: true,
+      errorMessage: error instanceof Error ? error.message : 'Errore sconosciuto'
+    }, { status: 200 });
   }
 }

@@ -17,6 +17,7 @@ interface PersonDetails {
   id: number
   name: string
   birthday: string | null
+  deathday: string | null
   place_of_birth: string | null
   combined_credits?: {
     cast: any[]
@@ -39,21 +40,12 @@ export function CastCarousel({ cast }: CastCarouselProps) {
   // Aggiungo un riferimento per tenere traccia dei clic esterni
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // Aggiungo un gestore per i clic esterni
+  // Carico i dettagli di tutte le persone all'inizializzazione
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
-        setActiveTooltip(null);
-      }
-    }
-
-    // Aggiungo l'event listener per il documento
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      // Rimuovo l'event listener quando il componente si smonta
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+    cast.forEach(person => {
+      fetchPersonDetails(person.id);
+    });
+  }, [cast]);
 
   const scroll = (direction: "left" | "right") => {
     if (!carouselRef.current) return
@@ -83,7 +75,7 @@ export function CastCarousel({ cast }: CastCarouselProps) {
     // Inizializza lo stato per questa persona con loading = true
     setPersonDetails(prev => ({
       ...prev,
-      [personId]: { id: personId, name: "", birthday: null, place_of_birth: null, loading: true }
+      [personId]: { id: personId, name: "", birthday: null, deathday: null, place_of_birth: null, loading: true }
     }))
     
     try {
@@ -134,21 +126,21 @@ export function CastCarousel({ cast }: CastCarouselProps) {
     setActiveTooltip(null);
   }
   
-  // Funzione per calcolare l'età
-  const calculateAge = (birthday: string | null) => {
-    if (!birthday) return null
+  // Calcola l'età
+  const calculateAge = (birthday: string | null, deathday: string | null) => {
+    if (!birthday) return null;
     
-    const birthDate = new Date(birthday)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
+    const birthDate = new Date(birthday);
+    const endDate = deathday ? new Date(deathday) : new Date();
+    let age = endDate.getFullYear() - birthDate.getFullYear();
+    const monthDiff = endDate.getMonth() - birthDate.getMonth();
     
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
+    if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
+      age--;
     }
     
-    return age
-  }
+    return age;
+  };
   
   // Formatta le date con fuso orario italiano
   const formatDate = (dateString: string | null) => {
@@ -209,6 +201,23 @@ export function CastCarousel({ cast }: CastCarouselProps) {
                         {person.name.charAt(0)}
                       </div>
                     )}
+                    
+                    {/* Age/Death Indicator - Mostrato sempre */}
+                    <div 
+                      className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border border-gray-700 ${
+                        personDetails[person.id]?.deathday ? 'text-red-400' : 'text-white'
+                      }`}
+                    >
+                      {personDetails[person.id]?.loading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : personDetails[person.id]?.deathday ? (
+                        '✝'
+                      ) : personDetails[person.id]?.birthday ? (
+                        calculateAge(personDetails[person.id].birthday, personDetails[person.id].deathday)
+                      ) : (
+                        '?'
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="text-center">
@@ -258,8 +267,8 @@ export function CastCarousel({ cast }: CastCarouselProps) {
               {personDetails[activeTooltip].birthday && (
                 <p className="text-center text-gray-300 whitespace-normal">
                   {formatDate(personDetails[activeTooltip].birthday)}
-                  {calculateAge(personDetails[activeTooltip].birthday) && (
-                    <span> ({calculateAge(personDetails[activeTooltip].birthday)} anni)</span>
+                  {calculateAge(personDetails[activeTooltip].birthday, personDetails[activeTooltip].deathday) && (
+                    <span> ({calculateAge(personDetails[activeTooltip].birthday, personDetails[activeTooltip].deathday)} anni)</span>
                   )}
                 </p>
               )}
