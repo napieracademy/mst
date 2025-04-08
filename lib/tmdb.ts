@@ -583,8 +583,8 @@ export async function getPersonDetails(id: number): Promise<PersonDetails | null
 
 // Lista dei film vincitori dell'Oscar come "Miglior Film" dal 2004 al 2025
 const oscarBestPictureWinners = [
-  { title: "Poor Things", year: 2025, tmdb_id: 792307 },
-  { title: "Oppenheimer", year: 2024, tmdb_id: 872585 },
+  { title: "Oppenheimer", year: 2025, tmdb_id: 872585 },
+  { title: "Poor Things", year: 2024, tmdb_id: 792307 },
   { title: "Everything Everywhere All at Once", year: 2023, tmdb_id: 545611 },
   { title: "CODA", year: 2022, tmdb_id: 776503 },
   { title: "Nomadland", year: 2021, tmdb_id: 581734 },
