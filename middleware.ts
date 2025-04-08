@@ -14,7 +14,8 @@ export async function middleware(request: NextRequest) {
   const pathMappings: { [key: string]: string } = {
     '/movie': '/film',
     '/person': '/attore',  // Verrà gestito caso per caso se è attore o regista
-    '/tv': '/serie'
+    '/tv': '/serie',
+    '/series': '/serie'  // Aggiungo il supporto per il vecchio URL /series
   }
 
   // Trova il vecchio percorso che corrisponde all'URL corrente
@@ -92,6 +93,7 @@ export const config = {
   matcher: [
     '/movie/:path*',
     '/person/:path*',
-    '/tv/:path*'
+    '/tv/:path*',
+    '/series/:path*'
   ]
 } 
