@@ -492,230 +492,90 @@ export async function getSimilarMovies(id: string, type: "movie" | "tv"): Promis
   }
 }
 
-// Modifica la funzione getPersonDetails per lanciare un errore quando le API sono disabilitate
-export async function getPersonDetails(id: string): Promise<any | null> {
-  if (!id) return null
-
-  // Se le API sono disabilitate, lancia un errore
-  if (!config.enableTMDBApi) {
-    console.error(`TMDB API disabled: request for person ${id} blocked`)
-    throw new Error("TMDB API is disabled")
+export interface PersonDetails {
+  id: number
+  name: string
+  name_en?: string
+  profile_path: string | null
+  biography: string
+  place_of_birth: string | null
+  birthday: string | null
+  deathday: string | null
+  known_for_department: string
+  also_known_as: string[]
+  gender: number
+  popularity: number
+  combined_credits?: {
+    cast?: Credit[]
+    crew?: Credit[]
   }
+  images?: {
+    profiles: Image[]
+  }
+}
 
+export interface Credit {
+  id: number
+  name: string
+  name_en?: string
+  character?: string
+  job?: string
+  department?: string
+  profile_path: string | null
+  media_type: string
+  title?: string
+  release_date?: string
+  first_air_date?: string
+  episode_count?: number
+  category?: string
+  genre_ids?: number[]
+  popularity?: number
+  vote_average?: number
+  vote_count?: number
+  external_ids?: {
+    imdb_id?: string
+  }
+}
+
+export interface Image {
+  aspect_ratio: number
+  file_path: string
+  height: number
+  width: number
+  vote_average: number
+  vote_count: number
+}
+
+export async function getPersonDetails(id: number): Promise<PersonDetails | null> {
   try {
-    // Ottieni i dettagli base in italiano
-    const baseData = await fetchFromTMDB(`/person/${id}`, {
-      append_to_response: "combined_credits,images,external_ids",
-    }, "it-IT");
-
-    // Log specifico per external_ids
-    console.log(`TMDB person ${id} external_ids:`, {
-      hasExternalIds: !!baseData.external_ids,
-      imdbId: baseData.external_ids?.imdb_id || 'non disponibile',
-      keys: baseData.external_ids ? Object.keys(baseData.external_ids) : []
-    });
-
-    // Ottieni i dettagli dei film nella filmografia
-    if (baseData.combined_credits?.cast) {
-      const moviePromises = baseData.combined_credits.cast.map(async (credit: any) => {
-        if (credit.media_type === 'movie') {
-          const movieDetails = await fetchFromTMDB(`/movie/${credit.id}`, {
-            append_to_response: "external_ids"
-          }, "it-IT");
-          return {
-            ...credit,
-            external_ids: movieDetails.external_ids
-          };
-        }
-        return credit;
-      });
-      baseData.combined_credits.cast = await Promise.all(moviePromises);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/person/${id}`)
+    if (!response.ok) {
+      console.error(`Error fetching person details: ${response.status}`)
+      return null
     }
 
-    if (baseData.combined_credits?.crew) {
-      const crewPromises = baseData.combined_credits.crew.map(async (credit: any) => {
-        if (credit.media_type === 'movie') {
-          const movieDetails = await fetchFromTMDB(`/movie/${credit.id}`, {
-            append_to_response: "external_ids"
-          }, "it-IT");
-          return {
-            ...credit,
-            external_ids: movieDetails.external_ids
-          };
-        }
-        return credit;
-      });
-      baseData.combined_credits.crew = await Promise.all(crewPromises);
-    }
-
-    const data = baseData;
+    const data = await response.json()
     
-    // Ottieni direttamente i known_for attraverso l'endpoint person/popular
-    try {
-      const popularPersons = await fetchFromTMDB(`/person/popular`, {}, "it-IT");
-      const personInPopular = popularPersons.results?.find((p: any) => p.id === parseInt(id, 10));
-      
-      // Filtra i crediti escludendo talk show, reality, news e altri programmi non rilevanti
-      const relevantCredits = [...(data.combined_credits?.cast || []), ...(data.combined_credits?.crew || [])]
-        .filter(credit => {
-          // Log per debug
-          if (credit.media_type === 'tv' && credit.name?.toLowerCase().includes('late night')) {
-            console.log('Filtering TV credit:', {
-              title: credit.title || credit.name,
-              character: credit.character,
-              category: credit.category,
-              genreIds: credit.genre_ids,
-              episodeCount: credit.episode_count
-            });
-          }
+    // Usa il nome in inglese se disponibile, altrimenti usa il nome in italiano
+    const name = data.name_en || data.name
 
-          // Escludiamo i generi non rilevanti
-          const excludedGenreIds = [
-            10767, // Talk Show
-            10764, // Reality
-            10763  // News
-          ];
-
-          // Verifica se è un talk show o programma simile
-          const isTalkShow = credit.genre_ids?.some((genreId: number) => excludedGenreIds.includes(genreId)) || false;
-
-          // Verifica se è un'apparizione come "Self" (se stesso)
-          const isSelf = 
-            credit.character === 'Self' || 
-            credit.character?.toLowerCase().includes('self') ||
-            credit.character?.toLowerCase().includes('himself') ||
-            credit.character?.toLowerCase().includes('herself');
-
-          // Verifica se è un'apparizione come ospite
-          const isGuestAppearance = 
-            credit.category === 'guest_star' ||
-            credit.character?.toLowerCase().includes('guest') ||
-            credit.character?.toLowerCase().includes('host');
-
-          // Verifica se è una serie TV con genere talk show
-          const isTalkShowSeries = 
-            credit.media_type === 'tv' && 
-            (isTalkShow || 
-             credit.name?.toLowerCase().includes('late night') ||
-             credit.name?.toLowerCase().includes('talk show') ||
-             credit.name?.toLowerCase().includes('tonight show'));
-
-          // Per le serie TV, escludiamo anche quelle con pochi episodi (apparizioni sporadiche)
-          const isMinorTVAppearance = 
-            credit.media_type === 'tv' && 
-            (credit.episode_count === 1 || credit.episode_count === undefined);
-
-          // La logica finale di inclusione - dobbiamo escludere tutti i tipi di apparizioni come self o guest
-          const shouldInclude = 
-            // Per i film, includi tutti tranne quelli in cui appare come "self"
-            (credit.media_type === 'movie' && !isSelf) ||
-            // Per le serie TV, applica filtri più severi
-            (credit.media_type === 'tv' && 
-             !isTalkShow && 
-             !isTalkShowSeries && 
-             !isSelf && 
-             !isGuestAppearance && 
-             !isMinorTVAppearance && 
-             credit.episode_count > 1);
-
-          // Solo per debug: registra qualsiasi apparizione come Self o Guest che viene comunque inclusa
-          if (shouldInclude && 
-              (isSelf || isGuestAppearance || isTalkShowSeries || isMinorTVAppearance)) {
-            console.log('WARNING: Including potentially unwanted credit:', {
-              title: credit.title || credit.name,
-              character: credit.character,
-              category: credit.category,
-              genreIds: credit.genre_ids,
-              episodeCount: credit.episode_count,
-              mediaType: credit.media_type,
-              isSelf,
-              isGuestAppearance,
-              isTalkShowSeries,
-              isMinorTVAppearance
-            });
-          }
-
-          return shouldInclude;
-        });
-
-      // Nella funzione getPersonDetails, sostituisci il blocco di scoring esistente con:
-      const scoredCredits = relevantCredits.map(credit => ({
-        ...credit,
-        score: calculateCreditScore(credit)
-      }));
-
-      // Ordina per punteggio e prendi i primi 12
-      const sortedCredits = scoredCredits
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 12);
-
-      data.known_for_credits = sortedCredits;
-      console.log(`Person ${id}: found ${sortedCredits.length} most notable credits`);
-
-    } catch (error) {
-      console.error(`Error fetching known_for for person ${id}:`, error);
-      // In caso di errore, usa un approccio di fallback simile
-      const allCredits = [];
-      if (data.combined_credits?.cast) {
-        allCredits.push(...data.combined_credits.cast.map((credit: any) => ({
+    return {
+      ...data,
+      name,
+      combined_credits: data.combined_credits ? {
+        cast: data.combined_credits.cast?.map((credit: Credit) => ({
           ...credit,
-          type: "cast"
-        })));
-      }
-      if (data.combined_credits?.crew) {
-        const directorCredits = data.combined_credits.crew
-          .filter((c: any) => c.job === "Director")
-          .map((credit: any) => ({
-            ...credit,
-            type: "crew"
-          }));
-        allCredits.push(...directorCredits);
-      }
-
-      const sortedCredits = allCredits.sort((a: any, b: any) => {
-        const scoreA = (a.popularity || 0) * 0.7 + (a.vote_average || 0) * 0.3;
-        const scoreB = (b.popularity || 0) * 0.7 + (b.vote_average || 0) * 0.3;
-        return scoreB - scoreA;
-      });
-
-      const topCredits = sortedCredits.slice(0, 12).map((credit: any) => {
-        const isDirector = credit.type === "crew" && credit.job === "Director";
-        return {
+          name: credit.name_en || credit.name // Usa il nome in inglese per i crediti se disponibile
+        })),
+        crew: data.combined_credits.crew?.map((credit: Credit) => ({
           ...credit,
-          media_type: credit.media_type || (credit.first_air_date ? "tv" : "movie"),
-          role: isDirector ? "directing" : "acting"
-        };
-      });
-
-      data.known_for_credits = topCredits;
-      console.log(`Person ${id} fallback: found ${topCredits.length} most notable credits`);
+          name: credit.name_en || credit.name // Usa il nome in inglese per i crediti se disponibile
+        }))
+      } : undefined
     }
-    
-    // Log esteso per debug delle immagini
-    if (data && data.profile_path) {
-      console.log(`Person ${id} image details:`, {
-        profilePath: data.profile_path,
-        isValid: isValidImagePath(data.profile_path),
-        profileUrl: buildImageUrl(data.profile_path, "h632"),
-        hasImagesCollection: Boolean(data.images && data.images.profiles && data.images.profiles.length > 0),
-        alternativeImagesCount: data.images?.profiles?.length || 0
-      });
-      
-      // Verificare anche immagini alternative se disponibili
-      if (data.images && data.images.profiles && data.images.profiles.length > 0) {
-        const altImages = data.images.profiles.slice(0, 3).map((img: any) => ({
-          path: img.file_path,
-          isValid: isValidImagePath(img.file_path),
-          url: buildImageUrl(img.file_path, "w185")
-        }));
-        console.log(`Person ${id} alternative images:`, altImages);
-      }
-    }
-
-    return data
   } catch (error) {
-    console.error("Error fetching person details:", error)
-    throw error // Rilancia l'errore
+    console.error('Error in getPersonDetails:', error)
+    return null
   }
 }
 
@@ -779,5 +639,78 @@ export async function getOscarBestPictureWinners(): Promise<Movie[]> {
   } catch (error) {
     console.error("Error in getOscarBestPictureWinners:", error);
     return [];
+  }
+}
+
+interface TMDBSearchResult {
+  id: number
+  title?: string
+  name?: string
+  poster_path: string | null
+  media_type: 'movie' | 'tv'
+  release_date?: string
+  first_air_date?: string
+  popularity: number
+  vote_average: number
+  vote_count: number
+  imdb_id?: string
+}
+
+interface TMDBSearchResponse {
+  results: TMDBSearchResult[]
+  page: number
+  total_pages: number
+  total_results: number
+}
+
+export async function searchTMDB(
+  query: string,
+  type?: string | null,
+  page: number = 1
+): Promise<TMDBSearchResponse> {
+  const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY
+
+  if (!apiKey) {
+    throw new Error('TMDB API key is missing')
+  }
+
+  // Determina il tipo di ricerca
+  const searchType = type === 'tv' ? 'tv' : type === 'movie' ? 'movie' : 'multi'
+
+  const url = new URL(`https://api.themoviedb.org/3/search/${searchType}`)
+  url.searchParams.append('api_key', apiKey)
+  url.searchParams.append('query', query)
+  url.searchParams.append('language', 'it-IT')
+  url.searchParams.append('include_adult', 'false')
+  url.searchParams.append('page', page.toString())
+
+  const response = await fetch(url.toString())
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  // Mappa i risultati per garantire la tipizzazione corretta
+  const results = data.results.map((item: any): TMDBSearchResult => ({
+    id: item.id,
+    title: item.title,
+    name: item.name,
+    poster_path: item.poster_path,
+    media_type: item.media_type || (searchType === 'movie' ? 'movie' : searchType === 'tv' ? 'tv' : 'movie'),
+    release_date: item.release_date,
+    first_air_date: item.first_air_date,
+    popularity: item.popularity || 0,
+    vote_average: item.vote_average || 0,
+    vote_count: item.vote_count || 0,
+    imdb_id: item.imdb_id
+  }))
+
+  return {
+    results,
+    page: data.page,
+    total_pages: data.total_pages,
+    total_results: data.total_results
   }
 }

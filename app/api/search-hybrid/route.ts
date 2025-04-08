@@ -1,146 +1,110 @@
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
-import { searchMedia } from "@/lib/trakt"
-import { searchOMDB } from "@/lib/omdb"
+import { searchTMDB } from "@/lib/tmdb"
+import { getOMDBDataByIMDbId } from "@/lib/omdb"
 import { config } from "@/lib/config"
-import { getMoviePopularityScore, getShowPopularityScore } from "@/lib/popularity-ranking"
+
+interface SearchResult {
+  id: number
+  title: string
+  poster_path: string | null
+  media_type: 'movie' | 'tv'
+  release_date?: string
+  first_air_date?: string
+  popularity: number
+  vote_average: number
+  vote_count: number
+  imdb_id?: string
+  omdb_rating?: number
+  hybrid_score: number
+}
 
 /**
  * API per ricerca ibrida che combina risultati da TMDB, Trakt.tv e OMDB
  * e li ordina in base a un punteggio di popolarità composito
  */
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const query = searchParams.get("query")
-  const type = searchParams.get("type") || "all" // "movie", "tv", "all"
-  const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY
-  
-  if (!query) {
-    return NextResponse.json({ results: [] })
-  }
-  
-  if (!apiKey) {
-    console.error("TMDB API key is missing")
-    return NextResponse.json({ error: "API key is missing" }, { status: 500 })
-  }
-  
+export async function GET(request: Request) {
   try {
-    // Traduciamo il tipo per le diverse API
-    const tmdbType = type === "tv" ? "tv" : type === "movie" ? "movie" : "multi"
-    const traktType = type === "tv" ? "show" : type === "movie" ? "movie" : "all"
-    const omdbType = type === "tv" ? "series" : type === "movie" ? "movie" : "all"
-    
-    // Richieste parallele a TMDB (base standard)
-    const tmdbUrl = new URL(`https://api.themoviedb.org/3/search/${tmdbType}`)
-    tmdbUrl.searchParams.append("api_key", apiKey)
-    tmdbUrl.searchParams.append("query", query)
-    tmdbUrl.searchParams.append("language", "it-IT")
-    tmdbUrl.searchParams.append("include_adult", "false")
-    tmdbUrl.searchParams.append("page", "1")
-    
-    // Raccogliamo risultati da diverse fonti in parallelo
-    const [tmdbResponse, traktResults, omdbResults] = await Promise.all([
-      fetch(tmdbUrl.toString()),
-      config.enableTraktApi ? searchMedia(query, traktType, 10) : Promise.resolve([]),
-      config.enableOMDBApi ? searchOMDB(query, omdbType) : Promise.resolve([])
-    ])
-    
-    if (!tmdbResponse.ok) {
-      throw new Error(`TMDB API error: ${tmdbResponse.status}`)
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.get('query')
+    const type = searchParams.get('type')
+    const page = searchParams.get('page') || '1'
+
+    if (!query) {
+      return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 })
     }
+
+    // Cerca su TMDB
+    const tmdbResults = await searchTMDB(query, type, parseInt(page))
     
-    const tmdbData = await tmdbResponse.json()
-    
-    // Mappatura dei risultati TMDB
-    const results = await Promise.all(
-      tmdbData.results.map(async (item: any) => {
-        const mediaType = item.media_type || (tmdbType === "movie" ? "movie" : tmdbType === "tv" ? "tv" : null)
+    // Per ogni risultato TMDB, arricchisci con dati OMDB se possibile
+    const enrichedResults: SearchResult[] = await Promise.all(
+      tmdbResults.results.map(async (result): Promise<SearchResult> => {
+        let omdbRating: number | undefined
         
-        // Ignora persone e altri tipi che non sono film o serie TV
-        if (mediaType !== "movie" && mediaType !== "tv") {
-          return null
+        if (result.imdb_id) {
+          try {
+            const omdbData = await getOMDBDataByIMDbId(result.imdb_id)
+            omdbRating = omdbData?.imdb_rating
+          } catch (error) {
+            console.error(`Error fetching OMDB data for ${result.imdb_id}:`, error)
+          }
         }
-        
-        // Dati di base comuni a film e serie TV
-        const baseResult = {
-          id: item.id,
-          title: item.title || item.name,
-          poster_path: item.poster_path,
-          media_type: mediaType,
-          year: item[mediaType === "movie" ? "release_date" : "first_air_date"]
-            ? (item[mediaType === "movie" ? "release_date" : "first_air_date"]).split("-")[0]
-            : null,
-          popularity: item.popularity || 0,
-          vote_average: item.vote_average || 0,
-          vote_count: item.vote_count || 0,
-        }
-        
-        // Calcola il punteggio ibrido di popolarità
-        try {
-          // Cerca un eventuale ID IMDb
-          let imdbId = undefined
-          
-          // Cerca nei risultati Trakt
-          const traktMatch = traktResults.find(tr => tr.tmdb_id === item.id)
-          if (traktMatch && traktMatch.imdb_id) {
-            imdbId = traktMatch.imdb_id
-          }
-          
-          // Cerca nei risultati OMDB in base al titolo e all'anno
-          if (!imdbId && baseResult.year) {
-            const omdbMatch = omdbResults.find(omdb => 
-              omdb.title.toLowerCase() === baseResult.title.toLowerCase() && 
-              omdb.year === baseResult.year
-            )
-            if (omdbMatch) {
-              imdbId = omdbMatch.imdb_id
-            }
-          }
-          
-          // Calcola il punteggio composito
-          const popularityScore = mediaType === "movie"
-            ? await getMoviePopularityScore(
-                item.id, 
-                imdbId, 
-                item.popularity, 
-                item.vote_average, 
-                item.vote_count
-              )
-            : await getShowPopularityScore(
-                item.id, 
-                imdbId, 
-                item.popularity, 
-                item.vote_average, 
-                item.vote_count
-              )
-          
-          // Arricchisci il risultato con il punteggio e i metadata
-          return {
-            ...baseResult,
-            hybrid_score: popularityScore.score,
-            source_scores: popularityScore.sources,
-            imdb_id: imdbId,
-            trakt_id: popularityScore.metadata.trakt_id,
-            imdb_rating: popularityScore.metadata.imdb_rating,
-            imdb_votes: popularityScore.metadata.imdb_votes,
-            trakt_watchers: popularityScore.metadata.trakt_watchers
-          }
-        } catch (error) {
-          console.error(`Error calculating hybrid score for ${baseResult.title}:`, error)
-          return baseResult
+
+        // Calcola lo score ibrido basato su popolarità TMDB e rating OMDB
+        const hybridScore = calculateHybridScore(result.popularity, result.vote_average, omdbRating)
+
+        return {
+          id: result.id,
+          title: result.title || result.name || 'Unknown Title',
+          poster_path: result.poster_path,
+          media_type: result.media_type,
+          release_date: result.release_date,
+          first_air_date: result.first_air_date,
+          popularity: result.popularity,
+          vote_average: result.vote_average,
+          vote_count: result.vote_count,
+          imdb_id: result.imdb_id,
+          omdb_rating: omdbRating,
+          hybrid_score: hybridScore
         }
       })
     )
-    
-    // Filtra eventuali risultati nulli e ordina per punteggio ibrido
-    const filteredResults = results
-      .filter(r => r !== null)
-      .sort((a, b) => (b?.hybrid_score || b?.popularity || 0) - (a?.hybrid_score || a?.popularity || 0))
-      .slice(0, 15) // Limita a 15 risultati totali
-    
-    return NextResponse.json({ results: filteredResults })
+
+    // Ordina i risultati per score ibrido
+    const sortedResults = enrichedResults.sort((a, b) => b.hybrid_score - a.hybrid_score)
+
+    return NextResponse.json({
+      results: sortedResults,
+      page: tmdbResults.page,
+      total_pages: tmdbResults.total_pages,
+      total_results: tmdbResults.total_results
+    })
+
   } catch (error) {
-    console.error("Error in hybrid search:", error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
+    console.error('Search error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+function calculateHybridScore(
+  tmdbPopularity: number,
+  tmdbVoteAverage: number,
+  omdbRating?: number
+): number {
+  // Normalizza i punteggi su una scala da 0 a 1
+  const normalizedPopularity = Math.min(tmdbPopularity / 100, 1)
+  const normalizedTMDBRating = tmdbVoteAverage / 10
+  const normalizedOMDBRating = omdbRating ? omdbRating / 10 : normalizedTMDBRating
+
+  // Pesi per ciascun fattore
+  const POPULARITY_WEIGHT = 0.3
+  const TMDB_RATING_WEIGHT = 0.35
+  const OMDB_RATING_WEIGHT = 0.35
+
+  // Calcola lo score ibrido
+  return (
+    normalizedPopularity * POPULARITY_WEIGHT +
+    normalizedTMDBRating * TMDB_RATING_WEIGHT +
+    normalizedOMDBRating * OMDB_RATING_WEIGHT
+  )
 }

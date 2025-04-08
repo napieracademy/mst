@@ -20,15 +20,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     
     // Ottieni i dettagli base della persona in inglese per avere nomi corretti
     const personUrl = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=en-US`
+    // Ottieni i dettagli in italiano per la biografia e altri campi localizzati
+    const personUrlIt = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=it-IT`
     // Ottieni i crediti combinati in italiano
     const creditsUrl = `https://api.themoviedb.org/3/person/${id}/combined_credits?api_key=${apiKey}&language=it-IT`
     // Ottieni le immagini
     const imagesUrl = `https://api.themoviedb.org/3/person/${id}/images?api_key=${apiKey}`
     
     // Esegui tutte le chiamate in parallelo
-    const [personResponse, creditsResponse, imagesResponse] = await Promise.all([
+    const [personResponseEn, personResponseIt, creditsResponse, imagesResponse] = await Promise.all([
       fetch(personUrl, {
         next: { revalidate: 3600 }, // Cache per 1 ora
+        headers: { Accept: "application/json" },
+      }),
+      fetch(personUrlIt, {
+        next: { revalidate: 3600 },
         headers: { Accept: "application/json" },
       }),
       fetch(creditsUrl, {
@@ -42,22 +48,24 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     ]);
 
     // Verifica che tutte le chiamate siano andate a buon fine
-    if (!personResponse.ok) {
-      const errorText = await personResponse.text()
-      console.error(`TMDB API person error (${personResponse.status}): ${errorText}`)
-      throw new Error(`TMDB API error: ${personResponse.status} - ${errorText}`)
+    if (!personResponseEn.ok || !personResponseIt.ok) {
+      const errorText = await personResponseEn.text()
+      console.error(`TMDB API person error (${personResponseEn.status}): ${errorText}`)
+      throw new Error(`TMDB API error: ${personResponseEn.status} - ${errorText}`)
     }
     
     // Ottieni i dati JSON da tutte le risposte
-    const [personData, creditsData, imagesData] = await Promise.all([
-      personResponse.json(),
+    const [personDataEn, personDataIt, creditsData, imagesData] = await Promise.all([
+      personResponseEn.json(),
+      personResponseIt.json(),
       creditsResponse.json(),
       imagesResponse.json()
     ]);
     
-    // Combina i dati
+    // Combina i dati mantenendo il nome in inglese come name_en
     const data = {
-      ...personData,
+      ...personDataIt,
+      name_en: personDataEn.name,
       combined_credits: creditsData,
       images: imagesData
     }
