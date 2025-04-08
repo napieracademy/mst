@@ -42,11 +42,24 @@ export function TVRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: TVRatin
       try {
         setLoading(true)
         
-        // Se abbiamo già l'IMDb ID, usalo direttamente
-        if (imdbId) {
+        // Verifica che l'IMDb ID sia valido (deve iniziare con "tt" e avere almeno 7 caratteri)
+        const isValidImdbId = imdbId && typeof imdbId === 'string' && imdbId.startsWith('tt') && imdbId.length >= 7;
+        
+        console.log("TVRatings: IMDb ID check:", { 
+          imdbId, 
+          isValidImdbId,
+          type: typeof imdbId,
+          length: imdbId ? imdbId.length : 0,
+          startsWithTt: imdbId ? imdbId.startsWith('tt') : false
+        });
+        
+        if (isValidImdbId) {
+          console.log("TVRatings: Attempting to fetch OMDB data for valid IMDb ID:", imdbId);
           const omdbData = await getOMDBDataByIMDbId(imdbId)
+          console.log("TVRatings: OMDB data received:", omdbData ? "Success" : "Null");
           
           if (omdbData) {
+            console.log("TVRatings: Processing OMDB data");
             // IMDb ratings
             const imdbRating = {
               rating: omdbData.imdb_rating,

@@ -97,12 +97,26 @@ export async function getOMDBDataByIMDbId(imdbId: string): Promise<OMDBData | nu
       throw new OMDBError('OMDB API key non disponibile', 401)
     }
     
+    // Verifica che l'IMDb ID sia valido
+    if (!imdbId || typeof imdbId !== 'string' || !imdbId.startsWith('tt') || imdbId.length < 7) {
+      console.error('OMDB API: IMDb ID non valido:', imdbId);
+      throw new OMDBError(`IMDb ID non valido: ${imdbId}`, 400);
+    }
+    
     // Costruisci l'URL per l'API
     const url = `${OMDB_API_URL}?i=${imdbId}&apikey=${apiKey}`
-    console.log(`DEBUG-OMDB: Requesting URL ${url}`)
+    // URL sicuro per il log (nasconde la chiave API)
+    const safeUrl = `${OMDB_API_URL}?i=${imdbId}&apikey=***${apiKey.slice(-4)}`
+    console.log(`DEBUG-OMDB: Requesting URL ${safeUrl}`)
     
     // Effettua la richiesta
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
     
     // Verifica se la risposta è ok
     if (!response.ok) {

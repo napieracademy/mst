@@ -45,13 +45,23 @@ export function MovieRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: Movi
         // Logging debug info
         console.log("MovieRatings: Starting fetch with tmdbId:", tmdbId, "imdbId:", imdbId);
         
-        // Se abbiamo già l'IMDb ID, usalo direttamente
-        if (imdbId) {
-          console.log("MovieRatings: Attempting to fetch OMDB data for IMDb ID:", imdbId);
+        // Verifica che l'IMDb ID sia valido (deve iniziare con "tt" e avere almeno 7 caratteri)
+        const isValidImdbId = imdbId && typeof imdbId === 'string' && imdbId.startsWith('tt') && imdbId.length >= 7;
+        
+        console.log("MovieRatings: IMDb ID check:", { 
+          imdbId, 
+          isValidImdbId,
+          type: typeof imdbId,
+          length: imdbId ? imdbId.length : 0,
+          startsWithTt: imdbId ? imdbId.startsWith('tt') : false
+        });
+        
+        if (isValidImdbId) {
+          console.log("MovieRatings: Attempting to fetch OMDB data for valid IMDb ID:", imdbId);
           try {
             console.log("Calling OMDB API with IMDb ID:", imdbId);
-          const omdbData = await getOMDBDataByIMDbId(imdbId);
-          console.log("OMDB API response received:", omdbData ? "Successfully" : "Failed (null)");
+            const omdbData = await getOMDBDataByIMDbId(imdbId);
+            console.log("OMDB API response received:", omdbData ? "Successfully" : "Failed (null)");
             console.log("MovieRatings: OMDB data received:", omdbData ? "Success" : "Null");
             
             if (omdbData) {
