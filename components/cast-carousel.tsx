@@ -186,25 +186,24 @@ export function CastCarousel({ cast }: CastCarouselProps) {
                 onMouseLeave={handleMouseLeave}
               >
                 <div className="w-24 h-24 relative mx-auto mb-2">
-                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+                  <div className="w-full h-full rounded-full border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
                     {person.profile_path ? (
                       <Image
                         src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
                         alt={person.name}
                         fill
                         sizes="96px"
-                        className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-                        style={{ borderRadius: "50%" }}
+                        className="object-cover transition-transform duration-300 ease-out hover:scale-110 rounded-full"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700 rounded-full">
                         {person.name.charAt(0)}
                       </div>
                     )}
                     
                     {/* Age/Death Indicator - Mostrato sempre */}
                     <div 
-                      className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border border-gray-700 ${
+                      className={`absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
                         personDetails[person.id]?.deathday ? 'text-red-400' : 'text-white'
                       }`}
                     >

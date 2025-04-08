@@ -140,6 +140,11 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
       setLoading(false);
     }
   };
+  
+  // Carica i dettagli del regista all'avvio del componente
+  useEffect(() => {
+    fetchDirectorDetails();
+  }, []);
 
   // Gestore per i clic esterni
   useEffect(() => {
@@ -180,48 +185,58 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
     <div className="flex items-center gap-4">
       <div
         ref={avatarRef}
-        className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white"
+        className="w-16 h-16 relative"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Link href={`/regista/${directorSlug}`} className="block w-full h-full">
-          {hasImage && !imageError ? (
-            <Image
-              src={getImageUrl()}
-              alt={director.name}
-              fill
-              sizes="64px"
-              className="object-cover transition-transform duration-300 ease-out hover:scale-110"
-              onError={handleImageError}
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-400 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700">
-              {director.name.charAt(0)}
-            </div>
-          )}
-          
-          {/* Age/Death Indicator - Mostrato sempre */}
-          <div 
-            className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border border-gray-700 ${
-              directorDetails?.deathday ? 'text-red-400' : 'text-white'
-            }`}
-          >
-            {loading ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : directorDetails?.deathday ? (
-              '✝'
-            ) : directorDetails?.birthday ? (
-              calculateAge(directorDetails?.birthday || null, directorDetails?.deathday || null)
+        <div className="w-full h-full rounded-full border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
+          <Link href={`/regista/${directorSlug}`} className="block w-full h-full">
+            {hasImage && !imageError ? (
+              <Image
+                src={getImageUrl()}
+                alt={director.name}
+                fill
+                sizes="64px"
+                className="object-cover transition-transform duration-300 ease-out hover:scale-110 rounded-full"
+                onError={handleImageError}
+              />
             ) : (
-              '?'
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700 rounded-full">
+                {director.name.charAt(0)}
+              </div>
             )}
-          </div>
-        </Link>
+            
+            {/* Age/Death Indicator - Mostrato sempre */}
+            <div 
+              className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
+                directorDetails?.deathday ? 'text-red-400' : 'text-white'
+              }`}
+            >
+              {loading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : directorDetails?.deathday ? (
+                '✝'
+              ) : directorDetails?.birthday ? (
+                calculateAge(directorDetails?.birthday || null, directorDetails?.deathday || null)
+              ) : (
+                '?'
+              )}
+            </div>
+          </Link>
+        </div>
       </div>
-      <div>
-        <Link href={`/regista/${directorSlug}`} className="text-sm hover:text-yellow-400 transition-colors">
+      <div className="flex flex-col justify-center">
+        <Link 
+          href={`/regista/${directorSlug}`} 
+          className="font-medium text-sm hover:text-white transition-colors duration-300"
+        >
           {director.name}
         </Link>
+        {director.job && (
+          <p className="text-gray-400 text-xs hover:text-gray-300 transition-colors duration-300">
+            {director.job}
+          </p>
+        )}
       </div>
       
       {activeTooltip && (

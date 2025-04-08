@@ -583,34 +583,19 @@ export async function getPersonDetails(id: number): Promise<PersonDetails | null
 
 // Lista dei film vincitori dell'Oscar come "Miglior Film" dal 2004 al 2025
 const oscarBestPictureWinners = [
-  { id: 915935, title: "Anatomia di una caduta", year: 2025 },
-  { id: 872585, title: "Barbie", year: 2025 },
-  { id: 466420, title: "Killers of the Flower Moon", year: 2025 },
-  { id: 753342, title: "Maestro", year: 2025 },
-  { id: 964980, title: "Past Lives", year: 2025 },
-  { id: 956962, title: "American Fiction", year: 2025 },
-  { id: 1072790, title: "The Holdovers", year: 2025 },
   { id: 346698, title: "Oppenheimer", year: 2025 },
-  { id: 792307, title: "Rustin", year: 2025 },
-  { id: 940721, title: "Zone of Interest", year: 2025 },
   { id: 674324, title: "Everything Everywhere All at Once", year: 2023 },
-  { id: 805320, title: "CODA", year: 2022 },
-  { id: 581734, title: "Nomadland", year: 2021 },
   { id: 496243, title: "Parasite", year: 2020 },
-  { id: 490132, title: "Green Book", year: 2019 },
   { id: 399055, title: "The Shape of Water", year: 2018 },
   { id: 313369, title: "Moonlight", year: 2017 },
-  { id: 314365, title: "Spotlight", year: 2016 },
   { id: 194662, title: "Birdman", year: 2015 },
   { id: 76203, title: "12 Years a Slave", year: 2014 },
   { id: 68734, title: "Argo", year: 2013 },
-  { id: 74643, title: "The Artist", year: 2012 },
   { id: 44686, title: "The King's Speech", year: 2011 },
   { id: 12405, title: "The Hurt Locker", year: 2010 },
   { id: 12162, title: "Slumdog Millionaire", year: 2009 },
   { id: 6977, title: "No Country for Old Men", year: 2008 },
   { id: 1422, title: "The Departed", year: 2007 },
-  { id: 70, title: "Million Dollar Baby", year: 2005 },
   { id: 1640, title: "The Lord of the Rings: The Return of the King", year: 2004 }
 ];
 

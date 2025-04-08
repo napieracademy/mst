@@ -45,16 +45,13 @@ export function slugify(text: string): string {
  * @param id ID univoco
  * @returns Slug normalizzato
  */
-export function generateSlug(title: string, year: string | number | null, id: number | string): string {
-  // Normalizza il titolo usando la funzione slugify
-  const normalizedTitle = slugify(title);
-  
-  // Se non abbiamo l'anno, usa solo titolo-id
-  if (!year) {
-    return `${normalizedTitle}-${id}`;
-  }
-  
-  return `${normalizedTitle}-${year}-${id}`;
+export function generateSlug(title: string, year: string | null, id: number) {
+  const slugTitle = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  return year ? `${slugTitle}-${year}-${id}` : `${slugTitle}-${id}`
 }
 
 /**
