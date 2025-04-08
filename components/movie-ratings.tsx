@@ -68,69 +68,47 @@ export function MovieRatings({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: Movi
           isValidImdbId = true; // Proviamo con questo ID
         }
         
-        if (isValidImdbId) {
+        if (isValidImdbId && validImdbId) {
           console.log("MovieRatings: Attempting to fetch OMDB data for IMDb ID:", validImdbId);
           try {
-            console.log("Calling OMDB API with IMDb ID:", validImdbId);
             const omdbData = await getOMDBDataByIMDbId(validImdbId);
-            console.log("OMDB API response received:", omdbData ? "Successfully" : "Failed (null)");
-            console.log("MovieRatings: OMDB data received:", omdbData ? "Success" : "Null");
+            console.log("MovieRatings: OMDB data received:", omdbData);
             
             if (omdbData) {
-              console.log("MovieRatings: Processing OMDB data");
-              // IMDb ratings
+              // IMDb ratings - usiamo i valori già normalizzati da omdbData
               const imdbRating = {
                 rating: omdbData.imdb_rating,
                 votes: omdbData.imdb_votes
               }
               
-              // Rotten Tomatoes - verifica sia tramite oggetto ratings che tramite array Ratings da API
-              // Prima cerca nel nostro formato normalizzato
-              let rtRating = omdbData.ratings && omdbData.ratings.find(r => r.source === "Rotten Tomatoes")
+              // Rotten Tomatoes - cerchiamo nei ratings normalizzati
+              const rtRating = omdbData.ratings.find(r => 
+                r.source === "Rotten Tomatoes"
+              );
               
-              // Se non trovato, cerca nell'array Ratings originale dall'API
-              if (!rtRating && omdbData.fullResponse?.Ratings) {
-                console.log("MovieRatings: Looking for RT in original response:", omdbData.fullResponse.Ratings);
-                const originalRating = omdbData.fullResponse.Ratings.find(
-                  (r: any) => r.Source === "Rotten Tomatoes"
-                )
-                
-                if (originalRating) {
-                  console.log("MovieRatings: Found RT rating in original response:", originalRating.Value);
-                  // Estrai il valore numerico (es. "94%" -> 94)
-                  const ratingValue = originalRating.Value.replace('%', '')
-                  rtRating = {
-                    source: "Rotten Tomatoes",
-                    value: originalRating.Value,
-                    normalizedValue: parseInt(ratingValue, 10)
-                  }
-                }
-              }
+              // Metascore - usiamo il valore già normalizzato
+              const metascore = omdbData.metascore ?? null;
               
-              const rottenTomatoes = rtRating ? {
-                rating: rtRating.normalizedValue || 0
-              } : null
-              
-              // Metascore
-              const metascore = omdbData.metascore || null
-              console.log("MovieRatings: Final data to set:", { 
-                imdb: imdbRating, 
-                rottenTomatoes: rottenTomatoes, 
-                metascore: metascore 
+              console.log("MovieRatings: Processed ratings:", {
+                imdb: imdbRating,
+                rottenTomatoes: rtRating,
+                metascore: metascore
               });
               
               setRatings({
                 ...ratings,
                 imdb: imdbRating,
-                rottenTomatoes,
+                rottenTomatoes: rtRating ? {
+                  rating: rtRating.normalizedValue || 0
+                } : null,
                 metascore
-              })
+              });
             }
           } catch (omdbError) {
             console.error("MovieRatings: Error in OMDB API:", omdbError);
           }
         } else {
-          console.log("MovieRatings: No IMDb ID available, skipping OMDB fetch");
+          console.log("MovieRatings: No valid IMDb ID available, skipping OMDB fetch");
         }
       } catch (error) {
         console.error("MovieRatings: General error:", error)

@@ -211,13 +211,26 @@ function processOMDBResponse(data: any, imdbId: string): OMDBData {
   try {
     // Normalizza e formatta i dati di rating esterni
     const ratings: ExternalRatings[] = (data.Ratings || []).map((rating: any) => {
-      const source = rating.Source
+      const source = rating.Source // Manteniamo il formato originale del Source
       const value = rating.Value
+      
+      // Normalizza il valore numerico
+      let normalizedValue = normalizeRating(value)
+      
+      // Per Metacritic, usa anche il campo Metascore se disponibile
+      if (source === "Metacritic" && data.Metascore) {
+        normalizedValue = parseInt(data.Metascore, 10)
+      }
+      
+      // Per IMDb, usa anche il campo imdbRating se disponibile
+      if (source === "Internet Movie Database" && data.imdbRating) {
+        normalizedValue = parseFloat(data.imdbRating) * 10
+      }
       
       return {
         source,
         value,
-        normalizedValue: normalizeRating(value)
+        normalizedValue
       }
     })
     
@@ -238,9 +251,9 @@ function processOMDBResponse(data: any, imdbId: string): OMDBData {
     if (error instanceof OMDBError) {
       throw error
     } else {
-      console.error('Error calling OMDB API:', error)
+      console.error('Error processing OMDB response:', error)
       throw new OMDBError(
-        error instanceof Error ? error.message : 'Errore sconosciuto'
+        error instanceof Error ? error.message : 'Errore nel processamento dei dati OMDB'
       )
     }
   }
