@@ -548,7 +548,9 @@ export interface Image {
 
 export async function getPersonDetails(id: number): Promise<PersonDetails | null> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/person/${id}`)
+    // Usa un URL di base predefinito se la variabile d'ambiente non è impostata
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
+    const response = await fetch(`${apiUrl}/api/person/${id}`)
     if (!response.ok) {
       console.error(`Error fetching person details: ${response.status}`)
       return null
