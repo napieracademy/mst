@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { generateSlug } from "@/lib/utils"
+import { buildImageUrl } from "@/lib/tmdb"
 
 interface CastMember {
   id: number
@@ -185,38 +186,40 @@ export function CastCarousel({ cast }: CastCarouselProps) {
                 onMouseEnter={(e) => handleMouseEnter(e, person.id)}
                 onMouseLeave={handleMouseLeave}
               >
-                <div className="w-24 h-24 relative mx-auto mb-2">
+                <div className="relative h-24 w-24 md:h-28 md:w-28 mx-auto mb-2">
                   <div className="w-full h-full rounded-full border-2 border-gray-700 shadow-lg transition-all duration-300 ease-out hover:shadow-xl hover:border-white">
-                    {person.profile_path ? (
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
-                        alt={person.name}
-                        fill
-                        sizes="96px"
-                        className="object-cover transition-transform duration-300 ease-out hover:scale-110 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700 rounded-full">
-                        {person.name.charAt(0)}
-                      </div>
-                    )}
-                    
-                    {/* Age/Death Indicator - Mostrato sempre */}
-                    <div 
-                      className={`absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
-                        personDetails[person.id]?.deathday ? 'text-red-400' : 'text-white'
-                      }`}
-                    >
-                      {personDetails[person.id]?.loading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : personDetails[person.id]?.deathday ? (
-                        '✝'
-                      ) : personDetails[person.id]?.birthday ? (
-                        calculateAge(personDetails[person.id].birthday, personDetails[person.id].deathday)
+                    <Link href={`/attore/${generateSlug(person.name, null, person.id)}`} className="block w-full h-full">
+                      {person.profile_path ? (
+                        <Image 
+                          src={buildImageUrl(person.profile_path, 'w185') || ''} 
+                          alt={person.name}
+                          fill
+                          sizes="(max-width: 768px) 96px, 112px"
+                          className="object-cover transition-transform duration-300 ease-out hover:scale-110 rounded-full"
+                        />
                       ) : (
-                        '?'
+                        <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xl font-bold transition-transform duration-300 ease-out hover:scale-110 hover:bg-gray-700 rounded-full">
+                          {person.name.charAt(0)}
+                        </div>
                       )}
-                    </div>
+                      
+                      {/* Age/Death Indicator - Mostrato solo se ci sono dati rilevanti */}
+                      {(personDetails[person.id]?.deathday || personDetails[person.id]?.birthday) && (
+                        <div 
+                          className={`absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
+                            personDetails[person.id]?.deathday ? 'text-red-400' : 'text-white'
+                          }`}
+                        >
+                          {personDetails[person.id]?.loading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : personDetails[person.id]?.deathday ? (
+                            '✝'
+                          ) : personDetails[person.id]?.birthday ? (
+                            calculateAge(personDetails[person.id].birthday, personDetails[person.id].deathday)
+                          ) : null}
+                        </div>
+                      )}
+                    </Link>
                   </div>
                 </div>
                 <div className="text-center">
