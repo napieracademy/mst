@@ -112,11 +112,21 @@ export async function getOMDBDataByIMDbId(imdbId: string): Promise<OMDBData | nu
       throw new OMDBError(`IMDb ID non valido: ${imdbId}`, 400);
     }
     
-    // Costruisci l'URL per l'API
-    const url = `${OMDB_API_URL}?i=${imdbId}&apikey=${apiKey}`
-    // URL sicuro per il log (nasconde la chiave API)
-    const safeUrl = `${OMDB_API_URL}?i=${imdbId}&apikey=***${apiKey.slice(-4)}`
-    console.log(`DEBUG-OMDB: Requesting URL ${safeUrl}`)
+    // Utilizziamo il proxy API per evitare problemi CORS in produzione
+    const isServer = typeof window === 'undefined';
+    let url: string;
+    
+    if (isServer) {
+      // Se siamo sul server, possiamo chiamare l'API direttamente
+      url = `${OMDB_API_URL}?i=${imdbId}&apikey=${apiKey}`;
+      console.log(`DEBUG-OMDB: Calling OMDB API directly from server for IMDb ID ${imdbId}`);
+    } else {
+      // Se siamo sul client, utilizziamo il nostro proxy API
+      // Costruisci l'URL relativo per il nostro proxy
+      const origin = window.location.origin;
+      url = `${origin}/api/omdb-proxy?imdbId=${imdbId}`;
+      console.log(`DEBUG-OMDB: Using proxy API for IMDb ID ${imdbId}`);
+    }
     
     // Implementazione con retry automatico
     const maxRetries = 2;
@@ -134,8 +144,7 @@ export async function getOMDBDataByIMDbId(imdbId: string): Promise<OMDBData | nu
         const response = await fetch(url, {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
           },
           // Evita l'uso della cache per ogni nuovo tentativo
           cache: attempt === 1 ? 'default' : 'no-cache'
@@ -287,11 +296,28 @@ export async function searchOMDB(
       params.append('y', year)
     }
     
-    // Costruisci l'URL per l'API
-    const url = `${OMDB_API_URL}?${params.toString()}`
+    // Utilizziamo il proxy API per evitare problemi CORS in produzione
+    const isServer = typeof window === 'undefined';
+    let url: string;
+    
+    if (isServer) {
+      // Se siamo sul server, possiamo chiamare l'API direttamente
+      url = `${OMDB_API_URL}?${params.toString()}`;
+      console.log(`DEBUG-OMDB Search: Calling OMDB API directly from server for title "${title}"`);
+    } else {
+      // Se siamo sul client, utilizziamo il nostro proxy API (da implementare)
+      // Per ora, questa funzione non è utilizzata dal client
+      const origin = window.location.origin;
+      url = `${origin}/api/omdb-search-proxy?${params.toString()}`;
+      console.log(`DEBUG-OMDB Search: Using proxy API for title "${title}"`);
+    }
     
     // Effettua la richiesta
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
     
     // Verifica se la risposta è ok
     if (!response.ok) {
