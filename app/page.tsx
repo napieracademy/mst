@@ -49,7 +49,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black text-white z-[50]">
       {/* Header */}
       <Header />
 
@@ -98,7 +98,7 @@ export default async function Home() {
       </section>
 
       {/* Contenuto principale */}
-      <div className="max-w-[1100px] mx-auto px-4 pb-20 relative z-10 mt-[-100px]">
+      <div className="max-w-[1100px] mx-auto px-4 pb-20 relative z-[5] mt-[-100px]">
         {/* Ora al Cinema - Solo qui usiamo isFirstSection={true} */}
         <MovieSectionInterattivo 
           title="Ora al Cinema" 

@@ -212,7 +212,7 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
   try {
     // Ottieni i dettagli base in italiano
     const baseData = await fetchFromTMDB(`/${type}/${id}`, {
-      append_to_response: "videos,recommendations,similar,external_ids",
+      append_to_response: "videos,recommendations,similar,external_ids,credits",
     }, "it-IT");
     
     // Log specifico per external_ids (utile per debug)
@@ -227,13 +227,9 @@ export async function getMovieDetails(id: string, type: "movie" | "tv"): Promise
       similarCount: baseData.similar?.results?.length || 0
     });
     
-    // Ottieni i crediti (cast e crew) in inglese
-    const creditsData = await fetchFromTMDB(`/${type}/${id}/credits`, {}, "en-US");
-    
     // Combina i dati
     const data = {
       ...baseData,
-      credits: creditsData,
       known_for_credits: [] // Array dei crediti "known_for" del film/serie
     };
 
@@ -372,25 +368,52 @@ export async function getPersonDetails(id: string): Promise<any | null> {
   }
 
   try {
-    // Ottieni i dettagli della persona in inglese per avere i nomi corretti
-    const basicData = await fetchFromTMDB(`/person/${id}`, {}, "en-US");
-    
-    // Ottieni i dettagli della persona in italiano (che includono i known_for)
-    const localizedData = await fetchFromTMDB(`/person/${id}`, {
-      append_to_response: "combined_credits,images,movie_credits,tv_credits"
+    // Ottieni i dettagli base in italiano
+    const baseData = await fetchFromTMDB(`/person/${id}`, {
+      append_to_response: "combined_credits,images,external_ids",
     }, "it-IT");
-    
-    // Combina tutti i dati
-    const data = {
-      ...basicData,
-      biography: localizedData.biography || basicData.biography,
-      combined_credits: localizedData.combined_credits || {},
-      movie_credits: localizedData.movie_credits || {},
-      tv_credits: localizedData.tv_credits || {},
-      images: localizedData.images || {},
-      // Inizializza l'array dei known_for_credits
-      known_for_credits: []
-    };
+
+    // Log specifico per external_ids
+    console.log(`TMDB person ${id} external_ids:`, {
+      hasExternalIds: !!baseData.external_ids,
+      imdbId: baseData.external_ids?.imdb_id || 'non disponibile',
+      keys: baseData.external_ids ? Object.keys(baseData.external_ids) : []
+    });
+
+    // Ottieni i dettagli dei film nella filmografia
+    if (baseData.combined_credits?.cast) {
+      const moviePromises = baseData.combined_credits.cast.map(async (credit: any) => {
+        if (credit.media_type === 'movie') {
+          const movieDetails = await fetchFromTMDB(`/movie/${credit.id}`, {
+            append_to_response: "external_ids"
+          }, "it-IT");
+          return {
+            ...credit,
+            external_ids: movieDetails.external_ids
+          };
+        }
+        return credit;
+      });
+      baseData.combined_credits.cast = await Promise.all(moviePromises);
+    }
+
+    if (baseData.combined_credits?.crew) {
+      const crewPromises = baseData.combined_credits.crew.map(async (credit: any) => {
+        if (credit.media_type === 'movie') {
+          const movieDetails = await fetchFromTMDB(`/movie/${credit.id}`, {
+            append_to_response: "external_ids"
+          }, "it-IT");
+          return {
+            ...credit,
+            external_ids: movieDetails.external_ids
+          };
+        }
+        return credit;
+      });
+      baseData.combined_credits.crew = await Promise.all(crewPromises);
+    }
+
+    const data = baseData;
     
     // Ottieni direttamente i known_for attraverso l'endpoint person/popular
     try {

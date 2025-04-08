@@ -14,6 +14,8 @@ interface AutocompleteResult {
   poster_path: string | null
   media_type: "movie" | "tv"
   year: string | null
+  popularity: number
+  director?: string
 }
 
 export function SearchBar() {
@@ -144,7 +146,7 @@ export function SearchBar() {
   }
 
   return (
-    <div ref={searchRef} className="w-full max-w-xl mx-auto relative z-[9999]">
+    <div ref={searchRef} className="w-full max-w-xl mx-auto relative z-[99999]">
       <form onSubmit={handleSearch} className="relative">
         <div className="relative">
           <div
@@ -183,7 +185,7 @@ export function SearchBar() {
 
       {/* Dropdown dei risultati con animazione */}
       {showResults && (
-        <div className="absolute mt-2 w-full bg-black/90 backdrop-blur-md rounded-2xl shadow-2xl z-[9999] overflow-hidden border border-gray-800 transition-all duration-300 animate-fadeIn">
+        <div className="absolute mt-2 w-full bg-black/90 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-gray-800 transition-all duration-300 animate-fadeIn z-[999999]">
           <ul className="max-h-[70vh] overflow-auto">
             {isLoading ? (
               <li className="p-6 flex justify-center">
@@ -236,6 +238,7 @@ export function SearchBar() {
                           {result.media_type === "movie" ? "Film" : "Serie TV"}
                         </span>
                         {result.year && <span className="ml-2 text-gray-400">{result.year}</span>}
+                        {result.director && <span className="ml-2 text-gray-400">• {result.director}</span>}
                       </div>
                     </div>
                   </Link>

@@ -62,25 +62,28 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
 
   // Aggiungi i film dove ha recitato
   if (director.combined_credits?.cast) {
-    director.combined_credits.cast.forEach(credit => {
-      // Verifica se è già presente come regista
-      const existingCredit = credits.find(c => 
-        c.id === credit.id && 
-        c.media_type === credit.media_type && 
-        c.role === "directing"
-      )
+    // Filtra solo i ruoli di attore
+    director.combined_credits.cast
+      .filter(credit => credit.character || credit.job === "Actor")
+      .forEach(credit => {
+        // Verifica se è già presente come regista
+        const existingCredit = credits.find(c => 
+          c.id === credit.id && 
+          c.media_type === credit.media_type && 
+          c.role === "directing"
+        )
 
-      if (existingCredit) {
-        // Se è già presente come regista, aggiorna il ruolo a "both"
-        existingCredit.role = "both"
-      } else {
-        // Altrimenti aggiungilo come attore
-        credits.push({
-          ...credit,
-          role: "acting"
-        })
-      }
-    })
+        if (existingCredit) {
+          // Se è già presente come regista, aggiorna il ruolo a "both"
+          existingCredit.role = "both"
+        } else {
+          // Altrimenti aggiungilo come attore
+          credits.push({
+            ...credit,
+            role: "acting"
+          })
+        }
+      })
   }
 
   // Prepara i known_for_credits
