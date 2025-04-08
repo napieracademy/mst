@@ -234,13 +234,21 @@ function processOMDBResponse(data: any, imdbId: string): OMDBData {
       }
     })
     
+    // Gestione sicura dei voti IMDb
+    let imdbVotes = 0;
+    if (data.imdbVotes) {
+      // Rimuovi le virgole solo se imdbVotes è una stringa
+      const votesStr = typeof data.imdbVotes === 'string' ? data.imdbVotes.replace(/,/g, '') : data.imdbVotes;
+      imdbVotes = parseInt(votesStr, 10) || 0;
+    }
+    
     // Formatta i dati OMDB
     return {
       imdb_id: data.imdbID,
       title: data.Title,
       year: data.Year,
       imdb_rating: parseFloat(data.imdbRating) || 0,
-      imdb_votes: parseInt(data.imdbVotes?.replace(/,/g, '') || '0', 10),
+      imdb_votes: imdbVotes,
       ratings,
       metascore: data.Metascore ? parseInt(data.Metascore, 10) : undefined,
       type: data.Type === 'movie' ? 'movie' : 'series',

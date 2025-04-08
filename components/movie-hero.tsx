@@ -14,6 +14,7 @@ import dynamic from 'next/dynamic'
 import { MovieInfo } from '@/atomic/molecules/movie-info'
 import { Container } from "@/atomic/atoms/container"
 import { DraggableContent } from "@/atomic/molecules/draggable-content"
+import { MovieRatingsHero } from "./movie-ratings-hero"
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -240,6 +241,14 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                       onWatchTrailer={() => {}}
                     />
                   </DraggableContent>
+                  
+                  {/* Movie Ratings */}
+                  <MovieRatingsHero
+                    tmdbId={movie.id}
+                    imdbId={movie.external_ids?.imdb_id}
+                    tmdbRating={movie.vote_average}
+                    tmdbVoteCount={movie.vote_count}
+                  />
                   
                   {/* Trailer Button - Sempre allineato a sinistra */}
                   {trailers && trailers.length > 0 && (
