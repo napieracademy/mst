@@ -113,7 +113,7 @@ export function TVPageClient({
                   show.production_countries.length > 0 &&
                   ` e prodotta in ${show.production_countries.map((c: { name: string }) => c.name).join(", ")}`}.
                 {show.external_ids?.imdb_id && (
-                  <AwardsAndBoxOfficeInfo imdbId={show.external_ids.imdb_id} />
+                  <AwardsAndBoxOfficeInfo imdbId={show.external_ids.imdb_id} useDetailedView={true} />
                 )}
               </p>
             </FadeInSection>

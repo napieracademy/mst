@@ -1,26 +1,27 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { SearchBar } from "@/components/search-bar"
-import { MovieSection } from "@/components/movie-section"
 import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
-import { OscarWinnersSection } from "@/components/oscar-winners-section"
-import { Hero } from "@/components/hero"
+import { OscarWinnersCarousel } from "@/components/oscar-winners-carousel"
 import {
   getTrendingMovies,
   getPopularMovies,
   getTopRatedMovies,
   getUpcomingMovies,
   getPopularTVShows,
-  getNowPlayingMovies,
   getOscarBestPictureWinners
 } from "@/lib/tmdb"
 import Image from "next/image"
-import type { Movie } from "@/lib/types"
-import { Suspense } from "react"
+import { Metadata } from 'next';
 
 // Disabilitiamo il caching per garantire un film diverso ad ogni refresh
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: 'MST - Home',
+  description: 'Esplora i film più popolari, di tendenza e meglio valutati su MST.',
+};
 
 export default async function Home() {
   // Recupera i dati in parallelo con gestione degli errori
@@ -121,10 +122,11 @@ export default async function Home() {
           isFirstSection={true} 
         />
 
-        {/* Film Premiati agli Oscar - Titolo più generico e accurato */}
-        <OscarWinnersSection 
-          title="Film Premiati agli Oscar (2004-2024)" 
-          showDirector={true} 
+        {/* Carousel dei film vincitori dell'Oscar come miglior film - NUOVO */}
+        <OscarWinnersCarousel 
+          title="Film vincitori del premio Oscar" 
+          startDate="2015-01-01"
+          limit={10}
         />
 
         {/* I più votati */}

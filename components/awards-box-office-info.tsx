@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { DetailedAwards } from "@/components/detailed-awards"
 
 interface AwardsAndBoxOfficeInfoProps {
   imdbId: string
+  useDetailedView?: boolean
 }
 
-export function AwardsAndBoxOfficeInfo({ imdbId }: AwardsAndBoxOfficeInfoProps) {
+export function AwardsAndBoxOfficeInfo({ imdbId, useDetailedView = false }: AwardsAndBoxOfficeInfoProps) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -16,15 +18,17 @@ export function AwardsAndBoxOfficeInfo({ imdbId }: AwardsAndBoxOfficeInfoProps) 
       if (!imdbId) return
       
       try {
-        // Usa l'endpoint test-omdb-raw creato in precedenza
-        const response = await fetch(`/api/test-omdb-raw?imdbId=${imdbId}`)
-        
-        if (!response.ok) {
-          throw new Error(`Errore ${response.status}`)
+        // Solo se non utilizziamo la vista dettagliata, recuperiamo i dati base dall'API OMDB
+        if (!useDetailedView) {
+          const response = await fetch(`/api/test-omdb-raw?imdbId=${imdbId}`)
+          
+          if (!response.ok) {
+            throw new Error(`Errore ${response.status}`)
+          }
+          
+          const omdbData = await response.json()
+          setData(omdbData)
         }
-        
-        const omdbData = await response.json()
-        setData(omdbData)
       } catch (err) {
         console.error("Errore nel recupero dati OMDB:", err)
         setError(err instanceof Error ? err.message : "Errore sconosciuto")
@@ -34,7 +38,12 @@ export function AwardsAndBoxOfficeInfo({ imdbId }: AwardsAndBoxOfficeInfoProps) 
     }
     
     fetchOmdbData()
-  }, [imdbId])
+  }, [imdbId, useDetailedView])
+
+  // Se utilizziamo la vista dettagliata, renderizziamo direttamente quel componente
+  if (useDetailedView) {
+    return <DetailedAwards imdbId={imdbId} />
+  }
 
   // Se stiamo caricando o abbiamo un errore, non mostrare nulla
   if (loading || error || !data) {

@@ -94,7 +94,7 @@ export function MoviePageClient({
                   movie.production_countries.length > 0 &&
                   ` e prodotto in ${movie.production_countries.map((c: { name: string }) => c.name).join(", ")}`}.
                 {movie.external_ids?.imdb_id && (
-                  <AwardsAndBoxOfficeInfo imdbId={movie.external_ids.imdb_id} />
+                  <AwardsAndBoxOfficeInfo imdbId={movie.external_ids.imdb_id} useDetailedView={true} />
                 )}
               </p>
             </FadeInSection>
