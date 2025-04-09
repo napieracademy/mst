@@ -86,9 +86,24 @@ export default function TestOmdbComparePage() {
             ) : (
               <>
                 <div className="mb-2 text-white">Tipo: <span className="font-semibold text-yellow-200">{result.filmData?.type}</span></div>
+                
+                {/* Rating Info */}
                 <div className="mb-2 text-white">Ha Ratings: <span className="font-semibold text-yellow-200">{result.filmData?.hasRatings ? 'Sì' : 'No'}</span></div>
                 <div className="mb-2 text-white">Numero ratings: <span className="font-semibold text-yellow-200">{result.filmData?.ratingsCount}</span></div>
                 <div className="mb-2 text-white">Fonti ratings: <span className="font-semibold text-yellow-200">{result.filmData?.ratingSources?.join(', ') || 'Nessuna'}</span></div>
+                
+                {/* Awards Info */}
+                <div className="mt-4 mb-2 text-white font-semibold text-yellow-400">PREMI E RICONOSCIMENTI:</div>
+                <div className="mb-2 text-white">Ha Premi: <span className="font-semibold text-yellow-200">{result.filmData?.hasAwards ? 'Sì' : 'No'}</span></div>
+                {result.filmData?.awardsAnalysis && (
+                  <>
+                    <div className="mb-2 text-white">Oscar: <span className="font-semibold text-yellow-200">{result.filmData.awardsAnalysis.oscars}</span></div>
+                    <div className="mb-2 text-white">Altri premi: <span className="font-semibold text-yellow-200">{result.filmData.awardsAnalysis.wins}</span></div>
+                    <div className="mb-2 text-white">Nomination: <span className="font-semibold text-yellow-200">{result.filmData.awardsAnalysis.nominations}</span></div>
+                    <div className="mb-2 text-white">Riassunto: <span className="font-semibold text-yellow-200">{result.filmData.awardsAnalysis.summary}</span></div>
+                    <div className="mb-2 text-white">Testo originale: <span className="font-semibold text-yellow-200">{result.filmData.awardsAnalysis.rawText || 'N/A'}</span></div>
+                  </>
+                )}
                 
                 <div className="mt-4">
                   <h3 className="font-semibold mb-2 text-white">Rating dettagliati:</h3>
@@ -114,9 +129,24 @@ export default function TestOmdbComparePage() {
             ) : (
               <>
                 <div className="mb-2 text-white">Tipo: <span className="font-semibold text-yellow-200">{result.seriesData?.type}</span></div>
+                
+                {/* Rating Info */}
                 <div className="mb-2 text-white">Ha Ratings: <span className="font-semibold text-yellow-200">{result.seriesData?.hasRatings ? 'Sì' : 'No'}</span></div>
                 <div className="mb-2 text-white">Numero ratings: <span className="font-semibold text-yellow-200">{result.seriesData?.ratingsCount}</span></div>
                 <div className="mb-2 text-white">Fonti ratings: <span className="font-semibold text-yellow-200">{result.seriesData?.ratingSources?.join(', ') || 'Nessuna'}</span></div>
+                
+                {/* Awards Info */}
+                <div className="mt-4 mb-2 text-white font-semibold text-yellow-400">PREMI E RICONOSCIMENTI:</div>
+                <div className="mb-2 text-white">Ha Premi: <span className="font-semibold text-yellow-200">{result.seriesData?.hasAwards ? 'Sì' : 'No'}</span></div>
+                {result.seriesData?.awardsAnalysis && (
+                  <>
+                    <div className="mb-2 text-white">Oscar: <span className="font-semibold text-yellow-200">{result.seriesData.awardsAnalysis.oscars}</span></div>
+                    <div className="mb-2 text-white">Altri premi: <span className="font-semibold text-yellow-200">{result.seriesData.awardsAnalysis.wins}</span></div>
+                    <div className="mb-2 text-white">Nomination: <span className="font-semibold text-yellow-200">{result.seriesData.awardsAnalysis.nominations}</span></div>
+                    <div className="mb-2 text-white">Riassunto: <span className="font-semibold text-yellow-200">{result.seriesData.awardsAnalysis.summary}</span></div>
+                    <div className="mb-2 text-white">Testo originale: <span className="font-semibold text-yellow-200">{result.seriesData.awardsAnalysis.rawText || 'N/A'}</span></div>
+                  </>
+                )}
                 
                 <div className="mt-4">
                   <h3 className="font-semibold mb-2 text-white">Rating dettagliati:</h3>
