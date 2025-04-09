@@ -309,16 +309,16 @@ export function TVHero({
                           </div>
                         )}
                         
-                        {/* Rotten Tomatoes */}
-                        {ratings.rottenTomatoes && (
+                        {/* Rotten Tomatoes - Solo se il rating è maggiore di 0 */}
+                        {ratings.rottenTomatoes && ratings.rottenTomatoes.rating > 0 && (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">RT:</span>
                             <span>{ratings.rottenTomatoes.rating}%</span>
                           </div>
                         )}
                         
-                        {/* Metacritic */}
-                        {ratings.metascore && (
+                        {/* Metacritic - Solo se il rating è maggiore di 0 */}
+                        {ratings.metascore && ratings.metascore > 0 && (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">MC:</span>
                             <span>{ratings.metascore}/100</span>

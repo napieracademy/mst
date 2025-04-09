@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
     
-    // Costruisci l'URL per l'API OMDB
-    const url = `${OMDB_API_URL}?i=${imdbId}&apikey=${OMDB_API_KEY}`
+    // Costruisci l'URL per l'API OMDB con più dettagli
+    const url = `${OMDB_API_URL}?i=${imdbId}&apikey=${OMDB_API_KEY}&plot=short&r=json`
     
     // Effettua la richiesta a OMDB dal lato server
     const response = await fetch(url, {
@@ -45,15 +45,23 @@ export async function GET(request: NextRequest) {
     // Estrai i dati dalla risposta
     const data = await response.json()
     
+    // Log dei dati per debug
+    console.log(`OMDB Data for ${imdbId}:`, {
+      imdbRating: data.imdbRating,
+      metascore: data.Metascore,
+      ratings: data.Ratings
+    });
+    
     // Verifica se la risposta contiene un errore
     if (data.Response === 'False') {
+      console.log(`OMDB Error for ${imdbId}:`, data.Error);
       return NextResponse.json({ 
         error: data.Error || 'Error getting data' 
       }, { status: 404 })
     }
     
-    // Restituisci tutti i rating disponibili
-    return NextResponse.json({
+    // Prepara i dati da restituire
+    const responseData = {
       imdb: data.imdbRating ? {
         rating: parseFloat(data.imdbRating) || 0,
         votes: parseInt(data.imdbVotes?.replace(/,/g, '') || '0', 10)
@@ -64,7 +72,12 @@ export async function GET(request: NextRequest) {
           } 
         : null,
       metascore: data.Metascore ? parseInt(data.Metascore, 10) : null
-    })
+    };
+    
+    // Log della risposta elaborata
+    console.log(`Processed ratings for ${imdbId}:`, responseData);
+    
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error('Error in IMDb rating API:', error)
     
