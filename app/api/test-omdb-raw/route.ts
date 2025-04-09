@@ -29,27 +29,38 @@ function analyzeAwards(awardsString: string | undefined | null): any {
     rawText: awardsString
   }
 
-  // Cerca le nomination agli Oscar
+  // Cerca le vittorie agli Oscar
   const oscarWinsMatch = awardsString.match(/Won (\d+) Oscar/i)
   if (oscarWinsMatch) {
     analysis.oscars = parseInt(oscarWinsMatch[1], 10)
   }
 
-  // Cerca le nomination a premi
+  // Cerca le nomination specifiche
   const nominationsMatch = awardsString.match(/Nominated for (\d+)/i)
   if (nominationsMatch) {
     analysis.nominations = parseInt(nominationsMatch[1], 10)
+  } else {
+    // Pattern alternativo per le nomination - "X nominations total" o "X nominations."
+    const totalNominationsMatch = awardsString.match(/(\d+) nomination/i)
+    if (totalNominationsMatch) {
+      analysis.nominations = parseInt(totalNominationsMatch[1], 10)
+    }
   }
 
-  // Cerca le vittorie di premi
-  const winsMatch = awardsString.match(/Won (\d+)/i)
-  if (winsMatch && !oscarWinsMatch) {
-    analysis.wins = parseInt(winsMatch[1], 10)
-  } else if (winsMatch && oscarWinsMatch) {
-    // Se ci sono sia "Won X Oscar" che "Won Y", sottrai gli Oscar dal totale
-    analysis.wins = parseInt(winsMatch[1], 10) - analysis.oscars
-    if (analysis.wins < 0) analysis.wins = 0 // Evita numeri negativi
+  // Cerca vittorie non-Oscar con vari pattern
+  // 1. Pattern "X wins & Y nominations"
+  const winsAndNominationsMatch = awardsString.match(/(\d+) wins/i)
+  if (winsAndNominationsMatch) {
+    analysis.wins = parseInt(winsAndNominationsMatch[1], 10)
+  } 
+  // 2. Pattern "Another X wins"
+  const anotherWinsMatch = awardsString.match(/Another (\d+) wins/i)
+  if (anotherWinsMatch) {
+    analysis.wins = parseInt(anotherWinsMatch[1], 10)
   }
+
+  // Se ci sono sia Oscar che altre vittorie, gli Oscar sono già contati separatamente
+  // Non dobbiamo sottrarli, poiché OMDB li conta già separatamente
 
   // Crea un riepilogo
   const summaryParts = []
