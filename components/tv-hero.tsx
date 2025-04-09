@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic'
 import { TVInfo } from '@/atomic/molecules/tv-info'
 import { Container } from "@/atomic/atoms/container"
 import { DraggableContent } from "@/atomic/molecules/draggable-content"
+import { useMovieRatings } from "@/hooks/useMovieRatings"
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -43,9 +44,21 @@ interface TVHeroProps {
   backdropUrl: string | null;
   releaseDate: string | null;
   trailers: Trailer[];
+  imdbId?: string | null;
+  tmdbRating?: number;
+  tmdbVoteCount?: number;
 }
 
-export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: TVHeroProps) {
+export function TVHero({ 
+  show, 
+  posterUrl, 
+  backdropUrl, 
+  releaseDate, 
+  trailers, 
+  imdbId,
+  tmdbRating,
+  tmdbVoteCount
+}: TVHeroProps) {
   const [isTrailerOpen, setIsTrailerOpen] = useState(false)
   const [isPipTrailerActive, setIsPipTrailerActive] = useState(false)
   const [userScrolledPastThreshold, setUserScrolledPastThreshold] = useState(false)
@@ -64,7 +77,10 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
   
   // Fornisce un valore predefinito per il titolo della serie
   const showTitle = show.name || "Serie TV";
-
+  
+  // Utilizziamo l'hook per i rating
+  const { ratings, loading, hasRatings } = useMovieRatings(imdbId, tmdbRating, tmdbVoteCount);
+  
   // Verifico se l'utente preferisce animazioni ridotte e il suo stato della batteria
   useEffect(() => {
     // Controlliamo le preferenze di motion reduction
@@ -262,6 +278,55 @@ export function TVHero({ show, posterUrl, backdropUrl, releaseDate, trailers }: 
                       onWatchTrailer={() => {}}
                     />
                   </DraggableContent>
+                  
+                  {/* Ratings Section */}
+                  {(hasRatings || loading) && (
+                    <DraggableContent
+                      dragConstraints={{ top: -20, right: 50, bottom: 20, left: -50 }}
+                      snapBackDuration={0.5}
+                    >
+                      <div className="flex flex-wrap items-center gap-6 mt-4 text-white">
+                        {/* Loader durante il caricamento */}
+                        {loading && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400">Caricamento rating...</span>
+                          </div>
+                        )}
+                        
+                        {/* TMDB Rating */}
+                        {ratings.tmdb && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">TMDB:</span>
+                            <span>{ratings.tmdb.rating.toFixed(1)}/10</span>
+                          </div>
+                        )}
+                        
+                        {/* IMDb Rating */}
+                        {ratings.imdb && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">IMDb:</span>
+                            <span>{ratings.imdb.rating.toFixed(1)}/10</span>
+                          </div>
+                        )}
+                        
+                        {/* Rotten Tomatoes */}
+                        {ratings.rottenTomatoes && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">RT:</span>
+                            <span>{ratings.rottenTomatoes.rating}%</span>
+                          </div>
+                        )}
+                        
+                        {/* Metacritic */}
+                        {ratings.metascore && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">MC:</span>
+                            <span>{ratings.metascore}/100</span>
+                          </div>
+                        )}
+                      </div>
+                    </DraggableContent>
+                  )}
                   
                   {/* Trailer Button - Sempre allineato a sinistra */}
                   {hasTrailer && (

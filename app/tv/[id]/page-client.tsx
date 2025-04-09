@@ -88,6 +88,9 @@ export function TVPageClient({
           backdropUrl={backdropUrl}
           releaseDate={releaseDate}
           trailers={trailers || []}
+          imdbId={show.external_ids?.imdb_id || null}
+          tmdbRating={show.vote_average}
+          tmdbVoteCount={show.vote_count}
         />
       </div>
 
