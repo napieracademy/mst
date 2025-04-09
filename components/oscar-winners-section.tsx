@@ -171,7 +171,7 @@ export function OscarWinnersSection({
                   movie={movie}
                   showDirector={showDirector}
                   showYear={true}
-                  extraInfo={movie.oscar_win_year ? `Oscar ${movie.oscar_win_year}` : undefined}
+                  extraInfo={movie.oscar_win_year ? `Premiato ${movie.oscar_win_year}` : undefined}
                   extraInfoClass="text-yellow-400"
                 />
               )

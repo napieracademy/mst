@@ -121,9 +121,9 @@ export default async function Home() {
           isFirstSection={true} 
         />
 
-        {/* Film Premiati con Oscar - Usando il nuovo componente con dati OMDB */}
+        {/* Film Premiati agli Oscar - Titolo più generico e accurato */}
         <OscarWinnersSection 
-          title="Oscar Miglior Film (2004-2024)" 
+          title="Film Premiati agli Oscar (2004-2024)" 
           showDirector={true} 
         />
 
