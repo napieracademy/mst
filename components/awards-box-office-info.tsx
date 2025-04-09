@@ -41,37 +41,60 @@ export function AwardsAndBoxOfficeInfo({ imdbId }: AwardsAndBoxOfficeInfoProps) 
     return null
   }
 
-  // Costruiamo le informazioni sul box office (per i film)
-  const boxOfficeInfo = data.rawData?.BoxOffice && data.rawData.BoxOffice !== 'N/A' 
-    ? ` Ha incassato ${data.rawData.BoxOffice}.` 
-    : ''
-
-  // Costruiamo le informazioni sui premi
-  let awardsInfo = ''
+  // Costruiamo un testo più scorrevole e naturale
+  let infoText = ''
   
+  // Informazioni sul box office (per i film)
+  if (data.rawData?.BoxOffice && data.rawData.BoxOffice !== 'N/A') {
+    infoText += `Il film ha incassato ${data.rawData.BoxOffice}.`
+  }
+  
+  // Informazioni sui premi
   if (data.hasAwards) {
     const awardsAnalysis = data.awardsAnalysis
+    const hasPrizes = awardsAnalysis.oscars > 0 || awardsAnalysis.wins > 0
     
+    // Aggiungi spazio se abbiamo già informazioni sul box office
+    if (infoText && hasPrizes) {
+      infoText += ' '
+    }
+    
+    // Oscar
     if (awardsAnalysis.oscars > 0) {
-      awardsInfo += ` Ha vinto ${awardsAnalysis.oscars} Oscar.`
+      infoText += `Ha vinto ${awardsAnalysis.oscars} Oscar.`
+      
+      // Aggiungi spazio se ci sono altri premi da menzionare
+      if (awardsAnalysis.wins > 0) {
+        infoText += ' '
+      }
     }
     
+    // Altri premi
     if (awardsAnalysis.wins > 0) {
-      awardsInfo += ` Ha ottenuto ${awardsAnalysis.wins} premi.`
-    }
-    
-    if (awardsAnalysis.nominations > 0) {
-      awardsInfo += ` Ha ricevuto ${awardsAnalysis.nominations} nomination.`
+      infoText += `Ha ottenuto ${awardsAnalysis.wins} premi`
+      
+      // Menzione delle nomination
+      if (awardsAnalysis.nominations > 0) {
+        infoText += ` e un totale di ${awardsAnalysis.nominations} nomination in vari festival.`
+      } else {
+        infoText += '.'
+      }
+    } else if (awardsAnalysis.nominations > 0) {
+      // Solo nomination, senza premi
+      if (infoText) {
+        infoText += ' '
+      }
+      infoText += `Ha ricevuto ${awardsAnalysis.nominations} nomination in vari festival.`
     }
   }
 
-  if (!boxOfficeInfo && !awardsInfo) {
+  if (!infoText) {
     return null
   }
 
   return (
     <span className="block mt-3 text-gray-300">
-      {boxOfficeInfo} {awardsInfo}
+      {infoText}
     </span>
   )
 }
