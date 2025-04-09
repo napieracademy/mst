@@ -5,23 +5,21 @@ import { generateSlug } from "@/lib/utils"
 
 interface MoviePosterProps {
   movie: Movie
+  href?: string
 }
 
-export function MoviePoster({ movie }: MoviePosterProps) {
+export function MoviePoster({ movie, href: customHref }: MoviePosterProps) {
   const mediaType = movie.title ? "movie" : "tv"
-  const title = movie.title || movie.name || "Titolo sconosciuto"
+  const title = movie.title || movie.name || "Film"
   const imageUrl = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : "/placeholder.svg?height=450&width=300"
-  const year = movie.release_date ? movie.release_date.split('-')[0] : null
+  const year = movie.release_date 
+    ? movie.release_date.split('-')[0] 
+    : (movie.first_air_date ? movie.first_air_date.split('-')[0] : null)
   
-  // Genera lo slug SEO-friendly per qualsiasi tipo di contenuto
   const slug = generateSlug(title, year, movie.id)
-    
-  // Genera l'URL corretto in base al tipo di media
-  const href = mediaType === "movie" 
-    ? `/film/${slug}` 
-    : `/serie/${slug}`
+  const href = customHref || `/${movie.first_air_date ? 'serie' : 'film'}/${slug}`
 
   // Estrai il regista se disponibile
   const director = movie.credits?.crew?.find((person) => person.job === "Director")

@@ -13,8 +13,12 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, showDirector = false, rtRating }: MovieCardProps) {
-  // Genera lo slug per il link senza l'anno
-  const slug = generateSlug(movie.title || movie.name || "Film", null, movie.id)
+  // Genera lo slug per il link con l'anno
+  const year = movie.release_date 
+    ? movie.release_date.split('-')[0] 
+    : (movie.first_air_date ? movie.first_air_date.split('-')[0] : null)
+  
+  const slug = generateSlug(movie.title || movie.name || "Film", year, movie.id)
   const href = `/${movie.first_air_date ? 'serie' : 'film'}/${slug}`
 
   return (
