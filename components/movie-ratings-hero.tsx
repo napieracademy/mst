@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { getOMDBDataByIMDbId } from "@/lib/omdb"
-import Image from "next/image"
 
 interface MovieRatingsHeroProps {
   tmdbId: string
@@ -24,14 +23,6 @@ interface RatingsData {
     rating: number
     votes: number
   } | null
-}
-
-// Costanti per i loghi ufficiali da Wikipedia
-const RATING_LOGOS = {
-  imdb: "https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg",
-  rottenTomatoes: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Rotten_Tomatoes.svg",
-  metacritic: "https://upload.wikimedia.org/wikipedia/commons/2/20/Metacritic.svg",
-  tmdb: "https://upload.wikimedia.org/wikipedia/commons/8/89/Tmdb.new.logo.svg"
 }
 
 export function MovieRatingsHero({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: MovieRatingsHeroProps) {
@@ -100,62 +91,40 @@ export function MovieRatingsHero({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: 
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-6 text-sm mt-4">
+    <div className="flex flex-wrap items-center gap-4 text-sm mt-4">
       {/* IMDb */}
       {ratings.imdb && (
-        <div className="flex items-center gap-6">
-          <Image
-            src={RATING_LOGOS.imdb}
-            alt="IMDb"
-            width={45}
-            height={22}
-            className="brightness-200"
-            priority
-          />
-          <span className="text-white font-medium">{ratings.imdb.rating}/10</span>
+        <div className="flex items-center gap-1">
+          <span className="text-white font-medium">IMDb</span>
+          <span className="text-white mx-1">•</span>
+          <span className="text-white">{ratings.imdb.rating}/10</span>
         </div>
       )}
       
       {/* Rotten Tomatoes */}
       {ratings.rottenTomatoes && (
-        <div className="flex items-center gap-6">
-          <Image
-            src={RATING_LOGOS.rottenTomatoes}
-            alt="Rotten Tomatoes"
-            width={22}
-            height={22}
-            priority
-          />
-          <span className="text-white font-medium">{ratings.rottenTomatoes.rating}%</span>
+        <div className="flex items-center gap-1">
+          <span className="text-white font-medium">RT</span>
+          <span className="text-white mx-1">•</span>
+          <span className="text-white">{ratings.rottenTomatoes.rating}%</span>
         </div>
       )}
       
       {/* Metascore */}
       {ratings.metascore && (
-        <div className="flex items-center gap-6">
-          <Image
-            src={RATING_LOGOS.metacritic}
-            alt="Metacritic"
-            width={22}
-            height={22}
-            priority
-          />
-          <span className="text-white font-medium">{ratings.metascore}/100</span>
+        <div className="flex items-center gap-1">
+          <span className="text-white font-medium">MC</span>
+          <span className="text-white mx-1">•</span>
+          <span className="text-white">{ratings.metascore}/100</span>
         </div>
       )}
 
       {/* TMDB */}
       {ratings.tmdb && (
-        <div className="flex items-center gap-6">
-          <Image
-            src={RATING_LOGOS.tmdb}
-            alt="TMDB"
-            width={22}
-            height={22}
-            className="brightness-200"
-            priority
-          />
-          <span className="text-white font-medium">{ratings.tmdb.rating.toFixed(1)}/10</span>
+        <div className="flex items-center gap-1">
+          <span className="text-white font-medium">TMDB</span>
+          <span className="text-white mx-1">•</span>
+          <span className="text-white">{ratings.tmdb.rating.toFixed(1)}/10</span>
         </div>
       )}
     </div>
