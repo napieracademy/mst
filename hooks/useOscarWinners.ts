@@ -10,14 +10,45 @@ export function useOscarWinners() {
   useEffect(() => {
     const fetchOscarWinners = async () => {
       setLoading(true)
+      setError(null)
       
       try {
-        const response = await fetch('/api/enrich-oscar-winners')
+        console.log('Initiating Oscar winners data fetch')
         
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`)
+        // Utilizziamo un timeout per la richiesta
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 secondi
+        
+        let response;
+        
+        try {
+          response = await fetch('/api/enrich-oscar-winners', {
+            signal: controller.signal
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Response received:', { 
+            status: response.status,
+            ok: response.ok,
+            type: response.type 
+          })
+          
+          if (!response.ok) {
+            // Per errori 500, prendiamo il messaggio di errore dal corpo della risposta
+            if (response.status === 500) {
+              const errorData = await response.json().catch(() => ({}))
+              throw new Error(errorData.error || `Server error: ${response.status}`)
+            }
+            throw new Error(`Error ${response.status}: ${response.statusText}`)
+          }
+        } catch (fetchError) {
+          clearTimeout(timeoutId)
+          console.error('Fetch error:', fetchError)
+          throw fetchError
         }
         
+        // Se arriviamo qui, abbiamo una risposta valida
         const data = await response.json()
         
         // Log dei dati ricevuti per debugging
@@ -53,6 +84,7 @@ export function useOscarWinners() {
       } catch (err) {
         console.error('Error fetching Oscar winners:', err)
         setError(err instanceof Error ? err.message : 'Errore sconosciuto')
+        setWinners([]) // Imposta winners a array vuoto in caso di errore
       } finally {
         setLoading(false)
       }

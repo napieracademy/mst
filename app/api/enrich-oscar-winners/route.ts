@@ -3,6 +3,15 @@ import type { NextRequest } from 'next/server'
 import { getOscarBestPictureWinners } from '@/lib/tmdb'
 import { analyzeAwards } from '@/lib/awards-utils'
 
+// Gestione degli errori per evitare crash del server
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+})
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
+})
+
 const OMDB_API_URL = 'https://www.omdbapi.com'
 const OMDB_API_KEY = process.env.OMDB_API_KEY || 'e039393b'
 
@@ -37,6 +46,7 @@ export async function GET(request: NextRequest) {
         const imdbId = movie.external_ids?.imdb_id
         
         if (!imdbId) {
+          console.warn(`No IMDb ID found for movie: ${movie.title || movie.name} (ID: ${movie.id})`)
           return {
             ...movie,
             awards_data: null,
@@ -45,19 +55,50 @@ export async function GET(request: NextRequest) {
         }
         
         try {
-          // Recupera i dati da OMDB
+          // Verifica che l'imdbId sia valido
+          if (typeof imdbId !== 'string' || !imdbId.startsWith('tt') || imdbId.length < 7) {
+            console.warn(`Invalid IMDb ID for ${movie.title || 'unknown'}: ${imdbId}`)
+            return {
+              ...movie,
+              awards_data: null,
+              best_picture_confirmed: false
+            }
+          }
+          
+          // Recupera i dati da OMDB con gestione degli errori migliorata
           const omdbUrl = `${OMDB_API_URL}?i=${imdbId}&apikey=${OMDB_API_KEY}`
+          console.log(`Fetching OMDB data for ${imdbId} (${movie.title || movie.name})`)
+          
+          // Aggiungiamo un timeout alla richiesta
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 secondi timeout
+          
           const response = await fetch(omdbUrl, {
             headers: {
               'Accept': 'application/json'
-            }
+            },
+            signal: controller.signal
+          }).catch(err => {
+            console.error(`Fetch error for ${imdbId}:`, err.message || err)
+            clearTimeout(timeoutId)
+            throw err
           })
           
+          // Puliamo il timeout
+          clearTimeout(timeoutId)
+          
           if (!response.ok) {
+            console.warn(`OMDB API error for ${imdbId}: ${response.status} ${response.statusText}`)
             throw new Error(`Error ${response.status}`)
           }
           
           const omdbData = await response.json()
+          
+          // Verifica che la risposta sia valida
+          if (omdbData.Response === 'False') {
+            console.warn(`OMDB returned false response for ${imdbId}: ${omdbData.Error}`)
+            throw new Error(omdbData.Error || 'Unknown error')
+          }
           
           // Analizza i premi
           const awardsAnalysis = analyzeAwards(omdbData.Awards)
@@ -78,7 +119,7 @@ export async function GET(request: NextRequest) {
           const hasBestPictureAward = true; // Forziamo a true per evitare filtraggi
           
           // Debug per i pattern
-          console.log(`Checking awards for ${movie.title}:`, {
+          console.log(`Checking awards for ${movie.title || movie.name}:`, {
             awards: omdbData.Awards,
             patterns_match: bestPicturePatterns.some(pattern => pattern.test(omdbData.Awards || '')),
             force_include: true
@@ -115,7 +156,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       winners: finalMovies.slice(0, 21),
       winners_count: finalMovies.length,
-      confirmed_count: confirmedBestPictureWinners.length
+      confirmed_count: enrichedMovies.filter(m => m.best_picture_confirmed).length
     })
   } catch (error) {
     console.error('Error in enrich-oscar-winners API:', error)

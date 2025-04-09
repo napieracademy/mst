@@ -92,6 +92,10 @@ export function OscarWinnersSection({
         >
           {title}
           {loading && <span className="ml-2 text-sm font-normal text-gray-400">(Caricamento...)</span>}
+          {error && <span className="ml-2 text-sm font-normal text-red-400">(Errore di caricamento)</span>}
+          {!loading && !error && winners.length === 0 && (
+            <span className="ml-2 text-sm font-normal text-yellow-400">(Nessun dato disponibile)</span>
+          )}
         </h2>
         
         <div className="hidden sm:flex items-center space-x-2">
@@ -140,8 +144,8 @@ export function OscarWinnersSection({
 
         {/* Griglia di film */}
         <div className={`grid grid-flow-col auto-cols-max gap-4 pb-4 ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}>
-          {loading ? (
-            // Skeleton loader durante il caricamento
+          {loading || error || winners.length === 0 ? (
+            // Skeleton loader durante il caricamento o in caso di errori o dati vuoti
             Array.from({ length: 10 }).map((_, i) => (
               <div 
                 key={`skeleton-${i}`} 
@@ -152,14 +156,6 @@ export function OscarWinnersSection({
                 <div className="bg-gray-800 h-4 rounded w-4/6"></div>
               </div>
             ))
-          ) : error ? (
-            <div className="text-red-500 p-4">
-              Errore: impossibile caricare i vincitori dell'Oscar. {error}
-            </div>
-          ) : winners.length === 0 ? (
-            <div className="text-yellow-500 p-4">
-              Nessun film vincitore di Oscar trovato. Verifica la console per i dettagli.
-            </div>
           ) : (
             winners.map((movie) => {
               // Log per debug
