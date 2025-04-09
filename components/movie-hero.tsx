@@ -242,7 +242,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                     />
                   </DraggableContent>
                   
-                  {/* Movie Ratings */}
+                  {/* Movie Ratings - Sostituito con testo bianco semplice */}
                   <MovieRatingsHero
                     tmdbId={movie.id}
                     imdbId={movie.external_ids?.imdb_id}

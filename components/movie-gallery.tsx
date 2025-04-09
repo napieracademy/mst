@@ -1,119 +1,238 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { buildImageUrl } from "@/lib/tmdb"
+import { cn } from "@/lib/utils"
 
 interface MovieGalleryProps {
   movieId: string
-  type: "movie" | "tv"
+  type?: "movie" | "person"
 }
 
-interface GalleryImage {
-  file_path: string
-  width: number
-  height: number
-}
-
-export function MovieGallery({ movieId, type }: MovieGalleryProps) {
-  const [images, setImages] = useState<GalleryImage[]>([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+export function MovieGallery({ movieId, type = "movie" }: MovieGalleryProps) {
+  const [images, setImages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalImageIndex, setModalImageIndex] = useState(0)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  
   useEffect(() => {
-    async function fetchImages() {
+    const fetchImages = async () => {
       try {
-        const response = await fetch(`/api/images?id=${movieId}&type=${type}`)
-        if (!response.ok) {
-          throw new Error(`Failed to fetch images: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setImages(data.backdrops || [])
+        setLoading(true)
+        const endpoint = type === "movie" 
+          ? `/api/movie/${movieId}/images`
+          : `/api/person/${movieId}/images`
+          
+        const res = await fetch(endpoint)
+        const data = await res.json()
+        
+        // Estrai le immagini a seconda del tipo
+        const extractedImages = type === "movie" 
+          ? [...(data.backdrops || []), ...(data.posters || [])]
+          : data.profiles || []
+          
+        setImages(extractedImages)
       } catch (error) {
-        console.error("Error fetching images:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch images")
+        console.error("Errore nel recupero delle immagini:", error)
+        setImages([])
       } finally {
         setLoading(false)
       }
     }
-
+    
     fetchImages()
   }, [movieId, type])
+  
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % Math.ceil(images.length / 4))
+  }
+  
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + Math.ceil(images.length / 4)) % Math.ceil(images.length / 4))
+  }
+  
+  const openModal = (index: number) => {
+    setModalImageIndex(index)
+    setIsModalOpen(true)
+    document.body.style.overflow = "hidden"
+  }
+  
+  const closeModal = () => {
+    setIsModalOpen(false)
+    document.body.style.overflow = ""
+  }
+  
+  const nextImage = () => {
+    setModalImageIndex((prevIndex) => (prevIndex + 1) % images.length)
+  }
+  
+  const prevImage = () => {
+    setModalImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length)
+  }
+  
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen)
+  }
 
   if (loading) {
     return (
-      <section className="mt-24">
-        <div className="h-[400px] bg-gray-900 rounded-lg animate-pulse"></div>
-      </section>
-    )
-  }
-
-  if (error) {
-    return (
-      <section className="mt-24">
-        <div className="h-[100px] bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center justify-center">
-          <p className="text-red-400">Errore nel caricamento delle immagini: {error}</p>
-        </div>
-      </section>
+      <div className="flex justify-center items-center h-40">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
     )
   }
 
   if (images.length === 0) {
-    return null
+    return <p className="text-gray-500">Nessuna immagine disponibile</p>
   }
 
-  const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length)
-  }
-
-  const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
-  }
+  // Determina quali immagini mostrare nella vista attuale
+  const itemsPerRow = 4 // Desktop
+  const mobileItemsPerRow = 2 // Mobile
+  const startIdx = currentIndex * itemsPerRow
+  const visibleImages = images.slice(startIdx, startIdx + itemsPerRow)
 
   return (
-    <section className="mt-24">
-      <div className="relative aspect-video rounded-lg overflow-hidden">
-        <Image
-          src={`https://image.tmdb.org/t/p/original${images[currentIndex].file_path}`}
-          alt="Movie image"
-          fill
-          className="object-cover"
-        />
-
-        {images.length > 1 && (
+    <div className="w-full overflow-hidden">
+      <div className="relative">
+        {/* Frecce di navigazione desktop */}
+        {images.length > itemsPerRow && (
           <>
             <button
-              onClick={prevImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
-              aria-label="Previous image"
+              onClick={handlePrev}
+              className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/60 hover:bg-black/80 p-2 rounded-full transition-all duration-300 shadow-lg"
+              aria-label="Immagine precedente"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
-
             <button
-              onClick={nextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
-              aria-label="Next image"
+              onClick={handleNext}
+              className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/60 hover:bg-black/80 p-2 rounded-full transition-all duration-300 shadow-lg"
+              aria-label="Immagine successiva"
             >
               <ChevronRight className="h-6 w-6" />
             </button>
           </>
         )}
 
-        <a
-          href={`https://image.tmdb.org/t/p/original${images[currentIndex].file_path}`}
-          download={`movie-image-${currentIndex}.jpg`}
-          className="absolute bottom-4 right-4 z-10 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
-          aria-label="Scarica immagine"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l-3-3m3 3l3-3m-9 0h12" />
-          </svg>
-        </a>
+        {/* Grid delle immagini */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          {visibleImages.map((image, idx) => (
+            <div 
+              key={`${image.file_path}-${idx}`} 
+              className="relative aspect-[16/9] cursor-pointer overflow-hidden rounded-lg transition-transform duration-300 hover:scale-[1.02]"
+              onClick={() => openModal(startIdx + idx)}
+            >
+              <Image
+                src={buildImageUrl(image.file_path, 'w500')}
+                alt={`Immagine ${startIdx + idx + 1}`}
+                fill
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover transition-transform duration-500 hover:scale-105"
+              />
+            </div>
+          ))}
+        </div>
       </div>
-    </section>
+
+      {/* Indicatori di pagina per mobile */}
+      <div className="flex justify-center mt-4 sm:hidden">
+        {Array.from({ length: Math.ceil(images.length / mobileItemsPerRow) }).map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx)}
+            className={cn(
+              "w-2 h-2 mx-1 rounded-full transition-all duration-300",
+              currentIndex === idx ? "bg-white" : "bg-gray-600"
+            )}
+            aria-label={`Pagina ${idx + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Modal per la visualizzazione a schermo intero */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          onClick={closeModal}
+        >
+          <div className="absolute top-4 right-4 flex gap-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleFullscreen()
+              }}
+              className="text-white bg-black/50 p-2 rounded-full"
+              aria-label="Toggle fullscreen"
+            >
+              {isFullscreen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"></path><path d="M21 8h-3a2 2 0 0 1-2-2V3"></path><path d="M3 16h3a2 2 0 0 1 2 2v3"></path><path d="M16 21v-3a2 2 0 0 1 2-2h3"></path></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3h8"></path><path d="M21 8v8"></path><path d="M3 16v-8"></path><path d="M16 21H8"></path><path d="m3 3 18 18"></path></svg>
+              )}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                closeModal()
+              }}
+              className="text-white bg-black/50 p-2 rounded-full"
+              aria-label="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              prevImage()
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 p-3 rounded-full"
+            aria-label="Previous image"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          
+          <div 
+            className={cn(
+              "relative transition-all duration-300",
+              isFullscreen ? "w-screen h-screen" : "max-w-4xl max-h-[80vh] w-full"
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={buildImageUrl(images[modalImageIndex]?.file_path, isFullscreen ? 'original' : 'w1280')}
+              alt={`Immagine ${modalImageIndex + 1}`}
+              fill
+              sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, 80vw"}
+              className="object-contain"
+            />
+          </div>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              nextImage()
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 p-3 rounded-full"
+            aria-label="Next image"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+          
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <span className="bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+              {modalImageIndex + 1} / {images.length}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
