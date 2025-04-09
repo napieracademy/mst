@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer"
 import { SearchBar } from "@/components/search-bar"
 import { MovieSection } from "@/components/movie-section"
 import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
+import { OscarWinnersSection } from "@/components/oscar-winners-section"
 import { Hero } from "@/components/hero"
 import {
   getTrendingMovies,
@@ -120,10 +121,9 @@ export default async function Home() {
           isFirstSection={true} 
         />
 
-        {/* Film Premiati */}
-        <MovieSectionInterattivo 
+        {/* Film Premiati con Oscar - Usando il nuovo componente con dati OMDB */}
+        <OscarWinnersSection 
           title="Oscar Miglior Film (2004-2024)" 
-          movies={oscarWinners} 
           showDirector={true} 
         />
 
