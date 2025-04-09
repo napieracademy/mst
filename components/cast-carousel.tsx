@@ -204,21 +204,21 @@ export function CastCarousel({ cast }: CastCarouselProps) {
                         </div>
                       )}
                       
-                      {/* Age/Death Indicator - Mostrato solo se ci sono dati rilevanti */}
-                      {(personDetails[person.id]?.deathday || personDetails[person.id]?.birthday) && (
-                        <div 
-                          className={`absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
-                            personDetails[person.id]?.deathday ? 'text-red-400' : 'text-white'
-                          }`}
-                        >
-                          {personDetails[person.id]?.loading ? (
+                      {/* Age/Death Indicator - Mostrato solo se ci sono dati significativi */}
+                      {personDetails[person.id] && (
+                        personDetails[person.id].loading ? (
+                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md text-white">
                             <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : personDetails[person.id]?.deathday ? (
-                            '✝'
-                          ) : personDetails[person.id]?.birthday ? (
-                            calculateAge(personDetails[person.id].birthday, personDetails[person.id].deathday)
-                          ) : null}
-                        </div>
+                          </div>
+                        ) : personDetails[person.id].deathday ? (
+                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md text-red-400">
+                            ✝
+                          </div>
+                        ) : personDetails[person.id].birthday && calculateAge(personDetails[person.id].birthday, null) ? (
+                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md text-white">
+                            {calculateAge(personDetails[person.id].birthday, null)}
+                          </div>
+                        ) : null
                       )}
                     </div>
                   </div>
