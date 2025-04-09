@@ -15,6 +15,7 @@ import Image from "next/image"
 import { Container } from "@/components/container"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { PersonFilmography } from "@/components/person-filmography"
+import { AwardsAndBoxOfficeInfo } from "@/components/awards-box-office-info"
 
 interface MoviePageClientProps {
   movie: Movie
@@ -91,7 +92,10 @@ export function MoviePageClient({
                 {movie.original_language && `, girato in ${movie.original_language.toUpperCase()}`}
                 {movie.production_countries &&
                   movie.production_countries.length > 0 &&
-                  ` e prodotto in ${movie.production_countries.map((c: { name: string }) => c.name).join(", ")}.`}
+                  ` e prodotto in ${movie.production_countries.map((c: { name: string }) => c.name).join(", ")}`}.
+                {movie.external_ids?.imdb_id && (
+                  <AwardsAndBoxOfficeInfo imdbId={movie.external_ids.imdb_id} />
+                )}
               </p>
             </FadeInSection>
 
