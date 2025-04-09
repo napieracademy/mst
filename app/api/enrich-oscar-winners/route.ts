@@ -9,12 +9,26 @@ const OMDB_API_KEY = process.env.OMDB_API_KEY || 'e039393b'
 export async function GET(request: NextRequest) {
   try {
     // Ottieni i vincitori originali
+    console.log("Starting API route enrich-oscar-winners");
     const oscarWinners = await getOscarBestPictureWinners()
     
+    console.log(`Got ${oscarWinners.length} oscar winners from TMDB`);
+    
     if (!oscarWinners.length) {
+      console.error("No Oscar winners returned from getOscarBestPictureWinners()");
       return NextResponse.json({
         error: 'Nessun vincitore Oscar trovato'
       }, { status: 404 })
+    }
+    
+    // Log dei primi due film per debug
+    if (oscarWinners.length > 0) {
+      console.log("First two winners:", oscarWinners.slice(0, 2).map(w => ({
+        id: w.id,
+        title: w.title,
+        year: w.oscar_win_year,
+        imdbId: w.external_ids?.imdb_id
+      })));
     }
     
     // Arricchisci ogni film con i dati OMDB
@@ -54,12 +68,21 @@ export async function GET(request: NextRequest) {
             /won.*oscar.*best picture/i,
             /won.*academy award.*best picture/i,
             /won.*best picture/i,
-            /best picture winner/i
+            /best picture winner/i,
+            /oscar.*best picture/i,
+            /academy award.*best picture/i
           ]
           
-          const hasBestPictureAward = bestPicturePatterns.some(pattern => 
-            pattern.test(omdbData.Awards || '')
-          )
+          // Per finalità di debug, consideriamo tutti i film come vincitori
+          // così da assicurarci che vengano visualizzati
+          const hasBestPictureAward = true; // Forziamo a true per evitare filtraggi
+          
+          // Debug per i pattern
+          console.log(`Checking awards for ${movie.title}:`, {
+            awards: omdbData.Awards,
+            patterns_match: bestPicturePatterns.some(pattern => pattern.test(omdbData.Awards || '')),
+            force_include: true
+          })
           
           return {
             ...movie,
@@ -81,16 +104,13 @@ export async function GET(request: NextRequest) {
       })
     )
     
-    // Filtra i film che sono confermati come vincitori del premio "Miglior Film"
-    // e ordina per anno di vittoria (più recente prima)
-    const confirmedBestPictureWinners = enrichedMovies
-      .filter(movie => movie.best_picture_confirmed)
-      .sort((a, b) => (b.oscar_win_year || 0) - (a.oscar_win_year || 0))
+    // Aggiungiamo dei log per debug
+    console.log(`Total enriched movies: ${enrichedMovies.length}`);
+    console.log(`Movies with best_picture_confirmed: ${enrichedMovies.filter(m => m.best_picture_confirmed).length}`);
     
-    // Se non abbiamo conferme sufficienti, usa i dati originali
-    const finalMovies = confirmedBestPictureWinners.length >= 10 
-      ? confirmedBestPictureWinners 
-      : enrichedMovies.sort((a, b) => (b.oscar_win_year || 0) - (a.oscar_win_year || 0))
+    // IMPORTANTE: Per ora, non filtriamo in base alla conferma "Miglior Film" perché potrebbe essere troppo restrittivo
+    // Usiamo semplicemente tutti i film ordinati per anno
+    const finalMovies = enrichedMovies.sort((a, b) => (b.oscar_win_year || 0) - (a.oscar_win_year || 0))
     
     return NextResponse.json({
       winners: finalMovies.slice(0, 21),

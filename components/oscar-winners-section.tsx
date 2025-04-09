@@ -154,19 +154,28 @@ export function OscarWinnersSection({
             ))
           ) : error ? (
             <div className="text-red-500 p-4">
-              Errore: impossibile caricare i vincitori dell'Oscar.
+              Errore: impossibile caricare i vincitori dell'Oscar. {error}
+            </div>
+          ) : winners.length === 0 ? (
+            <div className="text-yellow-500 p-4">
+              Nessun film vincitore di Oscar trovato. Verifica la console per i dettagli.
             </div>
           ) : (
-            winners.map((movie) => (
-              <MovieCard
-                key={movie.id}
-                movie={movie}
-                showDirector={showDirector}
-                showYear={true}
-                extraInfo={movie.oscar_win_year ? `Oscar ${movie.oscar_win_year}` : undefined}
-                extraInfoClass="text-yellow-400"
-              />
-            ))
+            winners.map((movie) => {
+              // Log per debug
+              console.log(`Rendering movie: ${movie.title || movie.name} (${movie.id}), year: ${movie.oscar_win_year}`)
+              
+              return (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  showDirector={showDirector}
+                  showYear={true}
+                  extraInfo={movie.oscar_win_year ? `Oscar ${movie.oscar_win_year}` : undefined}
+                  extraInfoClass="text-yellow-400"
+                />
+              )
+            })
           )}
         </div>
       </div>

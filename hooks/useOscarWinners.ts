@@ -20,10 +20,34 @@ export function useOscarWinners() {
         
         const data = await response.json()
         
+        // Log dei dati ricevuti per debugging
+        console.log('API response received:', {
+          winnersCount: data.winners?.length || 0,
+          confirmedCount: data.confirmed_count || 0
+        })
+        
+        // Verifica che data.winners sia un array
+        if (!Array.isArray(data.winners)) {
+          console.error('data.winners is not an array:', data.winners)
+          setWinners([])
+          return
+        }
+        
+        // Assicuriamoci che i vincitori non siano vuoti
+        if (data.winners.length === 0) {
+          console.warn('Received empty winners array from API')
+        }
+        
         // Ordina i vincitori per anno di vittoria (dal più recente al più vecchio)
         const sortedWinners = data.winners.sort((a: any, b: any) => 
           (b.oscar_win_year || 0) - (a.oscar_win_year || 0)
         )
+        
+        console.log('Sorted winners:', sortedWinners.map((w: any) => ({ 
+          id: w.id, 
+          title: w.title, 
+          year: w.oscar_win_year 
+        })))
         
         setWinners(sortedWinners)
       } catch (err) {

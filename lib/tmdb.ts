@@ -608,9 +608,17 @@ export async function getOscarBestPictureWinners(): Promise<Movie[]> {
     const moviesWithDetails = await Promise.all(
       oscarBestPictureWinners.map(async (winner) => {
         try {
+          console.log(`Fetching details for Oscar winner: ${winner.title} (ID: ${winner.id})`);
           const details = await fetchFromTMDB(`/movie/${winner.id}`, {
-            append_to_response: "external_ids"
+            append_to_response: "external_ids,credits"
           });
+          
+          // Verifica se abbiamo un ID IMDb valido
+          if (!details.external_ids?.imdb_id) {
+            console.warn(`No IMDb ID found for movie: ${winner.title} (ID: ${winner.id})`);
+          } else {
+            console.log(`Got IMDb ID for ${winner.title}: ${details.external_ids.imdb_id}`);
+          }
           
           return {
             ...details,
