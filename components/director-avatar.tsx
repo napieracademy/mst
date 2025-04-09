@@ -218,9 +218,7 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
                 '✝'
               ) : directorDetails?.birthday ? (
                 calculateAge(directorDetails?.birthday || null, directorDetails?.deathday || null)
-              ) : (
-                '?'
-              )}
+              ) : null}
             </div>
           </Link>
         </div>
@@ -290,4 +288,4 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
       )}
     </div>
   );
-} 
+}
