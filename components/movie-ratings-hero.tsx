@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { DraggableContent } from "@/atomic/molecules/draggable-content"
 import { Loader2 } from "lucide-react"
+import { useMovieRatings } from "@/hooks/useMovieRatings"
 
 interface MovieRatingsHeroProps {
   tmdbId: number
@@ -12,34 +12,11 @@ interface MovieRatingsHeroProps {
 }
 
 export function MovieRatingsHero({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: MovieRatingsHeroProps) {
-  const [imdbRating, setImdbRating] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
+  // Utilizziamo l'hook personalizzato per gestire i rating
+  const { ratings, loading, hasRatings } = useMovieRatings(imdbId, tmdbRating, tmdbVoteCount)
   
-  // Fetch IMDb rating if we have an IMDb ID
-  useEffect(() => {
-    if (!imdbId) return
-    
-    const fetchImdbRating = async () => {
-      setLoading(true)
-      try {
-        const response = await fetch(`/api/imdb-rating?imdbId=${imdbId}`)
-        if (!response.ok) throw new Error('Error fetching IMDb rating')
-        
-        const data = await response.json()
-        setImdbRating(data.rating || null)
-      } catch (error) {
-        console.error("Failed to fetch IMDb rating:", error)
-        setImdbRating(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchImdbRating()
-  }, [imdbId])
-  
-  // Don't render anything if we don't have any ratings
-  if (!tmdbRating && !imdbRating && !loading) {
+  // Don't render anything if we don't have any ratings and we're not loading
+  if (!hasRatings && !loading) {
     return null
   }
   
@@ -49,26 +26,45 @@ export function MovieRatingsHero({ tmdbId, imdbId, tmdbRating, tmdbVoteCount }: 
       snapBackDuration={0.5}
     >
       <div className="flex flex-wrap items-center gap-6 mt-4 text-white">
-        {/* TMDB Rating in testo semplice */}
-        {tmdbRating !== undefined && tmdbRating > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">TMDB:</span>
-            <span>{tmdbRating.toFixed(1)}/10</span>
-          </div>
-        )}
-        
-        {/* IMDb Rating in testo semplice */}
-        {loading ? (
+        {/* Loader durante il caricamento */}
+        {loading && (
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span className="text-gray-400">Caricamento</span>
           </div>
-        ) : imdbRating ? (
+        )}
+        
+        {/* TMDB Rating */}
+        {ratings.tmdb && (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">TMDB:</span>
+            <span>{ratings.tmdb.rating.toFixed(1)}/10</span>
+          </div>
+        )}
+        
+        {/* IMDb Rating */}
+        {ratings.imdb && (
           <div className="flex items-center gap-2">
             <span className="font-semibold">IMDb:</span>
-            <span>{imdbRating}/10</span>
+            <span>{ratings.imdb.rating.toFixed(1)}/10</span>
           </div>
-        ) : null}
+        )}
+        
+        {/* Rotten Tomatoes */}
+        {ratings.rottenTomatoes && (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">RT:</span>
+            <span>{ratings.rottenTomatoes.rating}%</span>
+          </div>
+        )}
+        
+        {/* Metacritic */}
+        {ratings.metascore && (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">MC:</span>
+            <span>{ratings.metascore}/100</span>
+          </div>
+        )}
       </div>
     </DraggableContent>
   )
