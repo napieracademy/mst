@@ -114,4 +114,83 @@
                 0 0 8px rgba(255, 255, 255, 0.5),
                 0 0 12px rgba(255, 230, 150, 0.3);
   }
+  
+  /* Padding mobile consistente */
+  @media (max-width: 768px) {
+    .mobile-padding {
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+    
+    .mobile-padding-sm {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+    
+    .mobile-padding-lg {
+      padding-left: 20px !important;
+      padding-right: 20px !important;
+    }
+    
+    /* Riduci spaziatura verticale nei footer */
+    footer .grid-cols-1 {
+      gap: 24px !important;
+    }
+    
+    footer .grid-cols-1 > div {
+      margin-bottom: 0 !important;
+    }
+    
+    /* Compatta footer su mobile */
+    footer .py-12 {
+      padding-top: 32px !important;
+      padding-bottom: 32px !important;
+    }
+    
+    footer .mt-12 {
+      margin-top: 24px !important;
+    }
+    
+    footer .mt-8 {
+      margin-top: 16px !important;
+    }
+  }
+  
+  /* Ottimizzazioni mobile */
+  .mobile-optimized button,
+  .mobile-optimized a,
+  .mobile-optimized [role="button"],
+  .mobile-optimized input,
+  .mobile-optimized select,
+  .mobile-optimized textarea {
+    min-height: var(--touch-target-size, 44px);
+    min-width: var(--touch-target-size, 44px);
+  }
+
+  /* Aumenta la leggibilità del testo sui dispositivi mobili */
+  .mobile-optimized p,
+  .mobile-optimized h1,
+  .mobile-optimized h2,
+  .mobile-optimized h3,
+  .mobile-optimized h4,
+  .mobile-optimized h5,
+  .mobile-optimized h6 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Previene overflow orizzontale */
+  .mobile-optimized .prevent-overflow {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Migliora il rendering del testo */
+  .mobile-optimized {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
 }
