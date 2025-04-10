@@ -223,10 +223,71 @@ export async function getNowPlayingMovies(): Promise<Movie[]> {
   }
 }
 
-// Ottieni le serie TV popolari
+// Ottieni le serie TV popolari (filtrate per provider italiani e senza talk show/news)
 export async function getPopularTVShows(): Promise<Movie[]> {
-  const data = await fetchFromTMDB("/tv/popular")
-  return data?.results || []
+  try {
+    console.log("Fetching popular TV shows with Italian provider filtering...");
+    
+    // Generi da escludere: talk show, news, reality TV
+    const excludedGenreIds = [10767, 10763, 10764]; // Talk show, news, reality
+    
+    // Recupera più show del solito perché filtreremo
+    const data = await fetchFromTMDB("/tv/popular", { page: "1" });
+    const page2Data = await fetchFromTMDB("/tv/popular", { page: "2" });
+    
+    // Combina i risultati per avere più show da filtrare
+    const tvShows = [...(data?.results || []), ...(page2Data?.results || [])];
+    console.log(`Retrieved ${tvShows.length} TV shows before filtering`);
+    
+    // Filtra e arricchisci i dati in parallelo
+    const processedShows = await Promise.all(
+      tvShows.map(async (show: any) => {
+        try {
+          // Ottieni dettagli completi inclusi i generi
+          const details = await fetchFromTMDB(`/tv/${show.id}`);
+          
+          // Verifica se lo show ha generi da escludere
+          const hasExcludedGenre = details.genres?.some((genre: {id: number}) => 
+            excludedGenreIds.includes(genre.id)
+          );
+          
+          if (hasExcludedGenre) {
+            return null; // Escludi questo show
+          }
+          
+          // Verifica la disponibilità sui provider italiani
+          const providersData = await fetchFromTMDB(`/tv/${show.id}/watch/providers`);
+          const italianProviders = providersData.results?.IT;
+          
+          // Se non ci sono provider italiani, escludi
+          if (!italianProviders || (!italianProviders.flatrate && !italianProviders.rent && !italianProviders.buy)) {
+            return null; // Escludi questo show
+          }
+          
+          // Restituisci show con dettagli completi
+          return {
+            ...show,
+            ...details,
+            has_italian_providers: true
+          };
+        } catch (error) {
+          console.error(`Error processing TV show ${show.id}:`, error);
+          return null;
+        }
+      })
+    );
+    
+    // Rimuovi null e ordina per popolarità (più alta prima)
+    const validShows = processedShows
+      .filter((show): show is Movie => show !== null)
+      .sort((a, b) => b.popularity - a.popularity);
+    
+    console.log(`Filtered to ${validShows.length} TV shows with Italian providers and without excluded genres`);
+    return validShows;
+  } catch (error) {
+    console.error("Error in getPopularTVShows:", error);
+    return [];
+  }
 }
 
 // Cerca film o serie TV

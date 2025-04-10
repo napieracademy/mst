@@ -123,7 +123,7 @@ export default async function Home() {
           showDirector={false} 
         />
 
-        {/* Serie TV */}
+        {/* Serie TV (solo disponibili in Italia, no talk show/news) */}
         <MovieSectionInterattivo 
           title="Serie TV" 
           movies={popularTVShows.slice(0, 20)} 
