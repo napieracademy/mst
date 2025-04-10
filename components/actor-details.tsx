@@ -137,10 +137,10 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
 
       <div className="pt-24 pb-16">
         <Container maxWidth="standardized" className="px-0">
-          <div className="flex flex-col items-start">
+          <div className="flex flex-col items-center md:items-start">
             {/* Hero Section con avatar tondo e info principali */}
             <div className="flex flex-col md:flex-row w-full mb-12 gap-8">
-              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden relative flex-shrink-0 self-start">
+              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden relative flex-shrink-0 self-center md:self-start mx-auto md:mx-0">
                 <Image
                   src={profileUrl}
                   alt={actor.name}
@@ -150,34 +150,28 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div className="flex flex-col text-center md:text-left">
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">{actor.name}</h1>
 
-                <div className="flex flex-wrap gap-6 text-gray-300 mb-4">
-                  {birthDate && (
-                    <div>
-                      <h3 className="text-white text-sm font-medium mb-1">Data di nascita</h3>
-                      <p className="text-sm">{birthDate}</p>
-                    </div>
-                  )}
-
-                  {deathDate && (
-                    <div>
-                      <h3 className="text-white text-sm font-medium mb-1">Data di morte</h3>
-                      <p className="text-sm">{deathDate}</p>
-                    </div>
-                  )}
-
-                  {actor.place_of_birth && (
-                    <div>
-                      <h3 className="text-white text-sm font-medium mb-1">Luogo di nascita</h3>
-                      <p className="text-sm">{actor.place_of_birth}</p>
-                    </div>
-                  )}
-                </div>
+                <p className="text-gray-300 text-sm text-center md:text-left mb-6">
+                  {birthDate || actor.place_of_birth ? (
+                    <>
+                      {birthDate && (
+                        <>{actor.gender === 1 ? 'Nata' : 'Nato'} il {birthDate}</>
+                      )}
+                      {birthDate && actor.place_of_birth && ' a '}
+                      {actor.place_of_birth && (
+                        <>{actor.place_of_birth}</>
+                      )}
+                      {deathDate && (
+                        <>. {actor.gender === 1 ? 'Deceduta' : 'Deceduto'} il {deathDate}</>
+                      )}.
+                    </>
+                  ) : null}
+                </p>
                 {fullBio && (
                   <div className="mb-12">
-                    <div className="flex items-center mb-4">
+                    <div className="flex items-center justify-center md:justify-start mb-4">
                       <h2 className="text-xl font-semibold">Biografia</h2>
                       {fullBio.length > 300 && (
                         <button 
@@ -189,7 +183,7 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
                         </button>
                       )}
                     </div>
-                    <div className="text-gray-300">
+                    <div className="text-gray-300 text-center md:text-left">
                       <p className="mb-4">{bioExpanded ? fullBio : shortBio}</p>
                     </div>
                   </div>
@@ -202,7 +196,7 @@ export default function ActorDetails({ actor }: ActorDetailsProps) {
               {/* Filmografia */}
               {credits.length > 0 && (
                 <div className="mb-16">
-                  <h2 className="text-xl font-semibold mb-2">Filmografia</h2>
+                  <h2 className="text-xl font-semibold mb-2 text-center md:text-left">Filmografia</h2>
                   <PersonFilmography 
                     credits={credits} 
                     name={actor.name} 
