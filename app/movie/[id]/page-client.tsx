@@ -79,7 +79,7 @@ export function MoviePageClient({
       </div>
 
       {/* Content Section */}
-      <Container className="py-8 sm:py-16">
+      <Container className="py-8 sm:py-16" maxWidth="standardized">
         <div className="flex flex-col lg:flex-row lg:relative gap-4 sm:gap-8">
           {/* Left Column - Movie Details */}
           <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">

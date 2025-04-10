@@ -84,7 +84,7 @@ export function Header() {
         isScrolled ? "bg-black" : "bg-transparent"
       )}
     >
-      <Container>
+      <Container variant="default" className="max-w-[1100px]">
         <div className="py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Text variant="h5" className="font-medium text-white">

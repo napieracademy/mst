@@ -6,7 +6,7 @@ import { Text } from "@/atomic/atoms/text"
 export function Footer() {
   return (
     <footer className="bg-black text-gray-400 py-12 border-t border-gray-800">
-      <Container>
+      <Container variant="default" className="max-w-[1100px]">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Info legali */}
           <div>

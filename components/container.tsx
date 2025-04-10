@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
-  maxWidth?: 'default' | 'small' | 'large' | 'custom'
+  maxWidth?: 'default' | 'small' | 'large' | 'standardized' | 'custom'
   as?: React.ElementType
 }
 
@@ -21,6 +21,7 @@ export function Container({
       'max-w-7xl': maxWidth === 'default',
       'max-w-5xl': maxWidth === 'small',
       'max-w-screen-2xl': maxWidth === 'large',
+      'max-w-[1100px]': maxWidth === 'standardized',
       '': maxWidth === 'custom',
     },
     className

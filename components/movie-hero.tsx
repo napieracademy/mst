@@ -224,7 +224,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         {/* Container principale - senza padding laterali */}
         <div className="relative z-10 h-full w-full flex items-center">
           <div className="w-full">
-            <Container>
+            <Container variant="default" className="max-w-[1100px]">
               <div className="flex flex-col sm:flex-row items-start justify-start gap-6 sm:gap-16">
                 {/* Poster rimosso */}
 

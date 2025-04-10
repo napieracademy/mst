@@ -146,8 +146,8 @@ export default function DirectorDetails({ director }: DirectorDetailsProps) {
       <Header />
 
       <div className="pt-24 pb-16">
-        <Container maxWidth="custom">
-          <div className="flex flex-col items-start max-w-4xl mx-auto">
+        <Container maxWidth="standardized" className="px-0">
+          <div className="flex flex-col items-start">
             {/* Hero Section con avatar tondo e info principali */}
             <div className="flex flex-col md:flex-row w-full mb-12 gap-8">
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden relative flex-shrink-0 self-start">

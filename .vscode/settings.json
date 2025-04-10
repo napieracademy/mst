@@ -18,5 +18,6 @@
   },
   "typescript.tsserver.watchOptions": {
     "excludeDirectories": ["**/supabase/functions"]
-  }
+  },
+  "CodeGPT.apiKey": "CodeGPT Plus Beta"
 } 

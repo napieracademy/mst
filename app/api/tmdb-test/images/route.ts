@@ -29,19 +29,35 @@ export async function GET(request: NextRequest) {
         throw new Error('API key di TMDB mancante');
       }
 
-      const url = `https://api.themoviedb.org/3/${type}/${id}/images?api_key=${tmdbApiKey}&language=it-IT,null`;
-      const response = await fetch(url, { next: { revalidate: 3600 } });
+      // Log per debugging
+      console.log(`Richiesta immagini per ${type} ${id}`);
+
+      const url = `https://api.themoviedb.org/3/${type}/${id}/images?api_key=${tmdbApiKey}&language=it-IT,null&include_image_language=it,null,en`;
+      const response = await fetch(url, { 
+        next: { revalidate: 3600 },
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Errore API TMDB: ${response.status}, Risposta:`, errorText.substring(0, 200));
         throw new Error(`Errore API TMDB: ${response.status}`);
       }
       
       const data = await response.json();
       
+      // Log per debugging
+      console.log(`Ricevute ${(data.backdrops || []).length} backdrops, ${(data.posters || []).length} posters, ${(data.profiles || []).length} profiles`);
+      
+      
       // Restituisce le immagini come JSON
       return NextResponse.json({
         success: true,
-        backdrops: data.backdrops || []
+        backdrops: data.backdrops || [],
+        posters: data.posters || [],
+        profiles: type === 'person' ? data.profiles || [] : []
       });
     } catch (tmdbError) {
       console.error('Errore TMDB:', tmdbError);
