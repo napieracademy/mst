@@ -1,0 +1,9 @@
+{
+  "commands": [
+    {
+      "name": "home",
+      "command": "cd ~",
+      "global": false
+    }
+  ]
+}

@@ -15,7 +15,7 @@ import { useState } from "react"
 import { generateSlug } from "@/lib/utils"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { Container } from "@/components/container"
-import { AwardsAndBoxOfficeInfo } from "@/components/awards-box-office-info"
+// AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 // Interfaccia compatibile con quella del TVHero
 interface Show {
@@ -112,9 +112,6 @@ export function TVPageClient({
                 {show.production_countries &&
                   show.production_countries.length > 0 &&
                   ` e prodotta in ${show.production_countries.map((c: { name: string }) => c.name).join(", ")}`}.
-                {show.external_ids?.imdb_id && (
-                  <AwardsAndBoxOfficeInfo imdbId={show.external_ids.imdb_id} useDetailedView={true} />
-                )}
               </p>
             </FadeInSection>
 
