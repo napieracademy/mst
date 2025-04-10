@@ -20,6 +20,42 @@ interface ProviderData {
   buy?: Provider[]
 }
 
+// Componente che mostra i provider solo se sono disponibili
+export function WatchProvidersConditional({ movieId, type }: WatchProvidersProps) {
+  const [hasProviders, setHasProviders] = useState<boolean | null>(null);
+  
+  useEffect(() => {
+    // Controlla se ci sono provider disponibili
+    async function checkProviders() {
+      try {
+        const response = await fetch(`/api/watch-providers?id=${movieId}&type=${type}`);
+        if (!response.ok) {
+          setHasProviders(false);
+          return;
+        }
+        
+        const data = await response.json();
+        const providers = data.results?.IT;
+        setHasProviders(!!(providers?.flatrate || providers?.rent || providers?.buy));
+      } catch (error) {
+        setHasProviders(false);
+      }
+    }
+    
+    checkProviders();
+  }, [movieId, type]);
+  
+  if (hasProviders === null) return null; // Loading
+  if (hasProviders === false) return null; // Nessun provider
+  
+  return (
+    <div className="mb-8">
+      <h2 className="text-sm text-gray-400 mb-4">Guardalo su</h2>
+      <WatchProviders movieId={movieId} type={type} />
+    </div>
+  );
+}
+
 export function WatchProviders({ movieId, type }: WatchProvidersProps) {
   const [providers, setProviders] = useState<ProviderData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -44,34 +80,28 @@ export function WatchProviders({ movieId, type }: WatchProvidersProps) {
 
   if (loading) {
     return (
-      <section className="mt-8">
-        <div className="h-20 bg-gray-900 rounded-lg animate-pulse"></div>
-      </section>
+      <div className="space-y-2">
+        <div className="h-10 w-24 bg-gray-800 rounded-lg animate-pulse mb-2"></div>
+        <div className="h-10 w-24 bg-gray-800 rounded-lg animate-pulse mb-2"></div>
+        <div className="h-10 w-24 bg-gray-800 rounded-lg animate-pulse"></div>
+      </div>
     )
   }
 
   if (!providers || (!providers.flatrate && !providers.rent && !providers.buy)) {
-    return (
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">JustWatch</h2>
-        <p className="text-gray-400">Nessun provider di streaming disponibile in Italia.</p>
-      </section>
-    )
+    return null;
   }
 
   return (
-    <section className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">JustWatch</h2>
-
-      <div className="space-y-6">
+    <div className="space-y-2">
         {providers.flatrate && (
-          <div>
-            <h3 className="text-sm text-gray-400 mb-2">STREAMING</h3>
+          <div className="mb-4">
+            <h3 className="text-xs text-gray-500 mb-2">Streaming</h3>
             <div className="flex flex-wrap gap-2">
               {providers.flatrate.map((provider) => (
                 <div
                   key={provider.provider_id}
-                  className="w-12 h-12 relative rounded-lg overflow-hidden border border-gray-800"
+                  className="w-10 h-10 relative rounded-lg overflow-hidden border border-gray-800"
                 >
                   <Image
                     src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
@@ -86,13 +116,13 @@ export function WatchProviders({ movieId, type }: WatchProvidersProps) {
         )}
 
         {providers.rent && (
-          <div>
-            <h3 className="text-sm text-gray-400 mb-2">NOLEGGIO</h3>
+          <div className="mb-4">
+            <h3 className="text-xs text-gray-500 mb-2">Noleggio</h3>
             <div className="flex flex-wrap gap-2">
               {providers.rent.map((provider) => (
                 <div
                   key={provider.provider_id}
-                  className="w-12 h-12 relative rounded-lg overflow-hidden border border-gray-800"
+                  className="w-10 h-10 relative rounded-lg overflow-hidden border border-gray-800"
                 >
                   <Image
                     src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
@@ -108,12 +138,12 @@ export function WatchProviders({ movieId, type }: WatchProvidersProps) {
 
         {providers.buy && (
           <div>
-            <h3 className="text-sm text-gray-400 mb-2">ACQUISTO</h3>
+            <h3 className="text-xs text-gray-500 mb-2">Acquisto</h3>
             <div className="flex flex-wrap gap-2">
               {providers.buy.map((provider) => (
                 <div
                   key={provider.provider_id}
-                  className="w-12 h-12 relative rounded-lg overflow-hidden border border-gray-800"
+                  className="w-10 h-10 relative rounded-lg overflow-hidden border border-gray-800"
                 >
                   <Image
                     src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
@@ -127,7 +157,6 @@ export function WatchProviders({ movieId, type }: WatchProvidersProps) {
           </div>
         )}
       </div>
-    </section>
   )
 }
 

@@ -19,14 +19,13 @@ export function SeasonsTable({ seasons }: SeasonsTableProps) {
   if (!filteredSeasons.length) return null
 
   return (
-    <div className="mt-12 pt-8 border-t border-gray-800">
-      <h2 className="text-2xl font-bold mb-6">Stagioni</h2>
+    <div className="mt-6 pt-4">
+      {/* Titolo Stagioni rimosso */}
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-gray-800">
-              <th className="py-4 px-4 text-left font-medium text-gray-400 text-sm">Stagione</th>
               <th className="py-4 px-4 text-left font-medium text-gray-400 text-sm">Titolo</th>
               <th className="py-4 px-4 text-left font-medium text-gray-400 text-sm">Episodi</th>
               <th className="py-4 px-4 text-left font-medium text-gray-400 text-sm">Data di uscita</th>
@@ -49,7 +48,6 @@ export function SeasonsTable({ seasons }: SeasonsTableProps) {
 
               return (
                 <tr key={season.id} className="border-b border-gray-800 hover:bg-gray-900/50 transition-colors">
-                  <td className="py-4 px-4 font-medium">{season.season_number}</td>
                   <td className="py-4 px-4">{season.name}</td>
                   <td className="py-4 px-4">{season.episode_count} episodi</td>
                   <td className="py-4 px-4">

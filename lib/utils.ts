@@ -156,3 +156,112 @@ export function isValidPerson(person: any): boolean {
   );
 }
 
+/**
+ * Traduce i nomi delle nazioni in italiano
+ * @param countries Array di nomi di paesi in inglese
+ * @returns Stringa con i nomi tradotti in italiano, separati da virgole
+ */
+export function translateCountries(countries: string[]): string {
+  const translations: Record<string, string> = {
+    "United States of America": "Stati Uniti d'America",
+    "United States": "Stati Uniti",
+    "United Kingdom": "Regno Unito",
+    "Germany": "Germania",
+    "France": "Francia",
+    "Italy": "Italia",
+    "Spain": "Spagna",
+    "Japan": "Giappone",
+    "China": "Cina",
+    "Russia": "Russia",
+    "Canada": "Canada",
+    "Australia": "Australia",
+    "Brazil": "Brasile",
+    "Mexico": "Messico",
+    "South Korea": "Corea del Sud",
+    "India": "India",
+    "Netherlands": "Paesi Bassi",
+    "Sweden": "Svezia",
+    "Denmark": "Danimarca",
+    "Norway": "Norvegia",
+    "Finland": "Finlandia",
+    "Belgium": "Belgio",
+    "Switzerland": "Svizzera",
+    "Austria": "Austria",
+    "Poland": "Polonia",
+    "Greece": "Grecia",
+    "Portugal": "Portogallo",
+    "Ireland": "Irlanda",
+    "New Zealand": "Nuova Zelanda",
+    "Argentina": "Argentina",
+    "Chile": "Cile",
+    "Colombia": "Colombia",
+    "Turkey": "Turchia",
+    "Israel": "Israele",
+    "South Africa": "Sudafrica"
+  };
+  
+  // Traduci i nomi dei paesi
+  return countries.map(country => translations[country] || country).join(", ");
+}
+
+/**
+ * Traduce i codici lingua in italiano
+ * @param langCode Codice lingua (es. "en", "fr", "it")
+ * @returns Nome della lingua in italiano
+ */
+export function translateLanguage(langCode: string): string {
+  const languages: Record<string, string> = {
+    "en": "inglese",
+    "es": "spagnolo",
+    "fr": "francese",
+    "de": "tedesco",
+    "it": "italiano",
+    "ja": "giapponese",
+    "ko": "coreano",
+    "zh": "cinese",
+    "ru": "russo",
+    "pt": "portoghese",
+    "hi": "hindi",
+    "ar": "arabo",
+    "tr": "turco",
+    "nl": "olandese",
+    "pl": "polacco",
+    "sv": "svedese",
+    "da": "danese",
+    "fi": "finlandese",
+    "no": "norvegese",
+    "he": "ebraico",
+    "cs": "ceco",
+    "hu": "ungherese",
+    "th": "thailandese",
+    "vi": "vietnamita",
+    "ro": "rumeno",
+    "uk": "ucraino",
+    "el": "greco",
+    "id": "indonesiano",
+    "ms": "malese",
+    "fa": "persiano"
+  };
+
+  // Normalizza il codice lingua (converti a minuscolo e prendi solo i primi 2 caratteri)
+  const normalizedCode = langCode.toLowerCase().substring(0, 2);
+  return languages[normalizedCode] || langCode.toUpperCase();
+}
+
+/**
+ * Traduce lo stato della serie TV in italiano
+ * @param status Stato della serie in inglese
+ * @returns Stato tradotto in italiano
+ */
+export function translateStatus(status: string): string {
+  const translations: Record<string, string> = {
+    "Ended": "conclusa",
+    "Returning Series": "in corso",
+    "Canceled": "cancellata",
+    "In Production": "in produzione",
+    "Planned": "in programmazione"
+  };
+  
+  return translations[status] || status.toLowerCase();
+}
+

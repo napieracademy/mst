@@ -2,14 +2,12 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { SearchBar } from "@/components/search-bar"
 import { MovieSectionInterattivo } from "@/components/movie-section-interattivo"
-import { OscarWinnersCarousel } from "@/components/oscar-winners-carousel"
 import {
   getTrendingMovies,
   getPopularMovies,
   getTopRatedMovies,
-  getUpcomingMovies,
-  getPopularTVShows,
-  getOscarBestPictureWinners
+  getNowPlayingMovies,
+  getPopularTVShows
 } from "@/lib/tmdb"
 import Image from "next/image"
 import { Metadata } from 'next';
@@ -29,9 +27,8 @@ export default async function Home() {
     trendingMovies,
     popularMovies,
     topRatedMovies,
-    upcomingMovies,
-    popularTVShows,
-    oscarWinners
+    nowPlayingMovies,
+    popularTVShows
   ] = await Promise.all([
     getTrendingMovies().catch(error => {
       console.error("Errore nel recupero dei film di tendenza:", error);
@@ -45,16 +42,12 @@ export default async function Home() {
       console.error("Errore nel recupero dei film più votati:", error);
       return [];
     }),
-    getUpcomingMovies().catch(error => {
-      console.error("Errore nel recupero dei film in uscita:", error);
+    getNowPlayingMovies().catch(error => {
+      console.error("Errore nel recupero dei film ora al cinema:", error);
       return [];
     }),
     getPopularTVShows().catch(error => {
       console.error("Errore nel recupero delle serie TV popolari:", error);
-      return [];
-    }),
-    getOscarBestPictureWinners().catch(error => {
-      console.error("Errore nel recupero dei film premiati agli Oscar:", error);
       return [];
     })
   ]);
@@ -71,12 +64,12 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="relative h-[50vh] md:h-[90vh]">
         {/* Immagine di background casuale dai film "Ora al Cinema" */}
-        {upcomingMovies.length > 0 && (
+        {nowPlayingMovies.length > 0 && (
           <>
             {(() => {
               const timestamp = Date.now();
-              const randomIndex = Math.floor((Math.random() * timestamp) % upcomingMovies.length);
-              const randomMovie = upcomingMovies[randomIndex];
+              const randomIndex = Math.floor((Math.random() * timestamp) % nowPlayingMovies.length);
+              const randomMovie = nowPlayingMovies[randomIndex];
               const backdropUrl = randomMovie.backdrop_path
                 ? `https://image.tmdb.org/t/p/original${randomMovie.backdrop_path}`
                 : null;
@@ -117,17 +110,11 @@ export default async function Home() {
         {/* Ora al Cinema - Solo qui usiamo isFirstSection={true} */}
         <MovieSectionInterattivo 
           title="Ora al Cinema" 
-          movies={upcomingMovies.slice(0, 20)} 
+          movies={nowPlayingMovies.slice(0, 20)} 
           showDirector={false} 
           isFirstSection={true} 
         />
 
-        {/* Carousel dei film vincitori dell'Oscar come miglior film - NUOVO */}
-        <OscarWinnersCarousel 
-          title="Film vincitori del premio Oscar" 
-          startDate="2015-01-01"
-          limit={10}
-        />
 
         {/* I più votati */}
         <MovieSectionInterattivo 

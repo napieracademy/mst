@@ -11,7 +11,7 @@ export const MovieInfo: React.FC<MovieInfoProps> = ({
   title, 
   releaseDate, 
   hasTrailer = false, 
-  onWatchTrailer 
+  onWatchTrailer
 }) => {
   return (
     <div className="movie-info text-left mt-2 sm:mt-0 space-y-1"> {/* Added space-y-1 class */}

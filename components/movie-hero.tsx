@@ -28,6 +28,7 @@ interface MovieHeroProps {
   backdropUrl: string | null
   releaseDate: string | null
   trailers: any[]
+  showReleaseDate?: boolean
 }
 
 export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers }: MovieHeroProps) {

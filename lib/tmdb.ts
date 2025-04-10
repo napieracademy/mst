@@ -581,68 +581,6 @@ export async function getPersonDetails(id: number): Promise<PersonDetails | null
   }
 }
 
-// Lista dei film vincitori dell'Oscar come "Miglior Film" dal 2004 al 2025
-const oscarBestPictureWinners = [
-  { id: 346698, title: "Oppenheimer", year: 2025 },
-  { id: 674324, title: "Everything Everywhere All at Once", year: 2023 },
-  { id: 496243, title: "Parasite", year: 2020 },
-  { id: 399055, title: "The Shape of Water", year: 2018 },
-  { id: 313369, title: "Moonlight", year: 2017 },
-  { id: 194662, title: "Birdman", year: 2015 },
-  { id: 76203, title: "12 Years a Slave", year: 2014 },
-  { id: 68734, title: "Argo", year: 2013 },
-  { id: 44686, title: "The King's Speech", year: 2011 },
-  { id: 12405, title: "The Hurt Locker", year: 2010 },
-  { id: 12162, title: "Slumdog Millionaire", year: 2009 },
-  { id: 6977, title: "No Country for Old Men", year: 2008 },
-  { id: 1422, title: "The Departed", year: 2007 },
-  { id: 1640, title: "The Lord of the Rings: The Return of the King", year: 2004 }
-];
-
-// Ottieni i film vincitori dell'Oscar come "Miglior Film"
-export async function getOscarBestPictureWinners(): Promise<Movie[]> {
-  try {
-    console.log("Fetching Oscar Best Picture winners...");
-    
-    // Recupera i dettagli di ogni film in parallelo
-    const moviesWithDetails = await Promise.all(
-      oscarBestPictureWinners.map(async (winner) => {
-        try {
-          console.log(`Fetching details for Oscar winner: ${winner.title} (ID: ${winner.id})`);
-          const details = await fetchFromTMDB(`/movie/${winner.id}`, {
-            append_to_response: "external_ids,credits"
-          });
-          
-          // Verifica se abbiamo un ID IMDb valido
-          if (!details.external_ids?.imdb_id) {
-            console.warn(`No IMDb ID found for movie: ${winner.title} (ID: ${winner.id})`);
-          } else {
-            console.log(`Got IMDb ID for ${winner.title}: ${details.external_ids.imdb_id}`);
-          }
-          
-          return {
-            ...details,
-            oscar_win_year: winner.year
-          };
-        } catch (error) {
-          console.error(`Error fetching details for movie ${winner.title}:`, error);
-          return null;
-        }
-      })
-    );
-
-    // Filtra eventuali errori e ordina per anno di vittoria (più recente prima)
-    const validMovies = moviesWithDetails
-      .filter((movie): movie is Movie => movie !== null)
-      .sort((a, b) => (b.oscar_win_year || 0) - (a.oscar_win_year || 0));
-
-    console.log(`Got ${validMovies.length} Oscar Best Picture winners`);
-    return validMovies;
-  } catch (error) {
-    console.error("Error in getOscarBestPictureWinners:", error);
-    return [];
-  }
-}
 
 interface TMDBSearchResult {
   id: number

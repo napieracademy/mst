@@ -10,12 +10,15 @@ import { MovieHero } from "@/components/movie-hero"
 import { Footer } from "@/components/footer"
 import { Movie } from "@/lib/types"
 import { FadeInSection } from "@/components/fade-in-section"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Container } from "@/components/container"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { PersonFilmography } from "@/components/person-filmography"
+import { WatchProviders, WatchProvidersConditional } from "@/components/watch-providers"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
+
+import { translateCountries, translateLanguage } from "@/lib/utils";
 
 interface MoviePageClientProps {
   movie: Movie
@@ -89,10 +92,12 @@ export function MoviePageClient({
                 {releaseYear && `Uscito nel ${releaseYear}, `}
                 {movie.title} è un film {movie.genres?.map((g) => g.name).join(", ") || ""}
                 {movie.runtime && ` della durata di ${movie.runtime} minuti`}
-                {movie.original_language && `, girato in ${movie.original_language.toUpperCase()}`}
+                {movie.original_language && `, girato in ${translateLanguage(movie.original_language)}`}
                 {movie.production_countries &&
                   movie.production_countries.length > 0 &&
-                  ` e prodotto in ${movie.production_countries.map((c: { name: string }) => c.name).join(", ")}`}.
+                  ` e prodotto ${movie.production_countries.map((c: { name: string }) => c.name).includes("United States") || 
+                    movie.production_countries.map((c: { name: string }) => c.name).includes("United States of America") ? 
+                    "negli " : "in "}${translateCountries(movie.production_countries.map((c: { name: string }) => c.name))}`}.
               </p>
             </FadeInSection>
 
@@ -160,42 +165,17 @@ export function MoviePageClient({
               )}
             </FadeInSection>
             
-            {/* Guardalo su (Versione solo testo) */}
+            {/* Guardalo su - viene mostrato solo se ci sono provider disponibili */}
             <FadeInSection delay={350}>
-              <div className="mb-8">
-                <h2 className="text-sm text-gray-400 mb-4">Guardalo su</h2>
-                
-                {/* Sezione Noleggio */}
-                <div className="mb-4">
-                  <h3 className="text-xs text-gray-500 mb-2">Noleggio</h3>
-                  <p className="text-sm text-gray-300">
-                    Rakuten TV, Apple TV, Amazon Video
-                  </p>
-                </div>
-                
-                {/* Sezione Acquisto */}
-                <div className="mb-4">
-                  <h3 className="text-xs text-gray-500 mb-2">Acquisto</h3>
-                  <p className="text-sm text-gray-300">
-                    Rakuten TV, Apple TV, Google Play Movies, Amazon Video
-                  </p>
-                </div>
-                
-                {/* Sezione Streaming */}
-                <div>
-                  <h3 className="text-xs text-gray-500 mb-2">Streaming</h3>
-                  <p className="text-sm text-gray-300">
-                    Netflix, Disney+, Amazon Prime Video
-                  </p>
-                </div>
-              </div>
+              <WatchProvidersConditional movieId={id} type="movie" />
             </FadeInSection>
           </div>
         </div>
         
         {/* Cast Section */}
         <FadeInSection delay={300} threshold={0.05}>
-          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+          <div className="mt-12 sm:mt-16 pt-12">
+            <h2 className="text-sm text-gray-400 mb-8">Cast</h2>
             
             {/* Mostriamo solo il cast completo con CastCarousel */}
             {movie.credits?.cast && movie.credits.cast.length > 0 ? (
@@ -208,15 +188,15 @@ export function MoviePageClient({
 
         {/* Gallery Section */}
         <FadeInSection delay={400} threshold={0.05}>
-          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
-            <h2 className="text-sm text-gray-400 mb-8">GALLERIA</h2>
+          <div className="mt-12 sm:mt-16 pt-12">
+            <h2 className="text-sm text-gray-400 mb-8">Galleria</h2>
             <MovieGallery movieId={id} type="movie" />
           </div>
         </FadeInSection>
 
         {/* Ora al Cinema - Identico alla home */}
         <FadeInSection delay={500} threshold={0.05}>
-          <div className="mt-12 sm:mt-16 pt-12 border-t border-gray-800">
+          <div className="mt-12 sm:mt-16 pt-12">
             {/* Rimuoviamo l'h2 per replicare esattamente la struttura della home */}
             <MovieSectionInterattivo 
               title={nowPlayingTitle} 
