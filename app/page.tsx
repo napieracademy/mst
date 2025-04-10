@@ -123,9 +123,9 @@ export default async function Home() {
           showDirector={false} 
         />
 
-        {/* Serie TV (solo disponibili in Italia, no talk show/news) */}
+        {/* Serie TV (solo Netflix, Amazon Prime, Apple TV+, no talk show/news) */}
         <MovieSectionInterattivo 
-          title="Serie TV" 
+          title="Serie TV su Netflix, Prime e Apple TV+" 
           movies={popularTVShows.slice(0, 20)} 
           showDirector={false} 
         />

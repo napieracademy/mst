@@ -255,12 +255,23 @@ export async function getPopularTVShows(): Promise<Movie[]> {
             return null; // Escludi questo show
           }
           
-          // Verifica la disponibilità sui provider italiani
+          // Verifica la disponibilità sui provider italiani specifici (Netflix, Amazon, Apple)
           const providersData = await fetchFromTMDB(`/tv/${show.id}/watch/providers`);
           const italianProviders = providersData.results?.IT;
           
-          // Se non ci sono provider italiani, escludi
-          if (!italianProviders || (!italianProviders.flatrate && !italianProviders.rent && !italianProviders.buy)) {
+          // Provider ID di riferimento:
+          // Netflix: 8
+          // Amazon Prime Video: 119
+          // Apple TV+: 350
+          const targetProviderIds = [8, 119, 350]; // Netflix, Amazon, Apple
+          
+          // Controlla se lo show è disponibile su almeno uno dei provider target
+          const hasTargetProvider = italianProviders?.flatrate?.some((provider: {provider_id: number}) => 
+            targetProviderIds.includes(provider.provider_id)
+          );
+          
+          // Se non è disponibile su nessuno dei provider target, escludi
+          if (!italianProviders || !hasTargetProvider) {
             return null; // Escludi questo show
           }
           
