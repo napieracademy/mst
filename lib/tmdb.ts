@@ -231,12 +231,19 @@ export async function getPopularTVShows(): Promise<Movie[]> {
     // Generi da escludere: talk show, news, reality TV
     const excludedGenreIds = [10767, 10763, 10764]; // Talk show, news, reality
     
-    // Recupera più show del solito perché filtreremo
+    // Recupera molti show perché filtreremo pesantemente
     const data = await fetchFromTMDB("/tv/popular", { page: "1" });
     const page2Data = await fetchFromTMDB("/tv/popular", { page: "2" });
+    const page3Data = await fetchFromTMDB("/tv/popular", { page: "3" });
+    const page4Data = await fetchFromTMDB("/tv/popular", { page: "4" });
     
     // Combina i risultati per avere più show da filtrare
-    const tvShows = [...(data?.results || []), ...(page2Data?.results || [])];
+    const tvShows = [
+      ...(data?.results || []), 
+      ...(page2Data?.results || []), 
+      ...(page3Data?.results || []),
+      ...(page4Data?.results || [])
+    ];
     console.log(`Retrieved ${tvShows.length} TV shows before filtering`);
     
     // Filtra e arricchisci i dati in parallelo
@@ -266,14 +273,25 @@ export async function getPopularTVShows(): Promise<Movie[]> {
           const targetProviderIds = [8, 119, 350]; // Netflix, Amazon, Apple
           
           // Controlla se lo show è disponibile su almeno uno dei provider target
-          const hasTargetProvider = italianProviders?.flatrate?.some((provider: {provider_id: number}) => 
-            targetProviderIds.includes(provider.provider_id)
-          );
+          // Verifica in tutte le modalità: flatrate (abbonamento), rent (noleggio), buy (acquisto)
+          const hasTargetProvider = 
+            (italianProviders?.flatrate?.some((provider: {provider_id: number}) => 
+              targetProviderIds.includes(provider.provider_id)
+            )) || 
+            (italianProviders?.rent?.some((provider: {provider_id: number}) => 
+              targetProviderIds.includes(provider.provider_id)
+            )) || 
+            (italianProviders?.buy?.some((provider: {provider_id: number}) => 
+              targetProviderIds.includes(provider.provider_id)
+            ));
           
           // Se non è disponibile su nessuno dei provider target, escludi
           if (!italianProviders || !hasTargetProvider) {
             return null; // Escludi questo show
           }
+          
+          // Debug per capire quanti show vengono filtrati
+          console.log(`TV show ${show.id} (${show.name || 'Untitled'}) passes filter, available on target providers`);
           
           // Restituisci show con dettagli completi
           return {
