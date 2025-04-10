@@ -26,6 +26,58 @@ interface PersonDetails {
   loading: boolean
 }
 
+// Funzione per tradurre i luoghi di nascita più comuni in italiano
+function translateBirthplace(place: string | null): string {
+  if (!place) return '';
+  
+  const translations: Record<string, string> = {
+    'Scotland': 'Scozia',
+    'England': 'Inghilterra',
+    'United Kingdom': 'Regno Unito',
+    'UK': 'Regno Unito',
+    'United States': 'Stati Uniti',
+    'USA': 'Stati Uniti',
+    'U.S.A.': 'Stati Uniti',
+    'United States of America': 'Stati Uniti d\'America',
+    'France': 'Francia',
+    'Spain': 'Spagna',
+    'Germany': 'Germania',
+    'Italy': 'Italia',
+    'London': 'Londra',
+    'New York': 'New York',
+    'California': 'California',
+    'Los Angeles': 'Los Angeles',
+    'Canada': 'Canada',
+    'Australia': 'Australia',
+    'Ireland': 'Irlanda',
+    'Japan': 'Giappone',
+    'China': 'Cina',
+    'Russia': 'Russia',
+    'Brazil': 'Brasile',
+    'India': 'India',
+    'Mexico': 'Messico',
+    'South Africa': 'Sud Africa',
+    'Sweden': 'Svezia',
+    'Norway': 'Norvegia',
+    'Denmark': 'Danimarca',
+    'Finland': 'Finlandia',
+    'Netherlands': 'Paesi Bassi',
+    'Belgium': 'Belgio',
+    'Portugal': 'Portogallo',
+    'Greece': 'Grecia',
+    'Poland': 'Polonia',
+    'Austria': 'Austria',
+    'Switzerland': 'Svizzera',
+    'Czech Republic': 'Repubblica Ceca'
+  };
+
+  // Gestisci luoghi composti come "London, England"
+  const parts = place.split(',').map(part => part.trim());
+  const translatedParts = parts.map(part => translations[part] || part);
+  
+  return translatedParts.join(', ');
+}
+
 interface CastCarouselProps {
   cast: CastMember[]
 }
@@ -81,7 +133,7 @@ export function CastCarousel({ cast }: CastCarouselProps) {
     
     try {
       console.log('Fetching data for person:', personId);
-      const response = await fetch(`/api/person/${personId}`)
+      const response = await fetch(`/api/person/${personId}?lang=it-IT&_=${Date.now()}`)
       if (!response.ok) throw new Error('Errore nel recupero dei dati')
       
       const data = await response.json()
@@ -211,11 +263,11 @@ export function CastCarousel({ cast }: CastCarouselProps) {
                             <Loader2 className="h-3 w-3 animate-spin" />
                           </div>
                         ) : personDetails[person.id].deathday ? (
-                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md text-red-400">
-                            ✝
+                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium shadow-md text-gray-600">
+                            {calculateAge(personDetails[person.id].birthday, personDetails[person.id].deathday)}
                           </div>
                         ) : personDetails[person.id].birthday && calculateAge(personDetails[person.id].birthday, null) ? (
-                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md text-white">
+                          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium shadow-md text-white">
                             {calculateAge(personDetails[person.id].birthday, null)}
                           </div>
                         ) : null
@@ -263,13 +315,16 @@ export function CastCarousel({ cast }: CastCarouselProps) {
             <div className="space-y-2">
               {personDetails[activeTooltip]?.combined_credits?.cast && (
                 <p className="text-center text-gray-300 whitespace-normal">
-                  {personDetails[activeTooltip]?.combined_credits?.cast.length} film
+                  {personDetails[activeTooltip]?.combined_credits?.cast.length} {personDetails[activeTooltip]?.combined_credits?.cast.length === 1 ? 'film' : 'film'} in carriera
                 </p>
               )}
               
               {personDetails[activeTooltip].birthday && (
                 <p className="text-center text-gray-300 whitespace-normal">
-                  {formatDate(personDetails[activeTooltip].birthday)}
+                  {new Date(personDetails[activeTooltip].birthday).getFullYear()}
+                  {personDetails[activeTooltip].deathday && (
+                    <span> - {new Date(personDetails[activeTooltip].deathday).getFullYear()}</span>
+                  )}
                   {calculateAge(personDetails[activeTooltip].birthday, personDetails[activeTooltip].deathday) && (
                     <span> ({calculateAge(personDetails[activeTooltip].birthday, personDetails[activeTooltip].deathday)} anni)</span>
                   )}
@@ -278,7 +333,7 @@ export function CastCarousel({ cast }: CastCarouselProps) {
               
               {personDetails[activeTooltip].place_of_birth && (
                 <p className="text-center text-gray-300 whitespace-normal">
-                  {personDetails[activeTooltip].place_of_birth}
+                  Nato a: {translateBirthplace(personDetails[activeTooltip].place_of_birth)}
                 </p>
               )}
             </div>

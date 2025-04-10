@@ -1,0 +1,112 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+<file name=0 path=Senza nome 3>
+# Guida Dettagliata per Organizzare Progetti React/Next.js in Modo Modulare, Solido e Resistente a Modifiche Automatiche
+
+## Introduzione
+Questa guida fornisce una serie di pratiche consigliate per strutturare i progetti React e Next.js in modo che siano facili da mantenere e scalare.
+
+## Struttura delle Cartelle
+Organizza il tuo progetto in cartelle chiare e significative. Ecco una struttura di esempio:
+
+```
+/src
+  /components
+  /pages
+  /hooks
+  /context
+  /styles
+  /utils
+```
+
+## Componenti
+### Creazione dei Componenti
+- Utilizza componenti funzionali.
+- Mantieni i componenti piccoli e focalizzati su un'unica responsabilità.
+- Utilizza i prop per passare dati ai componenti.
+
+### Componenti Riutilizzabili
+Crea componenti riutilizzabili per elementi UI comuni (pulsanti, moduli, ecc.) per evitare ripetizioni.
+
+## Gestione dello Stato
+Utilizza il Context API o librerie come Redux per gestire lo stato globale dell'applicazione. Mantieni la logica dello stato separata dai componenti UI.
+
+## Routing
+Utilizza il sistema di routing di Next.js per gestire le pagine. Organizza le tue pagine in base alla struttura delle URL.
+
+## Styling
+### Utilizzo di CSS-in-JS
+Considera di utilizzare librerie come styled-components o Emotion per gestire il CSS in modo modulare.
+
+### Preprocessori CSS
+Se preferisci, puoi utilizzare Sass o Less per una gestione avanzata dei fogli di stile.
+
+## Testing
+Scrivi test per i tuoi componenti utilizzando librerie come Jest e React Testing Library. Assicurati che ogni componente sia coperto da test unitari.
+
+## Ottimizzazione delle Prestazioni
+- Utilizza il lazy loading per caricare i componenti solo quando necessario.
+- Ottimizza le immagini e utilizza formati moderni come WebP.
+
+## Conclusione
+Seguire queste linee guida ti aiuterà a creare progetti React e Next.js modulari, solidi e facili da mantenere nel tempo. Ricorda di rimanere aggiornato sulle best practices e le nuove funzionalità delle librerie che utilizzi.
+</file>
+<file name=0 path=Senza nome 3>
+# Guida Dettagliata per Organizzare Progetti React/Next.js in Modo Modulare, Solido e Resistente a Modifiche Automatiche
+
+## Introduzione
+Questa guida fornisce una serie di pratiche consigliate per strutturare i progetti React e Next.js in modo che siano facili da mantenere e scalare.
+
+## Struttura delle Cartelle
+Organizza il tuo progetto in cartelle chiare e significative. Ecco una struttura di esempio:
+
+```
+/src
+  /components
+  /pages
+  /hooks
+  /context
+  /styles
+  /utils
+```
+
+## Componenti
+### Creazione dei Componenti
+- Utilizza componenti funzionali.
+- Mantieni i componenti piccoli e focalizzati su un'unica responsabilità.
+- Utilizza i prop per passare dati ai componenti.
+
+### Componenti Riutilizzabili
+Crea componenti riutilizzabili per elementi UI comuni (pulsanti, moduli, ecc.) per evitare ripetizioni.
+
+## Gestione dello Stato
+Utilizza il Context API o librerie come Redux per gestire lo stato globale dell'applicazione. Mantieni la logica dello stato separata dai componenti UI.
+
+## Routing
+Utilizza il sistema di routing di Next.js per gestire le pagine. Organizza le tue pagine in base alla struttura delle URL.
+
+## Styling
+### Utilizzo di CSS-in-JS
+Considera di utilizzare librerie come styled-components o Emotion per gestire il CSS in modo modulare.
+
+### Preprocessori CSS
+Se preferisci, puoi utilizzare Sass o Less per una gestione avanzata dei fogli di stile.
+
+## Testing
+Scrivi test per i tuoi componenti utilizzando librerie come Jest e React Testing Library. Assicurati che ogni componente sia coperto da test unitari.
+
+## Ottimizzazione delle Prestazioni
+- Utilizza il lazy loading per caricare i componenti solo quando necessario.
+- Ottimizza le immagini e utilizza formati moderni come WebP.
+
+## Conclusione
+Seguire queste linee guida ti aiuterà a creare progetti React e Next.js modulari, solidi e facili da mantenere nel tempo. Ricorda di rimanere aggiornato sulle best practices e le nuove funzionalità delle librerie che utilizzi.
+</file>

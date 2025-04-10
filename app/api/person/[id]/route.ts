@@ -6,6 +6,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   // Usiamo await per params.id come richiesto dall'errore
   const { id } = await params
   const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY
+  
+  // Ottieni la lingua dalla query string, default a it-IT
+  const url = new URL(request.url)
+  const lang = url.searchParams.get('lang') || 'it-IT'
+  // Forza cache bypass se presente il timestamp
+  const noCache = url.searchParams.has('_')
 
   if (!id) {
     return NextResponse.json({ error: "Missing id parameter" }, { status: 400 })
@@ -20,52 +26,60 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     
     // Ottieni i dettagli base della persona in inglese per avere nomi corretti
     const personUrl = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=en-US`
-    // Ottieni i dettagli in italiano per la biografia e altri campi localizzati
-    const personUrlIt = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=it-IT`
-    // Ottieni i crediti combinati in italiano
-    const creditsUrl = `https://api.themoviedb.org/3/person/${id}/combined_credits?api_key=${apiKey}&language=it-IT`
+    // Ottieni i dettagli nella lingua richiesta per la biografia e altri campi localizzati
+    const personUrlLocalized = `https://api.themoviedb.org/3/person/${id}?api_key=${apiKey}&language=${lang}`
+    // Ottieni i crediti combinati nella lingua richiesta
+    const creditsUrl = `https://api.themoviedb.org/3/person/${id}/combined_credits?api_key=${apiKey}&language=${lang}`
     // Ottieni le immagini
     const imagesUrl = `https://api.themoviedb.org/3/person/${id}/images?api_key=${apiKey}`
     
+    // Opzioni cache
+    const cacheOptions = noCache 
+      ? { cache: 'no-store' }
+      : { next: { revalidate: 3600 } }; // Cache per 1 ora
+    
     // Esegui tutte le chiamate in parallelo
-    const [personResponseEn, personResponseIt, creditsResponse, imagesResponse] = await Promise.all([
+    const [personResponseEn, personResponseLocalized, creditsResponse, imagesResponse] = await Promise.all([
       fetch(personUrl, {
-        next: { revalidate: 3600 }, // Cache per 1 ora
+        ...cacheOptions,
         headers: { Accept: "application/json" },
       }),
-      fetch(personUrlIt, {
-        next: { revalidate: 3600 },
+      fetch(personUrlLocalized, {
+        ...cacheOptions,
         headers: { Accept: "application/json" },
       }),
       fetch(creditsUrl, {
-        next: { revalidate: 3600 },
+        ...cacheOptions,
         headers: { Accept: "application/json" },
       }),
       fetch(imagesUrl, {
-        next: { revalidate: 3600 },
+        ...cacheOptions,
         headers: { Accept: "application/json" },
       })
     ]);
 
     // Verifica che tutte le chiamate siano andate a buon fine
-    if (!personResponseEn.ok || !personResponseIt.ok) {
+    if (!personResponseEn.ok || !personResponseLocalized.ok) {
       const errorText = await personResponseEn.text()
       console.error(`TMDB API person error (${personResponseEn.status}): ${errorText}`)
       throw new Error(`TMDB API error: ${personResponseEn.status} - ${errorText}`)
     }
     
     // Ottieni i dati JSON da tutte le risposte
-    const [personDataEn, personDataIt, creditsData, imagesData] = await Promise.all([
+    const [personDataEn, personDataLocalized, creditsData, imagesData] = await Promise.all([
       personResponseEn.json(),
-      personResponseIt.json(),
+      personResponseLocalized.json(),
       creditsResponse.json(),
       imagesResponse.json()
     ]);
     
     // Combina i dati mantenendo il nome in inglese come name_en
+    // Assicurati che place_of_birth venga dalla versione localizzata
     const data = {
-      ...personDataIt,
+      ...personDataEn,
       name_en: personDataEn.name,
+      biography: personDataLocalized.biography || personDataEn.biography,
+      place_of_birth: personDataLocalized.place_of_birth || personDataEn.place_of_birth,
       combined_credits: creditsData,
       images: imagesData
     }
