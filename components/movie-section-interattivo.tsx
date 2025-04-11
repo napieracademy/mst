@@ -182,8 +182,8 @@ export function MovieSectionInterattivo({
           onMouseLeave={handleMouseLeave}
           className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
         >
-          {movies.map((movie) => (
-            <div key={movie.id} className="flex-none w-48">
+          {movies.map((movie, index) => (
+            <div key={`${movie.id}-${index}`} className="flex-none w-48">
               <MovieCard 
                 movie={movie} 
                 showDirector={showDirector}

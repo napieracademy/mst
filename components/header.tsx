@@ -48,44 +48,38 @@ function UserProfile() {
 }
 
 export function Header() {
-  const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
-    console.log("Header montato, pathname:", pathname);
+    setIsMenuOpen(false);
   }, [pathname]);
 
-  // Rileva lo scroll per cambiare lo sfondo dell'header
+  // Close menu on click outside
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true)
-      } else {
-        setIsScrolled(false)
+    if (!isMenuOpen) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.menu-container')) {
+        setIsMenuOpen(false);
       }
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  // Log per debugging
-  useEffect(() => {
-    if (pathname) {
-      console.log("Renderizzando PageGenerationIndicator con pathname:", pathname);
-    }
-  }, [pathname]);
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isMenuOpen]);
 
   return (
     <header
       className={cn(
-        "fixed top-0 w-full z-50 transition-colors duration-300",
-        isScrolled ? "bg-black" : "bg-transparent"
+        "absolute top-0 left-0 right-0 w-full",
+        "z-[9999]", // Keeps high z-index to stay above content
+        "bg-transparent"
       )}
     >
-      <Container variant="default" className="max-w-[1100px]">
-        <div className="py-4 flex justify-between items-center">
+      <Container maxWidth="custom" className="max-w-[1100px] mx-auto">
+        <div className="py-4 flex justify-between items-center w-full">
           <Link href="/" className="flex items-center space-x-2">
             <Text variant="h5" className="font-medium text-white">
               MastroiAnni
@@ -93,42 +87,44 @@ export function Header() {
           </Link>
 
           <div className="flex items-center space-x-3">
-            {/* Indicatori di stato della pagina */}
             <div className="flex space-x-2">
               {pathname && <PageGenerationIndicator pathname={pathname} />}
               <PreRenderizzazioneCheck />
               <DatabaseCounter />
             </div>
             
-            <div className="relative">
+            <div className="relative menu-container">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMenuOpen(!isMenuOpen);
+                }}
                 aria-label="Menu"
               >
-                <Menu size={24} />
+                <Menu size={24} className="text-white" />
               </Button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-sm rounded-lg shadow-lg py-1 z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-48 bg-black/95 backdrop-blur-lg rounded-lg shadow-xl py-1 z-[10000]">
                   <Link
                     href="/"
-                    className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Home
                   </Link>
                   <Link
                     href="/admin/statistiche-pagine"
-                    className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Statistiche pagine
                   </Link>
                   <Link
                     href="/login"
-                    className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Accedi

@@ -13,6 +13,7 @@ import { TVInfo } from '@/atomic/molecules/tv-info'
 import { Container } from "@/atomic/atoms/container"
 import { DraggableContent } from "@/atomic/molecules/draggable-content"
 import { useMovieRatings } from "@/hooks/useMovieRatings"
+import { cn } from "@/lib/utils"
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -226,8 +227,8 @@ export function TVHero({
   return (
     <>
       <div ref={containerRef} className="relative w-full h-[120dvh] sm:h-[70vh] md:h-[85vh] mb-0">
-        {/* Backdrop Image - Occupa tutta l'area senza restrizioni */}
-        <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full">
+        {/* Backdrop Image - Deve stare sotto tutto */}
+        <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full z-0">
           <div className="relative w-full h-full">
             <Image
               src={backdropUrl || posterUrl}
@@ -239,6 +240,7 @@ export function TVHero({
               priority
               quality={95}
             />
+            {/* Gradienti sopra l'immagine di sfondo */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
             <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />
           </div>
@@ -247,8 +249,12 @@ export function TVHero({
         {/* Header */}
         <Header />
 
-        {/* Action buttons - posizionamento verticale coerente */}
-        <div className={`fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-3 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        {/* Action buttons - z-index allineato con MovieHero */}
+        <div className={cn(
+          "fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3",
+          "transition-opacity duration-300 z-[8000]",
+          showActionButtons ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
           <MovieActions
             hasTrailer={hasTrailer}
             onWatchTrailer={() => setIsTrailerOpen(true)}
@@ -258,14 +264,12 @@ export function TVHero({
           />
         </div>
 
-        {/* Container principale - senza padding laterali */}
-        <div className="relative z-10 h-full w-full flex items-center">
+        {/* Container principale dei contenuti */}
+        <div className="relative z-[100] h-full w-full flex items-center">
           <div className="w-full">
             <Container variant="default" className="max-w-[1100px]">
               <div className="flex flex-col sm:flex-row items-start justify-start gap-6 sm:gap-16">
-                {/* Poster rimosso */}
-
-                {/* Info - Allineato a sinistra sempre */}
+                {/* Info - Allineato a sinistra */}
                 <div className="flex flex-col text-left max-w-2xl">
                   <DraggableContent
                     dragConstraints={{ top: -50, right: 100, bottom: 50, left: -100 }}
@@ -286,14 +290,12 @@ export function TVHero({
                       snapBackDuration={0.5}
                     >
                       <div className="flex flex-wrap items-center gap-6 mt-4 text-white">
-                        {/* Loader durante il caricamento */}
                         {loading && (
                           <div className="flex items-center gap-2">
                             <span className="text-gray-400">Caricamento rating...</span>
                           </div>
                         )}
                         
-                        {/* TMDB Rating */}
                         {ratings.tmdb && (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">TMDB:</span>
@@ -301,7 +303,6 @@ export function TVHero({
                           </div>
                         )}
                         
-                        {/* IMDb Rating */}
                         {ratings.imdb && (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">IMDb:</span>
@@ -309,7 +310,6 @@ export function TVHero({
                           </div>
                         )}
                         
-                        {/* Rotten Tomatoes - Solo se il rating è maggiore di 0 */}
                         {ratings.rottenTomatoes && ratings.rottenTomatoes.rating > 0 && (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">RT:</span>
@@ -317,7 +317,6 @@ export function TVHero({
                           </div>
                         )}
                         
-                        {/* Metacritic - Solo se il rating è maggiore di 0 */}
                         {ratings.metascore && ratings.metascore > 0 && (
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">MC:</span>
@@ -328,7 +327,7 @@ export function TVHero({
                     </DraggableContent>
                   )}
                   
-                  {/* Trailer Button - Sempre allineato a sinistra */}
+                  {/* Trailer Button */}
                   {hasTrailer && (
                     <div className="mt-4">
                       <DraggableContent
@@ -338,9 +337,9 @@ export function TVHero({
                       >
                         <button
                           onClick={() => setIsTrailerOpen(true)}
-                          className="flex items-center gap-2 text-white bg-black px-4 py-2 rounded-md text-sm sm:text-base font-medium"
+                          className="flex items-center gap-2 text-white bg-black/80 hover:bg-black/90 px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-colors"
                         >
-                          <Play className="w-5 h-5" fill="white" />
+                          <Play className="w-4 h-4 sm:w-5 sm:h-5" fill="white" />
                           <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
                         </button>
                       </DraggableContent>
@@ -353,7 +352,7 @@ export function TVHero({
         </div>
       </div>
 
-      {/* Share Menu */}
+      {/* Modali e overlay - devono stare sopra tutto tranne l'header */}
       {isShareMenuOpen && (
         <ShareMenu
           title={showTitle}
@@ -362,7 +361,6 @@ export function TVHero({
         />
       )}
 
-      {/* Trailer Modal */}
       {isTrailerOpen && trailers?.[0] && (
         <TrailerModal
           isOpen={isTrailerOpen}
@@ -372,7 +370,6 @@ export function TVHero({
         />
       )}
 
-      {/* PIP Trailer */}
       {isPipTrailerActive && trailers && trailers.length > 0 && (
         <LazyTrailerModal
           isOpen={true}

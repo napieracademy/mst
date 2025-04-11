@@ -1,6 +1,11 @@
 {
   "commands": [
     {
+      "name": "backup ",
+      "command": "~/Documents/test_backup_now.sh",
+      "global": false
+    },
+    {
       "name": "home",
       "command": "cd ~",
       "global": false

@@ -1,0 +1,51 @@
+
+==== VERIFICA XML - 2025-04-11T01:24:24.707Z ====
+🧪 Test di caricamento e sostituzione XML su Supabase Storage
+=======================================================
+
+🔍 VERIFICA SITEMAP REALE
+=========================
+Verifica esistenza sitemap.xml...
+✅ File sitemap.xml trovato nel bucket
+📊 Metadati sitemap:
+  - Dimensione: 3078.99 KB
+  - Tipo MIME: application/xml
+  - Ultima modifica: 2025-04-10T00:24:18.643Z
+  - Aggiornato 1500 minuti fa
+⚠️ ATTENZIONE: Il timestamp (1500 min) non corrisponde a 51 minuti fa
+✅ Sitemap contiene 16191 URL
+🔍 Primi 200 caratteri della sitemap:
+<?xml version="1.0" encoding="UTF-8"?>
+    <!-- Generata il: 2025-04-10T00:24:17.339Z con 16191 URL -->
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" count="16191">
+      
+        <u...
+
+🧪 ESECUZIONE TEST SU FILE DI PROVA
+==================================
+1️⃣ Verifica esistenza del bucket...
+✅ Bucket "site-assets" trovato
+2️⃣ Verifica policy di storage...
+⚠️ Impossibile recuperare le policy:
+3️⃣ Caricamento file XML iniziale...
+✅ File XML caricato con successo
+4️⃣ Verifica esistenza file caricato...
+✅ File recuperato con successo
+🔍 Contenuto iniziale file:
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+...
+5️⃣ Test sostituzione del file XML...
+✅ Sostituzione completata
+6️⃣ Verifica contenuto dopo sostituzione...
+✅ File aggiornato recuperato con successo
+🔍 Contenuto aggiornato file:
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+...
+✅ SUCCESSO: Il contenuto del file è stato correttamente aggiornato
+🌐 File disponibile pubblicamente a: https://gbynhfiqlacmlwpjcxmp.supabase.co/storage/v1/object/public/site-assets/test-sitemap.xml
+
+✨ Test completato!
+
+I risultati sono stati salvati in: ./logs/xml-verification-result.log

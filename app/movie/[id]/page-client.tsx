@@ -53,22 +53,6 @@ export function MoviePageClient({
   writers,
   producers
 }: MoviePageClientProps) {
-  console.log("MoviePageClient inizializzato con", {
-    hasMovie: !!movie,
-    hasNowPlayingMovies: !!nowPlayingMovies,
-    nowPlayingCount: nowPlayingMovies?.length || 0
-  });
-  
-  const knownForCredits = movie.known_for_credits || [];
-  const hasKnownForCredits = knownForCredits.length > 0;
-  
-  const castCredits = movie.credits?.cast?.map(member => ({
-    ...member,
-    media_type: "movie" as "movie" | "tv",
-    role: "acting" as "acting" | "directing" | "both",
-    poster_path: member.profile_path
-  })) || [];
-
   const [awardsData, setAwardsData] = useState(null);
 
   useEffect(() => {
@@ -81,7 +65,8 @@ export function MoviePageClient({
 
   return (
     <main className="min-h-screen w-full bg-black text-white">
-      <div className="relative w-full h-[100dvh] sm:h-[60vh] md:h-[80vh] z-10">
+      {/* Hero Section - riduciamo z-index per evitare conflitti con l'header */}
+      <div className="relative w-full h-[100dvh] sm:h-[60vh] md:h-[80vh] z-0">
         <MovieHero
           movie={movie}
           posterUrl={posterUrl}
@@ -91,8 +76,10 @@ export function MoviePageClient({
         />
       </div>
 
+      {/* Content Section - aumentiamo z-index per stare sopra lo sfondo ma sotto l'header */}
       <Container className="py-8 sm:py-16 relative z-20" maxWidth="standardized">
         <div className="flex flex-col lg:flex-row lg:relative gap-4 sm:gap-8">
+          {/* Left Column */}
           <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
             <FadeInSection>
               <p className="text-gray-300 mb-6 sm:mb-8">
@@ -126,6 +113,7 @@ export function MoviePageClient({
             </FadeInSection>
           </div>
 
+          {/* Right Column */}
           <div className="w-full lg:w-[42%] lg:pl-8">
             <FadeInSection delay={150}>
               {director && (
@@ -174,6 +162,7 @@ export function MoviePageClient({
           </div>
         </div>
         
+        {/* Cast Section */}
         <FadeInSection delay={300} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12">
             <h2 className="text-sm text-gray-400 mb-8">Cast</h2>
@@ -186,6 +175,7 @@ export function MoviePageClient({
           </div>
         </FadeInSection>
 
+        {/* Gallery Section */}
         <FadeInSection delay={400} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12">
             <h2 className="text-sm text-gray-400 mb-8">Galleria</h2>
@@ -193,6 +183,14 @@ export function MoviePageClient({
           </div>
         </FadeInSection>
 
+        {/* Awards Section */}
+        <FadeInSection delay={450} threshold={0.05}>
+          <div className="mt-12 sm:mt-16 pt-12">
+            <AwardsSection awardsData={awardsData} />
+          </div>
+        </FadeInSection>
+
+        {/* Now Playing Section */}
         <FadeInSection delay={500} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12">
             <MovieSectionInterattivo 

@@ -15,6 +15,7 @@ import { MovieInfo } from '@/atomic/molecules/movie-info'
 import { Container } from "@/atomic/atoms/container"
 import { DraggableContent } from "@/atomic/molecules/draggable-content"
 import { MovieRatingsHero } from "./movie-ratings-hero"
+import { cn } from "@/lib/utils"
 
 // Importazione dinamica (lazy) del TrailerModal
 const LazyTrailerModal = dynamic(() => import('@/components/trailer-modal').then(mod => ({ default: mod.TrailerModal })), {
@@ -190,7 +191,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
   return (
     <>
       <div ref={containerRef} className="relative w-full h-[120dvh] sm:h-[70vh] md:h-[85vh] mb-0">
-        {/* Backdrop Image - Occupa tutta l'area senza restrizioni */}
+        {/* Backdrop Image - Al livello più basso */}
         <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full">
           <div className="relative w-full h-full">
             <Image
@@ -203,6 +204,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
               priority
               quality={95}
             />
+            {/* Gradienti sopra l'immagine di sfondo */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
             <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />
           </div>
@@ -211,8 +213,12 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         {/* Header */}
         <Header />
 
-        {/* Action buttons - posizionamento verticale coerente */}
-        <div className={`fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-3 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        {/* Action buttons - z-index sotto l'header ma sopra il contenuto */}
+        <div className={cn(
+          "fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3",
+          "transition-opacity duration-300 z-[200]",
+          showActionButtons ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
           <MovieActions
             hasTrailer={trailers && trailers.length > 0}
             onWatchTrailer={() => setIsTrailerOpen(true)}
@@ -222,14 +228,12 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
           />
         </div>
 
-        {/* Container principale - senza padding laterali */}
-        <div className="relative z-10 h-full w-full flex items-center">
+        {/* Container principale dei contenuti */}
+        <div className="relative z-[100] h-full w-full flex items-center">
           <div className="w-full">
             <Container variant="default" className="max-w-[1100px]">
               <div className="flex flex-col sm:flex-row items-start justify-start gap-6 sm:gap-16">
-                {/* Poster rimosso */}
-
-                {/* Info - Allineato a sinistra sempre */}
+                {/* Info - Allineato a sinistra */}
                 <div className="flex flex-col text-left max-w-2xl">
                   <DraggableContent
                     dragConstraints={{ top: -50, right: 100, bottom: 50, left: -100 }}
@@ -243,7 +247,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                     />
                   </DraggableContent>
                   
-                  {/* Movie Ratings - Sostituito con testo bianco semplice */}
+                  {/* Movie Ratings */}
                   <MovieRatingsHero
                     tmdbId={movie.id}
                     imdbId={movie.external_ids?.imdb_id}
@@ -251,7 +255,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                     tmdbVoteCount={movie.vote_count}
                   />
                   
-                  {/* Trailer Button - Sempre allineato a sinistra */}
+                  {/* Trailer Button */}
                   {trailers && trailers.length > 0 && (
                     <div className="mt-4">
                       <DraggableContent
@@ -261,7 +265,7 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
                       >
                         <button
                           onClick={() => setIsTrailerOpen(true)}
-                          className="flex items-center gap-2 text-white bg-black px-4 py-2 rounded-md text-sm sm:text-base font-medium"
+                          className="flex items-center gap-2 text-white bg-black/80 hover:bg-black/90 px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-colors"
                         >
                           <Play className="w-4 h-4 sm:w-5 sm:h-5" fill="white" />
                           <span>{isDesktop ? 'Guarda il trailer' : 'Guarda trailer'}</span>
@@ -276,35 +280,39 @@ export function MovieHero({ movie, posterUrl, backdropUrl, releaseDate, trailers
         </div>
       </div>
 
-      {/* Share Menu */}
+      {/* Modali e overlay - Massimo z-index ma sotto l'header */}
       {isShareMenuOpen && (
-        <ShareMenu
-          title={movie.title || ""}
-          url={typeof window !== 'undefined' ? window.location.href : ''}
-          onClose={() => setIsShareMenuOpen(false)}
-        />
+        <div className="z-[900]">
+          <ShareMenu
+            title={movie.title || ""}
+            url={typeof window !== 'undefined' ? window.location.href : ''}
+            onClose={() => setIsShareMenuOpen(false)}
+          />
+        </div>
       )}
 
-      {/* Trailer Modal */}
       {isTrailerOpen && trailers && trailers.length > 0 && (
-        <TrailerModal
-          isOpen={isTrailerOpen}
-          onClose={() => setIsTrailerOpen(false)}
-          trailerKey={trailers[0].key}
-          trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
-        />
+        <div className="z-[900]">
+          <TrailerModal
+            isOpen={isTrailerOpen}
+            onClose={() => setIsTrailerOpen(false)}
+            trailerKey={trailers[0].key}
+            trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
+          />
+        </div>
       )}
 
-      {/* PIP Trailer */}
       {isPipTrailerActive && trailers && trailers.length > 0 && (
-        <LazyTrailerModal
-          isOpen={true}
-          onClose={() => setIsPipTrailerActive(false)}
-          trailerKey={trailers[0].key}
-          trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
-          initialPIP={true}
-          autoMute={true}
-        />
+        <div className="z-[900]">
+          <LazyTrailerModal
+            isOpen={true}
+            onClose={() => setIsPipTrailerActive(false)}
+            trailerKey={trailers[0].key}
+            trailerName={trailers[0].name || `Trailer di ${movie.title || "film"}`}
+            initialPIP={true}
+            autoMute={true}
+          />
+        </div>
       )}
     </>
   )
