@@ -17,6 +17,9 @@ import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { PersonFilmography } from "@/components/person-filmography"
 import { WatchProviders, WatchProvidersConditional } from "@/components/watch-providers"
 import { MovieAwards } from "@/components/movie-awards"
+import { fetchImdbAwards } from "@/utils/imdb-api"
+import AwardsSection from "@/components/awards-section"
+import { AwardsTextDisplay } from "@/components/awards-text-display"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 import { translateCountries, translateLanguage } from "@/lib/utils";
@@ -55,23 +58,29 @@ export function MoviePageClient({
     hasNowPlayingMovies: !!nowPlayingMovies,
     nowPlayingCount: nowPlayingMovies?.length || 0
   });
-  // const [isJustWatchExpanded, setIsJustWatchExpanded] = useState(false) // Rimosso perché non più necessario;
   
-  // Prepariamo i known_for_credits se esistono
   const knownForCredits = movie.known_for_credits || [];
   const hasKnownForCredits = knownForCredits.length > 0;
   
-  // Convertiamo i credits nel formato atteso da PersonFilmography
   const castCredits = movie.credits?.cast?.map(member => ({
     ...member,
     media_type: "movie" as "movie" | "tv",
     role: "acting" as "acting" | "directing" | "both",
-    poster_path: member.profile_path // Usiamo profile_path come poster_path per soddisfare l'interfaccia
+    poster_path: member.profile_path
   })) || [];
+
+  const [awardsData, setAwardsData] = useState(null);
+
+  useEffect(() => {
+    if (movie?.external_ids?.imdb_id) {
+      fetchImdbAwards(movie.external_ids.imdb_id)
+        .then(data => setAwardsData(data))
+        .catch(error => console.error("Error fetching awards:", error));
+    }
+  }, [movie]);
 
   return (
     <main className="min-h-screen w-full bg-black text-white">
-      {/* Hero Section - con z-index */}
       <div className="relative w-full h-[100dvh] sm:h-[60vh] md:h-[80vh] z-10">
         <MovieHero
           movie={movie}
@@ -82,12 +91,9 @@ export function MoviePageClient({
         />
       </div>
 
-      {/* Content Section - con z-index e posizionamento relativo */}
       <Container className="py-8 sm:py-16 relative z-20" maxWidth="standardized">
         <div className="flex flex-col lg:flex-row lg:relative gap-4 sm:gap-8">
-          {/* Left Column - Movie Details - Rimossa proprietà opacity */}
           <div className="w-full lg:w-[58%] pb-8 lg:pb-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:pr-8">
-            {/* Technical Details */}
             <FadeInSection>
               <p className="text-gray-300 mb-6 sm:mb-8">
                 {releaseYear && `Uscito nel ${releaseYear}, `}
@@ -102,31 +108,25 @@ export function MoviePageClient({
               </p>
             </FadeInSection>
 
-            {/* Synopsis */}
             <FadeInSection delay={100}>
               <div className="mb-12">
                 <EditableBio
                   initialBio={movie.overview || "Nessuna sinossi disponibile per questo film."}
                   onSave={async (newBio) => {
-                    // Simulazione del salvataggio
                     await new Promise(resolve => setTimeout(resolve, 800));
                     console.log("Sinossi salvata (simulato):", newBio);
                     return Promise.resolve();
                   }}
                 />
                 
-                {/* Movie Awards - Sotto la sinossi */}
-                {movie.external_ids?.imdb_id && (
-                  <MovieAwards imdbId={movie.external_ids.imdb_id} />
+                {awardsData?.awardsText && (
+                  <AwardsTextDisplay awardsText={awardsData.awardsText} />
                 )}
               </div>
             </FadeInSection>
-
           </div>
 
-          {/* Right Column - Production Info */}
           <div className="w-full lg:w-[42%] lg:pl-8">
-            {/* Regista */}
             <FadeInSection delay={150}>
               {director && (
                 <div className="mb-8">
@@ -135,7 +135,6 @@ export function MoviePageClient({
               )}
             </FadeInSection>
 
-            {/* Writers */}
             <FadeInSection delay={200}>
               {writers.length > 0 && (
                 <div className="mb-8">
@@ -147,7 +146,6 @@ export function MoviePageClient({
               )}
             </FadeInSection>
 
-            {/* Producers */}
             <FadeInSection delay={250}>
               {producers.length > 0 && (
                 <div className="mb-8">
@@ -159,7 +157,6 @@ export function MoviePageClient({
               )}
             </FadeInSection>
 
-            {/* Production Companies */}
             <FadeInSection delay={300}>
               {movie.production_companies && movie.production_companies.length > 0 && (
                 <div className="mb-8">
@@ -171,19 +168,16 @@ export function MoviePageClient({
               )}
             </FadeInSection>
             
-            {/* Guardalo su - viene mostrato solo se ci sono provider disponibili */}
             <FadeInSection delay={350}>
               <WatchProvidersConditional movieId={id} type="movie" />
             </FadeInSection>
           </div>
         </div>
         
-        {/* Cast Section */}
         <FadeInSection delay={300} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12">
             <h2 className="text-sm text-gray-400 mb-8">Cast</h2>
             
-            {/* Mostriamo solo il cast completo con CastCarousel */}
             {movie.credits?.cast && movie.credits.cast.length > 0 ? (
               <CastCarousel cast={movie.credits.cast} />
             ) : (
@@ -192,7 +186,6 @@ export function MoviePageClient({
           </div>
         </FadeInSection>
 
-        {/* Gallery Section */}
         <FadeInSection delay={400} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12">
             <h2 className="text-sm text-gray-400 mb-8">Galleria</h2>
@@ -200,10 +193,8 @@ export function MoviePageClient({
           </div>
         </FadeInSection>
 
-        {/* Ora al Cinema - Identico alla home */}
         <FadeInSection delay={500} threshold={0.05}>
           <div className="mt-12 sm:mt-16 pt-12">
-            {/* Rimuoviamo l'h2 per replicare esattamente la struttura della home */}
             <MovieSectionInterattivo 
               title={nowPlayingTitle} 
               movies={nowPlayingMovies || []} 
@@ -213,7 +204,6 @@ export function MoviePageClient({
         </FadeInSection>
       </Container>
 
-      {/* Footer */}
       <Footer />
     </main>
   )

@@ -16,6 +16,8 @@ import { generateSlug, translateCountries, translateLanguage, translateStatus } 
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { Container } from "@/components/container"
 import { WatchProviders, WatchProvidersConditional } from "@/components/watch-providers"
+import { fetchImdbAwards } from '@/utils/imdb-api';
+import AwardsSection from '@/components/awards-section';
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 // Interfaccia compatibile con quella del TVHero
@@ -125,6 +127,17 @@ export function TVPageClient({
       });
     }
   }, [creators]);
+
+  const [awardsData, setAwardsData] = useState(null);
+
+  useEffect(() => {
+    // Fetch awards data if the TV show has an IMDb ID
+    if (show?.external_ids?.imdb_id) {
+      fetchImdbAwards(show.external_ids.imdb_id)
+        .then(data => setAwardsData(data))
+        .catch(error => console.error("Error fetching awards:", error));
+    }
+  }, [show]);
 
   return (
     <main className="min-h-screen w-full bg-black text-white">
@@ -336,6 +349,13 @@ export function TVPageClient({
           </div>
         </FadeInSection>
 
+        {/* Awards Section */}
+        <FadeInSection delay={450} threshold={0.05}>
+          <div className="mt-12 sm:mt-16 pt-12">
+            <AwardsSection awardsData={awardsData} />
+          </div>
+        </FadeInSection>
+
         {/* Sezione serie simili rimossa */}
       </Container>
 
@@ -343,4 +363,4 @@ export function TVPageClient({
       <Footer />
     </main>
   )
-} 
+}
