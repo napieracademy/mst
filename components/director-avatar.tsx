@@ -24,7 +24,7 @@ interface PersonDetails {
 }
 
 // Interfaccia per le props del componente
-interface DirectorAvatarProps {
+interface RegistaAvatarProps {
   director: {
     id: number
     name: string
@@ -33,10 +33,10 @@ interface DirectorAvatarProps {
   }
 }
 
-export function DirectorAvatar({ director }: DirectorAvatarProps) {
+export function RegistaAvatar({ director }: RegistaAvatarProps) {
   const [activeTooltip, setActiveTooltip] = useState<boolean>(false);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [directorDetails, setDirectorDetails] = useState<PersonDetails | null>(null);
+  const [directorDetails, setDirectorDetails] = useState<PersonDetails | null>(null); // Dettagli del regista
   const [loading, setLoading] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const [finalImagePath, setFinalImagePath] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
       setDirectorDetails(data);
       
       // Log per debugging
-      console.log("Director avatar details:", {
+      console.log("Regista avatar details:", {
         id: director.id,
         name: director.name,
         profilePath: director.profile_path,
@@ -208,7 +208,7 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
             
             {/* Age/Death Indicator - Mostrato sempre */}
             <div 
-              className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
+              className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium shadow-md ${
                 directorDetails?.deathday ? 'text-red-400' : 'text-white'
               }`}
             >
@@ -232,7 +232,7 @@ export function DirectorAvatar({ director }: DirectorAvatarProps) {
         </Link>
         {director.job && (
           <p className="text-gray-400 text-xs hover:text-gray-300 transition-colors duration-300">
-            {director.job}
+            {director.job === "Director" ? "Regista" : director.job}
           </p>
         )}
       </div>

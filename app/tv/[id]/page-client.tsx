@@ -216,7 +216,7 @@ export function TVPageClient({
                                 
                                 {/* Age/Death Indicator - Mostrato sempre */}
                                 <div 
-                                  className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium border-2 border-gray-700 shadow-md ${
+                                  className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black/90 flex items-center justify-center text-xs font-medium shadow-md ${
                                     creatorsDetails[creator.id]?.deathday ? 'text-red-400' : 'text-white'
                                   }`}
                                 >

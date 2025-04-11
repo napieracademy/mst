@@ -1,6 +1,6 @@
 "use client"
 
-import { DirectorAvatar } from "@/components/director-avatar"
+import { RegistaAvatar } from "@/components/director-avatar"
 import { EditableBio } from "@/components/editable-bio"
 import Link from "next/link"
 import { CastCarousel } from "@/components/cast-carousel"
@@ -16,6 +16,7 @@ import { Container } from "@/components/container"
 import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { PersonFilmography } from "@/components/person-filmography"
 import { WatchProviders, WatchProvidersConditional } from "@/components/watch-providers"
+import { MovieAwards } from "@/components/movie-awards"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 import { translateCountries, translateLanguage } from "@/lib/utils";
@@ -113,6 +114,11 @@ export function MoviePageClient({
                     return Promise.resolve();
                   }}
                 />
+                
+                {/* Movie Awards - Sotto la sinossi */}
+                {movie.external_ids?.imdb_id && (
+                  <MovieAwards imdbId={movie.external_ids.imdb_id} />
+                )}
               </div>
             </FadeInSection>
 
@@ -124,7 +130,7 @@ export function MoviePageClient({
             <FadeInSection delay={150}>
               {director && (
                 <div className="mb-8">
-                  <DirectorAvatar director={director} />
+                  <RegistaAvatar director={director} />
                 </div>
               )}
             </FadeInSection>
