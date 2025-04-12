@@ -1,5 +1,6 @@
 import { Container } from "@/components/container";
 import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 
 export const metadata = {
   title: "Privacy Policy | MST",
@@ -9,7 +10,8 @@ export const metadata = {
 export default function PrivacyPolicy() {
   return (
     <main className="min-h-screen w-full bg-black text-white">
-      <Container className="py-12 relative z-20" maxWidth="standardized">
+      <Header />
+      <Container className="pt-24 pb-12 relative z-20" maxWidth="standardized">
         <h1 className="text-3xl md:text-4xl font-bold mb-8">Privacy Policy</h1>
         <div className="prose prose-invert max-w-none">
           <p className="text-gray-300">Data dell'ultimo aggiornamento: 12 aprile 2025</p>
