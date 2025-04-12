@@ -24,9 +24,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_TMDB_API_KEY
+ARG RESEND_API_KEY
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_TMDB_API_KEY=$NEXT_PUBLIC_TMDB_API_KEY
+ENV RESEND_API_KEY=$RESEND_API_KEY
 
 # Imposta nuovamente le variabili d'ambiente per la fase di build
 RUN echo "Creating .env.production file with required variables"
@@ -36,6 +38,7 @@ RUN echo "NEXT_PUBLIC_TMDB_API_KEY=$NEXT_PUBLIC_TMDB_API_KEY" >> .env.production
 RUN echo "NEXT_PUBLIC_SITE_URL=https://mastroianni.app" >> .env.production
 RUN echo "NEXT_PUBLIC_API_URL=https://mastroianni.app" >> .env.production
 RUN echo "OMDB_API_KEY=e039393b" >> .env.production
+RUN echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env.production
 RUN echo "Creating .env file for backward compatibility"
 RUN cp .env.production .env
 RUN cat .env
