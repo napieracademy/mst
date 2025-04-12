@@ -25,15 +25,11 @@ ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_TMDB_API_KEY
 ARG RESEND_API_KEY
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV NEXT_PUBLIC_TMDB_API_KEY=$NEXT_PUBLIC_TMDB_API_KEY
-ENV RESEND_API_KEY=$RESEND_API_KEY
 
 # Imposta nuovamente le variabili d'ambiente per la fase di build
 RUN echo "Creating .env.production file with required variables"
-RUN echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.production
-RUN echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.production 
+RUN echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" > .env.production
+RUN echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.production
 RUN echo "NEXT_PUBLIC_TMDB_API_KEY=$NEXT_PUBLIC_TMDB_API_KEY" >> .env.production
 RUN echo "NEXT_PUBLIC_SITE_URL=https://mastroianni.app" >> .env.production
 RUN echo "NEXT_PUBLIC_API_URL=https://mastroianni.app" >> .env.production
@@ -73,9 +69,9 @@ RUN ls -la /app
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 10000
 
-ENV PORT=3000
+ENV PORT=10000
 ENV HOSTNAME="0.0.0.0"
 
 # Fallback to starting Next.js directly if server.js doesn't exist
