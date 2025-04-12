@@ -15,17 +15,17 @@ export function Footer() {
             </Text>
             <ul className="space-y-1 md:space-y-2 text-sm">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/privacy-policy" className="hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/terms-of-use" className="hover:text-white transition-colors">
                   Termini di utilizzo
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">
+                <Link href="/cookie-policy" className="hover:text-white transition-colors">
                   Cookie Policy
                 </Link>
               </li>

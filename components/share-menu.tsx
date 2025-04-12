@@ -5,7 +5,8 @@ import { Button } from '@/atomic/atoms/button';
 import { Container } from '@/atomic/atoms/container';
 import { Text } from '@/atomic/atoms/text';
 import { Share2, Facebook, Twitter, MessageCircle, Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Portal } from './ui/portal';
 
 interface ShareMenuProps {
   title: string;
@@ -33,9 +34,28 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
     }
   };
 
+  // Blocca lo scroll quando il menu è aperto
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
+  // Gestisce la chiusura con tasto ESC
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <Container variant="narrow" className="bg-black/90 rounded-lg p-6 shadow-xl max-w-md">
+    <Portal zIndex={9000} id="share-menu-portal">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <Container variant="narrow" className="bg-black/90 rounded-lg p-6 shadow-xl max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <Text variant="h4" className="text-white">
             Condividi
@@ -103,6 +123,7 @@ export function ShareMenu({ title, url, onClose }: ShareMenuProps) {
           </Button>
         </div>
       </Container>
-    </div>
+      </div>
+    </Portal>
   );
 } 

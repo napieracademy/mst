@@ -14,6 +14,10 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
   const [isSaving, setIsSaving] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
+  useEffect(() => {
+    console.log("EditableBio - initialBio ricevuto:", initialBio);
+  }, [initialBio]);
+  
   // Gestisce il doppio click per attivare la modalità di modifica
   const handleDoubleClick = () => {
     setIsEditing(true)
@@ -105,4 +109,4 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
       {bio || "Nessuna biografia disponibile."}
     </div>
   )
-} 
+}

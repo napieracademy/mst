@@ -6,6 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { slugify } from "@/lib/utils"
+import { Portal } from "./ui/portal"
 
 interface SearchResult {
   id: number
@@ -129,8 +130,9 @@ export function FloatingSearch() {
   }
 
   return (
-    <div ref={searchRef} className="fixed bottom-6 right-6 z-50">
-      {/* Pulsante flottante */}
+    <Portal zIndex={8000} id="floating-search-portal">
+      <div ref={searchRef} className="fixed bottom-6 right-6">
+        {/* Pulsante flottante */}
       <motion.button
         onClick={handleToggle}
         className={`w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg ${isOpen ? 'hidden' : 'flex'}`}
@@ -228,5 +230,6 @@ export function FloatingSearch() {
         )}
       </AnimatePresence>
     </div>
+    </Portal>
   )
 } 

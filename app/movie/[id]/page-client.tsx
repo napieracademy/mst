@@ -183,12 +183,7 @@ export function MoviePageClient({
           </div>
         </FadeInSection>
 
-        {/* Awards Section */}
-        <FadeInSection delay={450} threshold={0.05}>
-          <div className="mt-12 sm:mt-16 pt-12">
-            <AwardsSection awardsData={awardsData} />
-          </div>
-        </FadeInSection>
+        {/* Awards Section rimossa per richiesta utente */}
 
         {/* Now Playing Section */}
         <FadeInSection delay={500} threshold={0.05}>

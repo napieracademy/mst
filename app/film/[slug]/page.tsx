@@ -212,6 +212,15 @@ export default async function FilmPage({ params }: { params: { slug: string } })
     const writers = movie.credits?.crew?.filter((person) => ["Writer", "Screenplay"].includes(person.job)) || [];
     const producers = movie.credits?.crew?.filter((person) => ["Producer", "Executive Producer"].includes(person.job)) || [];
 
+    const imdbId = movie.external_ids?.imdb_id || null;
+
+    // Log per debug
+    if (!imdbId) {
+      console.warn(`IMDb ID non trovato per il film con ID TMDB: ${id}`);
+    } else {
+      console.log(`IMDb ID recuperato: ${imdbId}`);
+    }
+
     // Se siamo arrivati qui e la pagina non era pre-renderizzata, la stiamo generando on-demand
     if (!pageWasPrerendered && isProduction) {
       console.log(`🔄 Rendering on-demand per la pagina film ${slug} (ID: ${id})`);
@@ -251,4 +260,4 @@ export default async function FilmPage({ params }: { params: { slug: string } })
 
 // Configurazione ISR
 export const dynamicParams = true;
-export const revalidate = 3600; // 1 ora 
+export const revalidate = 3600; // 1 ora
