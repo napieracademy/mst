@@ -29,11 +29,20 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_TMDB_API_KEY=$NEXT_PUBLIC_TMDB_API_KEY
 
 # Imposta nuovamente le variabili d'ambiente per la fase di build
+RUN echo "Creating .env.production file with required variables"
 RUN echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.production
-RUN echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.production
+RUN echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.production 
 RUN echo "NEXT_PUBLIC_TMDB_API_KEY=$NEXT_PUBLIC_TMDB_API_KEY" >> .env.production
+RUN echo "NEXT_PUBLIC_SITE_URL=https://mastroianni.app" >> .env.production
+RUN echo "NEXT_PUBLIC_API_URL=https://mastroianni.app" >> .env.production
+RUN echo "OMDB_API_KEY=e039393b" >> .env.production
+RUN echo "Creating .env file for backward compatibility"
+RUN cp .env.production .env
+RUN cat .env
 
-RUN npm run build
+RUN echo "Starting build process..." && \
+    env && \
+    npm run build || { echo "Build failed with error code $?"; exit 1; }
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -56,6 +65,9 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Debug: List files to check if server.js exists
+RUN ls -la /app
+
 USER nextjs
 
 EXPOSE 3000
@@ -63,4 +75,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"] 
+# Fallback to starting Next.js directly if server.js doesn't exist
+CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; else node node_modules/next/dist/bin/next start; fi"] 

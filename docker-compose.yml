@@ -6,10 +6,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        - NEXT_PUBLIC_TMDB_API_KEY=${NEXT_PUBLIC_TMDB_API_KEY}
     ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
+      - "3001:3000"
+    # Commented out volumes to prevent overwriting built files
+    # volumes:
+    #   - .:/app
     env_file:
       - .env
     environment:
