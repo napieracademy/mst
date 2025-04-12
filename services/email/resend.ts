@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Default email sender
-const DEFAULT_FROM = 'noreply@mastroianni.com';
+const DEFAULT_FROM = 'noreply@mastroianni.app';
 
 /**
  * Send an email using Resend
@@ -13,7 +13,7 @@ const DEFAULT_FROM = 'noreply@mastroianni.com';
  * @param {string} options.subject - Email subject
  * @param {string} options.html - HTML content of the email
  * @param {string} options.text - Plain text content of the email
- * @param {string} [options.from] - Sender email address (defaults to noreply@mastroianni.com)
+ * @param {string} [options.from] - Sender email address (defaults to noreply@mastroianni.app)
  * @returns {Promise} - Promise resolving to the email send result
  */
 export async function sendEmail({
@@ -79,7 +79,7 @@ export async function sendContactFormEmail({
   `;
   
   return sendEmail({
-    to: 'contatti@mastroianni.com', // Replace with your admin email
+    to: 'contatti@mastroianni.app', // Replace with your admin email
     subject,
     html,
     text,
