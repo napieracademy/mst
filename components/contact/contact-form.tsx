@@ -63,7 +63,7 @@ export function ContactForm() {
   }
   
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md text-black">
       <h2 className="text-2xl font-bold mb-4">Contattaci</h2>
       
       {submitSuccess && (
@@ -86,7 +86,7 @@ export function ContactForm() {
           <input
             id="name"
             {...register('name')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -101,7 +101,7 @@ export function ContactForm() {
             id="email"
             type="email"
             {...register('email')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -116,7 +116,7 @@ export function ContactForm() {
             id="message"
             rows={4}
             {...register('message')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
           />
           {errors.message && (
             <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
