@@ -103,9 +103,10 @@ export function MoviePageClient({
                   onSave={async (newBio) => {
                     try {
                       // Log per il debug
-                      console.log("ID del film:", id);
-                      console.log("ID interno del film:", movie.id);
-                      console.log("ID esterno TMDB:", movie.tmdb_id || movie.id);
+                      console.log("ID del film (route param):", id);
+                      console.log("ID interno del film (movie.id):", movie.id, "tipo:", typeof movie.id);
+                      console.log("ID esterno TMDB (movie.tmdb_id):", movie.tmdb_id, "tipo:", typeof movie.tmdb_id);
+                      console.log("Movie object:", movie);
                       console.log("ID IMDb:", movie.external_ids?.imdb_id);
                       
                       // Salva la nuova sinossi nella tabella movie_synopses
