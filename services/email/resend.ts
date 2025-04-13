@@ -52,14 +52,23 @@ export async function sendEmail({
  * Add a contact to Resend audience
  * @param {Object} options - Contact options
  * @param {string} options.email - Contact email address
+ * @param {string} [options.firstName] - Contact first name
+ * @param {string} [options.lastName] - Contact last name
+ * @param {boolean} [options.unsubscribed] - Whether the contact is unsubscribed
  * @param {string} [options.audienceId] - Audience ID to add the contact to
  * @returns {Promise} - Promise resolving to the contact creation result
  */
 export async function addContact({
   email,
+  firstName,
+  lastName,
+  unsubscribed = false,
   audienceId = DEFAULT_AUDIENCE_ID,
 }: {
   email: string;
+  firstName?: string;
+  lastName?: string;
+  unsubscribed?: boolean;
   audienceId?: string;
 }) {
   try {
@@ -71,6 +80,9 @@ export async function addContact({
     
     const data = await resend.contacts.create({
       email,
+      firstName,
+      lastName,
+      unsubscribed,
       audienceId,
     });
     
@@ -93,9 +105,17 @@ export async function sendContactFormEmail({
   email: string;
   message: string;
 }) {
-  // Add contact to Resend in the background (only email field needed)
+  // Try to add contact to Resend (don't wait for this to complete)
+  const names = name.split(' ');
+  const firstName = names[0];
+  const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
+  
+  // Add contact to Resend in the background
   addContact({
     email,
+    firstName,
+    lastName,
+    unsubscribed: false,
   }).catch(error => {
     console.error('Failed to add contact to Resend:', error);
   });
