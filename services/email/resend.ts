@@ -6,6 +6,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Default email sender
 const DEFAULT_FROM = 'noreply@mastroianni.app';
 
+// Default audience ID for contacts (replace with your actual audience ID)
+const DEFAULT_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '';
+
 /**
  * Send an email using Resend
  * @param {Object} options - Email options
@@ -46,6 +49,50 @@ export async function sendEmail({
 }
 
 /**
+ * Add a contact to Resend audience
+ * @param {Object} options - Contact options
+ * @param {string} options.email - Contact email address
+ * @param {string} [options.firstName] - Contact first name
+ * @param {string} [options.lastName] - Contact last name
+ * @param {boolean} [options.unsubscribed] - Whether the contact is unsubscribed
+ * @param {string} [options.audienceId] - Audience ID to add the contact to
+ * @returns {Promise} - Promise resolving to the contact creation result
+ */
+export async function addContact({
+  email,
+  firstName,
+  lastName,
+  unsubscribed = false,
+  audienceId = DEFAULT_AUDIENCE_ID,
+}: {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  unsubscribed?: boolean;
+  audienceId?: string;
+}) {
+  try {
+    if (!audienceId) {
+      console.warn('No audience ID provided for Resend contact creation');
+      return { success: false, error: 'No audience ID configured' };
+    }
+    
+    const data = await resend.contacts.create({
+      email,
+      firstName,
+      lastName,
+      unsubscribed,
+      audienceId,
+    });
+    
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error adding contact to Resend:', error);
+    return { success: false, error };
+  }
+}
+
+/**
  * Send a templated email (example for contact form)
  */
 export async function sendContactFormEmail({
@@ -57,6 +104,20 @@ export async function sendContactFormEmail({
   email: string;
   message: string;
 }) {
+  // Try to add contact to Resend (don't wait for this to complete)
+  const names = name.split(' ');
+  const firstName = names[0];
+  const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
+  
+  // Add contact to Resend in the background
+  addContact({
+    email,
+    firstName,
+    lastName,
+  }).catch(error => {
+    console.error('Failed to add contact to Resend:', error);
+  });
+  
   const subject = `Nuovo messaggio da ${name}`;
   
   const html = `
