@@ -6,8 +6,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Default email sender
 const DEFAULT_FROM = 'noreply@mastroianni.app';
 
-// Default audience ID for contacts (replace with your actual audience ID)
-const DEFAULT_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '';
+// Default audience ID for contacts
+const DEFAULT_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '714803bf-7ab8-47cc-a221-0c63425d6582';
 
 /**
  * Send an email using Resend
@@ -72,6 +72,7 @@ export async function addContact({
   audienceId?: string;
 }) {
   try {
+    // Already have default audience ID hardcoded, so this check is mostly for development/testing
     if (!audienceId) {
       console.warn('No audience ID provided for Resend contact creation');
       return { success: false, error: 'No audience ID configured' };
