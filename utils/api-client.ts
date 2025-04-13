@@ -17,20 +17,33 @@ export async function getMovieSynopsis(options: { tmdbId?: number | string, imdb
   if (tmdbId) url += `tmdb_id=${tmdbId}`;
   else if (imdbId) url += `imdb_id=${imdbId}`;
   
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    next: { revalidate: 60 }, // Revalidate the data every 60 seconds
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Errore nel recupero della sinossi');
+  try {
+    console.log(`[CLIENT] Recupero sinossi personalizzata per film ID: ${tmdbId || imdbId}`);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 60 }, // Revalidate the data every 60 seconds
+    });
+  
+    if (!response.ok) {
+      console.error(`[CLIENT] Errore nel recupero della sinossi: ${response.status} ${response.statusText}`);
+      return null; // Restituisci null invece di lanciare un errore
+    }
+  
+    const data = await response.json();
+    console.log(`[CLIENT] Sinossi recuperata con successo:`, {
+      has_custom: !!data.has_custom_overview,
+      overview_preview: data.overview ? data.overview.substring(0, 40) + '...' : 'nessuna'
+    });
+    
+    return data;
+  } catch (error) {
+    console.error(`[CLIENT] Errore nel recupero della sinossi:`, error);
+    return null; // Restituisci null in caso di errore
   }
-
-  return await response.json();
 }
 
 /**

@@ -1,7 +1,6 @@
 "use client"
 
 import { RegistaAvatar } from "@/components/director-avatar"
-import { EditableBio } from "@/components/editable-bio"
 import Link from "next/link"
 import { CastCarousel } from "@/components/cast-carousel"
 import { MovieGallery } from "@/components/movie-gallery"
@@ -20,7 +19,7 @@ import { MovieAwards } from "@/components/movie-awards"
 import { fetchImdbAwards } from "@/utils/imdb-api"
 import AwardsSection from "@/components/awards-section"
 import { AwardsTextDisplay } from "@/components/awards-text-display"
-import { saveMovieSynopsis } from "@/utils/api-client"
+import SinossiPersonalizzata from "@/components/sinossi-personalizzata"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 import { translateCountries, translateLanguage } from "@/lib/utils";
@@ -98,31 +97,9 @@ export function MoviePageClient({
 
             <FadeInSection delay={100}>
               <div className="mb-12">
-                <EditableBio
-                  initialBio={movie.overview || "Nessuna sinossi disponibile per questo film."}
-                  onSave={async (newBio) => {
-                    try {
-                      // Log per il debug
-                      console.log("ID del film (route param):", id);
-                      console.log("ID interno del film (movie.id):", movie.id, "tipo:", typeof movie.id);
-                      console.log("ID esterno TMDB (movie.tmdb_id):", movie.tmdb_id, "tipo:", typeof movie.tmdb_id);
-                      console.log("Movie object:", movie);
-                      console.log("ID IMDb:", movie.external_ids?.imdb_id);
-                      
-                      // Salva la nuova sinossi nella tabella movie_synopses
-                      // Usiamo prima l'ID TMDB dal movie object se disponibile, altrimenti usiamo l'ID interno
-                      // Passiamo anche l'ID IMDb se disponibile come terzo parametro
-                      await saveMovieSynopsis(
-                        movie.tmdb_id || movie.id || id, 
-                        newBio,
-                        movie.external_ids?.imdb_id
-                      );
-                      return Promise.resolve();
-                    } catch (error) {
-                      console.error("Errore nel salvataggio della sinossi:", error);
-                      return Promise.reject(error);
-                    }
-                  }}
+                <SinossiPersonalizzata 
+                  movie={movie} 
+                  id={id} 
                 />
                 
                 {awardsData && typeof awardsData === 'object' && 'awardsText' in awardsData && (
