@@ -10,6 +10,7 @@ const formSchema = z.object({
   name: z.string().min(1, 'Nome è richiesto'),
   email: z.string().email('Email non valida'),
   message: z.string().min(10, 'Il messaggio deve contenere almeno 10 caratteri'),
+  subscribeNewsletter: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -30,6 +31,7 @@ export function ContactForm() {
       name: '',
       email: '',
       message: '',
+      subscribeNewsletter: false,
     },
   });
   
@@ -121,6 +123,23 @@ export function ContactForm() {
           {errors.message && (
             <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
           )}
+        </div>
+        
+        <div className="flex items-start mt-2">
+          <div className="flex items-center h-5">
+            <input
+              id="subscribeNewsletter"
+              type="checkbox"
+              {...register('subscribeNewsletter')}
+              className="w-4 h-4 border border-gray-300 rounded"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="subscribeNewsletter" className="font-medium text-gray-700">
+              Desidero iscrivermi alla newsletter
+            </label>
+            <p className="text-gray-500">Ricevi aggiornamenti ed eventi speciali via email.</p>
+          </div>
         </div>
         
         <button

@@ -105,20 +105,8 @@ export async function sendContactFormEmail({
   email: string;
   message: string;
 }) {
-  // Try to add contact to Resend (don't wait for this to complete)
-  const names = name.split(' ');
-  const firstName = names[0];
-  const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
-  
-  // Add contact to Resend in the background
-  addContact({
-    email,
-    firstName,
-    lastName,
-    unsubscribed: false,
-  }).catch(error => {
-    console.error('Failed to add contact to Resend:', error);
-  });
+  // Non aggiungiamo automaticamente il contatto alla mailing list
+  // per rispettare le normative GDPR che richiedono consenso esplicito
   
   const subject = `Nuovo messaggio da ${name}`;
   
