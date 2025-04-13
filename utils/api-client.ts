@@ -46,24 +46,10 @@ export async function saveMovieSynopsis(
   imdbId?: string
 ) {
   try {
-    console.log(`[CLIENT] Salvando sinossi per film ID: ${tmdbId}`);
-    
-    // Salvataggio locale di backup immediato
-    const storageKey = `movie_synopsis_${tmdbId}`;
-    try {
-      localStorage.setItem(storageKey, synopsis);
-      console.log('[CLIENT] Backup in localStorage completato');
-    } catch (storageError) {
-      console.warn('[CLIENT] Impossibile salvare in localStorage:', storageError);
-    }
-    
-    // Approccio diretto: modifica la sinossi direttamente nella UI
-    // Questo assicura che l'utente veda la sua modifica immediatamente
-    // anche se l'API fallisce
-    document.querySelectorAll('.bio-text').forEach(el => {
-      if (el instanceof HTMLElement) {
-        el.innerText = synopsis;
-      }
+    console.log(`[CLIENT] Salvando sinossi per film ID: ${tmdbId}`, {
+      tmdbId,
+      imdbId,
+      synopsis_length: synopsis?.length || 0
     });
 
     // Tenta di salvare nel backend
@@ -81,42 +67,41 @@ export async function saveMovieSynopsis(
       signal: AbortSignal.timeout(8000)
     });
 
-    // La risposta potrebbe non essere JSON valido
+    // Stampiamo la risposta completa per debug
+    console.log('[CLIENT] Risposta raw:', response);
+    
+    if (!response.ok) {
+      // Log completo dell'errore
+      const errorText = await response.text();
+      console.error('[CLIENT] Errore risposta API - Status:', response.status, response.statusText);
+      console.error('[CLIENT] Errore risposta API - Body:', errorText);
+      
+      let errorObject;
+      try {
+        errorObject = JSON.parse(errorText);
+      } catch (e) {
+        errorObject = { error: errorText || 'Errore sconosciuto' };
+      }
+      
+      throw new Error(errorObject.error || `Errore HTTP ${response.status}`);
+    }
+    
+    // Leggiamo e loggiamo la risposta di successo
+    const responseText = await response.text();
+    console.log('[CLIENT] Risposta testuale:', responseText);
+    
     let jsonResponse;
     try {
-      const text = await response.text();
-      jsonResponse = text ? JSON.parse(text) : {};
+      jsonResponse = responseText ? JSON.parse(responseText) : {};
+      console.log('[CLIENT] Salvataggio completato con successo:', jsonResponse);
     } catch (parseError) {
-      console.error('[CLIENT] Errore nel parsing della risposta:', parseError);
-      jsonResponse = { error: 'Errore nel parsing della risposta' };
+      console.error('[CLIENT] Errore nel parsing della risposta JSON:', parseError);
+      throw new Error('Errore nel parsing della risposta dal server');
     }
-
-    if (!response.ok) {
-      console.error('[CLIENT] Errore risposta API:', jsonResponse);
-      
-      // FALLBACK: Abbiamo già salvato in localStorage, quindi
-      // restituisci un risultato di successo per non interrompere l'esperienza utente
-      return {
-        success: true,
-        message: 'Sinossi salvata localmente (API non disponibile)',
-        localOnly: true
-      };
-    }
-
-    console.log('[CLIENT] Salvataggio completato con successo');
     
-    // Se tutto è andato bene, restituisci la risposta
     return jsonResponse;
   } catch (error) {
     console.error('[CLIENT] Errore catturato in saveMovieSynopsis:', error);
-    
-    // Restituisci un risultato di successo anche in caso di errore
-    // poiché abbiamo già fatto un backup locale
-    return {
-      success: true,
-      message: 'Sinossi salvata localmente (errore con API)',
-      localOnly: true,
-      error: error
-    };
+    throw error; // Rilancia l'errore per gestirlo nell'UI
   }
 } 
