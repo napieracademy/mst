@@ -28,10 +28,8 @@ export async function getMovieSynopsis(options: { tmdbId?: number | string, imdb
       next: { revalidate: 60 }, // Revalidate the data every 60 seconds
     });
   
-    if (!response.ok) {
-      console.error(`[CLIENT] Errore nel recupero della sinossi: ${response.status} ${response.statusText}`);
-      return null; // Restituisci null invece di lanciare un errore
-    }
+    // Non controlliamo più response.ok perché ora l'API 
+  // restituisce sempre 200 anche quando il film non viene trovato
   
     const data = await response.json();
     console.log(`[CLIENT] Sinossi recuperata con successo:`, {

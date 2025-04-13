@@ -234,8 +234,15 @@ export async function GET(request: Request) {
     const { data, error } = await query.single();
 
     if (error) {
-      console.error('Errore nella ricerca del film:', error);
-      return NextResponse.json({ error: 'Film non trovato' }, { status: 404 });
+      console.error('[SYNOPSIS-API] Errore nella ricerca del film (GET):', error);
+      
+      // Invece di restituire un 404, restituiamo un 200 con flag che indica che non è stato trovato
+      // Questo permette al client di gestire la situazione in modo più elegante
+      return NextResponse.json({ 
+        error: 'Film non trovato nel database',
+        found: false,
+        message: 'Nessuna sinossi personalizzata trovata' 
+      }, { status: 200 });
     }
 
     // Estrae l'ID IMDb dai dati esterni

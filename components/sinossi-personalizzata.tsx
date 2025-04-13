@@ -31,13 +31,19 @@ export default function SinossiPersonalizzata({ movie, id }: SinossiPersonalizza
           imdbId: imdbId
         });
         
-        if (synopsisData && synopsisData.overview) {
+        // Controlla se abbiamo ottenuto dati validi
+        if (synopsisData === null || synopsisData.found === false) {
+          // Se non c'è una sinossi personalizzata o c'è stato un errore, usiamo quella originale
+          setCustomSynopsis(originalSynopsis);
+          console.log('[SINOSSI] Nessuna sinossi personalizzata trovata, uso originale', synopsisData);
+        } else if (synopsisData && synopsisData.overview) {
+          // Se abbiamo trovato una sinossi personalizzata, la usiamo
           setCustomSynopsis(synopsisData.overview);
           console.log('[SINOSSI] Caricata sinossi personalizzata dal database');
         } else {
-          // Se non c'è una sinossi personalizzata, usiamo quella originale
+          // Fallback in caso di qualsiasi altra situazione imprevista
           setCustomSynopsis(originalSynopsis);
-          console.log('[SINOSSI] Nessuna sinossi personalizzata trovata, uso originale');
+          console.log('[SINOSSI] Risposta API inattesa, uso sinossi originale:', synopsisData);
         }
       } catch (error) {
         console.error('[SINOSSI] Errore nel caricamento della sinossi:', error);
