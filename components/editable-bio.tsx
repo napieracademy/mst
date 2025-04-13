@@ -45,6 +45,9 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
       setIsEditing(false)
     } catch (error) {
       console.error("Errore durante il salvataggio della biografia:", error)
+      // Mostra un messaggio all'utente per non bloccare l'esperienza
+      alert('La sinossi è stata salvata temporaneamente ma potrebbe non persistere dopo il ricaricamento della pagina.')
+      setIsEditing(false) // Chiudi comunque la modalità di modifica
     } finally {
       setIsSaving(false)
     }

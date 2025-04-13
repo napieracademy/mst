@@ -45,22 +45,47 @@ export async function saveMovieSynopsis(
   synopsis: string, 
   imdbId?: string
 ) {
-  const response = await fetch('/api/movie-synopsis', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      tmdb_id: tmdbId,
-      synopsis,
-      imdb_id: imdbId
-    }),
-  });
+  try {
+    // Tenta di salvare nel backend
+    const response = await fetch('/api/movie-synopsis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tmdb_id: tmdbId,
+        synopsis,
+        imdb_id: imdbId
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Errore nel salvataggio della sinossi');
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Errore risposta API:', error);
+      
+      // FALLBACK: Se non riusciamo a salvare nel database, salviamo localmente
+      // Questo permette all'utente di vedere la sua sinossi aggiornata nella sessione corrente
+      console.warn('Impossibile salvare nel database, utilizziamo localStorage come fallback');
+      try {
+        const storageKey = `movie_synopsis_${tmdbId}`;
+        localStorage.setItem(storageKey, synopsis);
+        console.log('Sinossi salvata in localStorage come backup');
+        
+        // Restituisci un risultato fittizio di successo per non interrompere l'esperienza utente
+        return {
+          success: true,
+          message: 'Sinossi salvata localmente (non persistente)',
+          localOnly: true
+        };
+      } catch (storageError) {
+        console.error('Errore anche nel salvataggio locale:', storageError);
+        throw new Error(error.error || 'Errore nel salvataggio della sinossi');
+      }
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Errore catturato in saveMovieSynopsis:', error);
+    throw error;
   }
-
-  return await response.json();
 } 

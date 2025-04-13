@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     if (!existingMovies || existingMovies.length === 0) {
       console.log("[DEBUG] Film non trovato nella tabella movies, creando un nuovo record:", numericTmdbId);
       
-      // Inserisci un nuovo record con i dati minimi
+      // Inserisci un nuovo record con più campi per soddisfare i vincoli della tabella
       const { data: newMovie, error: insertError } = await supabase
         .from('movies')
         .insert({
@@ -85,7 +85,17 @@ export async function POST(request: Request) {
           title: "Film " + numericTmdbId, // Titolo temporaneo
           custom_overview: synopsis,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          slug: `film-${numericTmdbId}`,
+          tmdb_overview: "",  // Campo vuoto per sinossi originale
+          runtime: 0,         // Durata zero (verrà aggiornata in seguito)
+          release_date: null, // Data di uscita null
+          popularity: 0,      // Popolarità zero
+          vote_average: 0,    // Voto medio zero
+          vote_count: 0,      // Conteggio voti zero
+          status: "Released", // Stato predefinito
+          language: "it",     // Lingua predefinita
+          is_video: false     // Flag video predefinito
         })
         .select();
       
