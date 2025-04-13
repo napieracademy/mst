@@ -54,14 +54,28 @@ export const createApiSupabaseClient = (options?: { adminAccess?: boolean }) => 
   if (options?.adminAccess) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Supabase URL or Service Role Key is missing. Check your environment variables.');
-      throw new Error('Service role key non disponibile');
+    
+    // Se la service role key è disponibile, usala
+    if (supabaseUrl && supabaseServiceKey) {
+      console.log('[DEBUG] Creando client Supabase con privilegio di service role');
+      return createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      });
     }
-
-    console.log('[DEBUG] Creando client Supabase con privilegio di service role');
-    return createClient(supabaseUrl, supabaseServiceKey, {
+    
+    // FALLBACK: Se non è disponibile, usa la anon key con un warning
+    console.warn('[DEBUG] Service role key non disponibile! Uso anon key come fallback (potrebbero esserci problemi di permessi)');
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase URL or Anon Key is missing. Check your environment variables.');
+      throw new Error('API keys non disponibili');
+    }
+    
+    return createClient(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
