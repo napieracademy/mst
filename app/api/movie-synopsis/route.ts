@@ -257,6 +257,8 @@ export async function GET(request: Request) {
       tmdb_id: data.tmdb_id,
       title: data.title,
       overview: data.custom_overview || data.tmdb_overview,
+      custom_overview: data.custom_overview,
+      tmdb_overview: data.tmdb_overview,
       imdb_id: movieImdbId,
       has_custom_overview: !!data.custom_overview,
       source: 'movies'

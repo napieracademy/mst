@@ -12,6 +12,8 @@ interface SinossiPersonalizzataProps {
 export default function SinossiPersonalizzata({ movie, id }: SinossiPersonalizzataProps) {
   const [customSynopsis, setCustomSynopsis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Indicatore che traccia se la sinossi è personalizzata o originale
+  const [isCustomSynopsis, setIsCustomSynopsis] = useState(false);
   
   // ID da utilizzare per le operazioni con la sinossi
   const movieId = movie.tmdb_id || movie.id || id;
@@ -35,20 +37,31 @@ export default function SinossiPersonalizzata({ movie, id }: SinossiPersonalizza
         if (synopsisData === null || synopsisData.found === false) {
           // Se non c'è una sinossi personalizzata o c'è stato un errore, usiamo quella originale
           setCustomSynopsis(originalSynopsis);
+          setIsCustomSynopsis(false);
           console.log('[SINOSSI] Nessuna sinossi personalizzata trovata, uso originale', synopsisData);
         } else if (synopsisData && synopsisData.overview) {
-          // Se abbiamo trovato una sinossi personalizzata, la usiamo
+          // Se abbiamo trovato una sinossi personalizzata o quella di TMDB, la usiamo
           setCustomSynopsis(synopsisData.overview);
-          console.log('[SINOSSI] Caricata sinossi personalizzata dal database');
+          
+          // Log dettagliato che indica da dove proviene la sinossi
+          if (synopsisData.has_custom_overview) {
+            setIsCustomSynopsis(true);
+            console.log('[SINOSSI] Caricata sinossi PERSONALIZZATA dal database (custom_overview)');
+          } else {
+            setIsCustomSynopsis(false);
+            console.log('[SINOSSI] Caricata sinossi originale dal database (tmdb_overview)');
+          }
         } else {
           // Fallback in caso di qualsiasi altra situazione imprevista
           setCustomSynopsis(originalSynopsis);
+          setIsCustomSynopsis(false);
           console.log('[SINOSSI] Risposta API inattesa, uso sinossi originale:', synopsisData);
         }
       } catch (error) {
         console.error('[SINOSSI] Errore nel caricamento della sinossi:', error);
         // In caso di errore, usiamo la sinossi originale
         setCustomSynopsis(originalSynopsis);
+        setIsCustomSynopsis(false);
       } finally {
         setIsLoading(false);
       }
@@ -90,9 +103,16 @@ export default function SinossiPersonalizzata({ movie, id }: SinossiPersonalizza
   }
   
   return (
-    <EditableBio
-      initialBio={customSynopsis || originalSynopsis}
-      onSave={handleSave}
-    />
+    <div className="relative">
+      {isCustomSynopsis && (
+        <div className="absolute -top-5 right-0 text-xs px-2 py-1 bg-blue-500 text-white rounded-md">
+          Personalizzata
+        </div>
+      )}
+      <EditableBio
+        initialBio={customSynopsis || originalSynopsis}
+        onSave={handleSave}
+      />
+    </div>
   );
 }
