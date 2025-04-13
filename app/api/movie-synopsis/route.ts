@@ -1,6 +1,5 @@
-import { createClient } from '@/lib/supabase';
+import { createApiSupabaseClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 
 /**
  * Verifica se l'utente è amministratore
@@ -15,18 +14,23 @@ async function isUserAdmin() {
 // API per aggiornare la sinossi personalizzata di un film
 export async function POST(request: Request) {
   try {
+    console.log("[SYNOPSIS-API] Inizio elaborazione richiesta POST");
+
     // Verifica se l'utente è admin
     const isAdmin = await isUserAdmin();
     
     if (!isAdmin) {
+      console.log("[SYNOPSIS-API] Accesso negato - utente non admin");
       return NextResponse.json(
         { error: 'Autorizzazione negata: solo gli admin possono modificare le sinossi' },
         { status: 403 }
       );
     }
     
+    console.log("[SYNOPSIS-API] Verifica admin superata");
+    
     // Client standard, usato per operazioni che non richiedono privilegi amministrativi
-    const supabase = createClient();
+    const supabase = createApiSupabaseClient();
     const { tmdb_id, synopsis, imdb_id } = await request.json();
 
     console.log("[DEBUG] API ricevuta richiesta con:", { 
@@ -64,7 +68,7 @@ export async function POST(request: Request) {
     }
 
     // Usiamo il service_role per bypassare le RLS
-    const supabaseAdmin = createClient({ adminAccess: true });
+    const supabaseAdmin = createApiSupabaseClient({ adminAccess: true });
     
     // Cerca il film usando l'ID numerico
     const { data: existingMovies, error: searchError } = await supabaseAdmin
@@ -73,9 +77,18 @@ export async function POST(request: Request) {
       .eq('tmdb_id', numericTmdbId);
 
     if (searchError) {
-      console.error('Errore nella ricerca del film:', searchError);
-      return NextResponse.json({ error: 'Errore nella ricerca del film' }, { status: 500 });
+      console.error('[SYNOPSIS-API] Errore nella ricerca del film:', searchError);
+      return NextResponse.json({ 
+        error: 'Errore nella ricerca del film', 
+        details: searchError.message,
+        code: searchError.code
+      }, { status: 500 });
     }
+    
+    console.log(`[SYNOPSIS-API] Risultato ricerca film con ID ${numericTmdbId}:`, {
+      trovato: existingMovies && existingMovies.length > 0,
+      count: existingMovies?.length || 0
+    });
 
     // Se il film non esiste, lo creiamo (modalità upsert)
     if (!existingMovies || existingMovies.length === 0) {
@@ -104,13 +117,22 @@ export async function POST(request: Request) {
         .select();
       
       if (insertError) {
-        console.error('Errore nella creazione del film:', {
+        console.error('[SYNOPSIS-API] Errore nella creazione del film:', {
           error: insertError,
           message: insertError.message,
           details: insertError.details,
           hint: insertError.hint,
           code: insertError.code
         });
+        
+        // Tentativo di debug avanzato
+        console.log('[SYNOPSIS-API] Payload di inserimento:', {
+          tmdb_id: numericTmdbId,
+          title: "Film " + numericTmdbId,
+          slug: `film-${numericTmdbId}`,
+          fields_count: 15 // Numero di campi che stiamo tentando di inserire
+        });
+        
         return NextResponse.json({ 
           error: 'Errore nella creazione del film',
           detail: insertError.message,
@@ -118,6 +140,10 @@ export async function POST(request: Request) {
           hint: insertError.hint
         }, { status: 500 });
       }
+      
+      console.log('[SYNOPSIS-API] Nuovo film creato con successo:', {
+        tmdbId: numericTmdbId
+      });
       
       return NextResponse.json({ 
         success: true, 
@@ -145,9 +171,23 @@ export async function POST(request: Request) {
       .select('id, tmdb_id, title, custom_overview');
 
     if (updateError) {
-      console.error('Errore nell\'aggiornamento della sinossi:', updateError);
-      return NextResponse.json({ error: 'Errore nell\'aggiornamento della sinossi' }, { status: 500 });
+      console.error('[SYNOPSIS-API] Errore nell\'aggiornamento della sinossi:', {
+        error: updateError,
+        message: updateError.message,
+        code: updateError.code,
+        details: updateError.details
+      });
+      return NextResponse.json({ 
+        error: 'Errore nell\'aggiornamento della sinossi',
+        details: updateError.message,
+        code: updateError.code
+      }, { status: 500 });
     }
+    
+    console.log('[SYNOPSIS-API] Aggiornamento sinossi completato con successo', {
+      movieId: movieToUpdate.id,
+      tmdbId: movieToUpdate.tmdb_id
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -176,7 +216,7 @@ export async function GET(request: Request) {
     }
 
     // Usiamo il service_role per bypassare le RLS
-    const supabaseAdmin = createClient({ adminAccess: true });
+    const supabaseAdmin = createApiSupabaseClient({ adminAccess: true });
     let query = supabaseAdmin.from('movies').select('id, tmdb_id, title, tmdb_overview, custom_overview, external_ids');
     
     // Applica il filtro in base all'ID fornito

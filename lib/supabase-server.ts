@@ -49,8 +49,27 @@ export const createServerSupabaseClient = async () => {
   )
 }
 
-export const createApiSupabaseClient = () => {
-  // Per i client API possiamo usare un singleton
+export const createApiSupabaseClient = (options?: { adminAccess?: boolean }) => {
+  // Se richiediamo accesso admin, non utilizziamo la cache
+  if (options?.adminAccess) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase URL or Service Role Key is missing. Check your environment variables.');
+      throw new Error('Service role key non disponibile');
+    }
+
+    console.log('[DEBUG] Creando client Supabase con privilegio di service role');
+    return createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
+  
+  // Per i client API standard possiamo usare un singleton
   if (apiClient) {
     return apiClient;
   }

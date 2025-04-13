@@ -34,22 +34,38 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
     setIsSaving(true)
     
     try {
+      console.log("Iniziando il salvataggio della biografia...");
+      
       if (onSave) {
-        await onSave(bio)
+        // Impostiamo un timeout di sicurezza per evitare che il componente rimanga bloccato
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout durante il salvataggio")), 10000)
+        );
+        
+        // Race tra il salvataggio normale e il timeout
+        await Promise.race([
+          onSave(bio),
+          timeoutPromise
+        ]);
+        
+        console.log("Salvataggio completato con successo");
       } else {
         // Implementazione fittizia del salvataggio
         await new Promise(resolve => setTimeout(resolve, 800))
         console.log("Bio salvata (simulato):", bio)
       }
       
+      // Forza uscita dalla modalità di modifica
       setIsEditing(false)
     } catch (error) {
       console.error("Errore durante il salvataggio della biografia:", error)
       // Mostra un messaggio all'utente per non bloccare l'esperienza
-      alert('La sinossi è stata salvata temporaneamente ma potrebbe non persistere dopo il ricaricamento della pagina.')
+      alert('Si è verificato un problema durante il salvataggio. La modifica potrebbe non essere stata salvata.')
       setIsEditing(false) // Chiudi comunque la modalità di modifica
     } finally {
+      // Garantisce che lo stato di salvataggio venga sempre rimosso
       setIsSaving(false)
+      console.log("Stato di salvataggio resettato");
     }
   }
   
