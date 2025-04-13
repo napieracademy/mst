@@ -20,6 +20,7 @@ import { MovieAwards } from "@/components/movie-awards"
 import { fetchImdbAwards } from "@/utils/imdb-api"
 import AwardsSection from "@/components/awards-section"
 import { AwardsTextDisplay } from "@/components/awards-text-display"
+import { saveMovieSynopsis } from "@/utils/api-client"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 import { translateCountries, translateLanguage } from "@/lib/utils";
@@ -100,13 +101,30 @@ export function MoviePageClient({
                 <EditableBio
                   initialBio={movie.overview || "Nessuna sinossi disponibile per questo film."}
                   onSave={async (newBio) => {
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    console.log("Sinossi salvata (simulato):", newBio);
-                    return Promise.resolve();
+                    try {
+                      // Log per il debug
+                      console.log("ID del film:", id);
+                      console.log("ID interno del film:", movie.id);
+                      console.log("ID esterno TMDB:", movie.tmdb_id || movie.id);
+                      console.log("ID IMDb:", movie.external_ids?.imdb_id);
+                      
+                      // Salva la nuova sinossi nella tabella movie_synopses
+                      // Usiamo prima l'ID TMDB dal movie object se disponibile, altrimenti usiamo l'ID interno
+                      // Passiamo anche l'ID IMDb se disponibile come terzo parametro
+                      await saveMovieSynopsis(
+                        movie.tmdb_id || movie.id || id, 
+                        newBio,
+                        movie.external_ids?.imdb_id
+                      );
+                      return Promise.resolve();
+                    } catch (error) {
+                      console.error("Errore nel salvataggio della sinossi:", error);
+                      return Promise.reject(error);
+                    }
                   }}
                 />
                 
-                {awardsData?.awardsText && (
+                {awardsData && typeof awardsData === 'object' && 'awardsText' in awardsData && (
                   <AwardsTextDisplay awardsText={awardsData.awardsText} />
                 )}
               </div>
