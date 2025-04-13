@@ -13,6 +13,8 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
   const [bio, setBio] = useState(initialBio)
   const [isSaving, setIsSaving] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  // Riferimento alla versione visualizzata del testo
+  const bioTextRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
     console.log("EditableBio - initialBio ricevuto:", initialBio);
@@ -122,8 +124,9 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
   
   return (
     <div 
+      ref={bioTextRef}
       onDoubleClick={handleDoubleClick}
-      className="text-gray-200 leading-relaxed cursor-text"
+      className="text-gray-200 leading-relaxed cursor-text bio-text"
     >
       {bio || "Nessuna biografia disponibile."}
     </div>
