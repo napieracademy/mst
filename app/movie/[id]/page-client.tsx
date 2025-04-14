@@ -19,7 +19,7 @@ import { MovieAwards } from "@/components/movie-awards"
 import { fetchImdbAwards } from "@/utils/imdb-api"
 import AwardsSection from "@/components/awards-section"
 import { AwardsTextDisplay } from "@/components/awards-text-display"
-import SinossiPersonalizzata from "@/components/sinossi-personalizzata"
+import FilmSynopsis from "@/components/film-synopsis"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
 
 import { translateCountries, translateLanguage } from "@/lib/utils";
@@ -97,9 +97,9 @@ export function MoviePageClient({
 
             <FadeInSection delay={100}>
               <div className="mb-12">
-                <SinossiPersonalizzata 
-                  movie={movie} 
-                  id={id} 
+                <FilmSynopsis 
+                  tmdbId={movie.tmdb_id || movie.id || id} 
+                  originalSynopsis={movie.overview || "Nessuna sinossi disponibile per questo film."}
                 />
                 
                 {awardsData && typeof awardsData === 'object' && 'awardsText' in awardsData && (

@@ -63,53 +63,68 @@ export async function saveMovieSynopsis(
       synopsis_length: synopsis?.length || 0
     });
 
-    // Tenta di salvare nel backend
+    // Verifica che l'ID TMDB sia valido
+    if (!tmdbId || isNaN(Number(tmdbId))) {
+      throw new Error('ID TMDB non valido');
+    }
+
+    // Converti l'ID in numero se è una stringa
+    const numericTmdbId = typeof tmdbId === 'string' ? parseInt(tmdbId) : tmdbId;
+
+    // Tenta di salvare nel backend con un timeout più lungo (15 secondi)
     const response = await fetch('/api/movie-synopsis', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        tmdb_id: tmdbId,
+        tmdb_id: numericTmdbId, // Usa sempre l'ID numerico
         synopsis,
         imdb_id: imdbId
       }),
-      // Imposta un timeout di 8 secondi
-      signal: AbortSignal.timeout(8000)
+      // Imposta un timeout di 15 secondi per consentire inserimenti più lunghi
+      signal: AbortSignal.timeout(15000)
     });
 
     // Stampiamo la risposta completa per debug
-    console.log('[CLIENT] Risposta raw:', response);
+    console.log('[CLIENT] Risposta raw:', {
+      status: response.status,
+      ok: response.ok,
+      statusText: response.statusText,
+      headers: Object.fromEntries([...response.headers])
+    });
     
-    if (!response.ok) {
-      // Log completo dell'errore
-      const errorText = await response.text();
-      console.error('[CLIENT] Errore risposta API - Status:', response.status, response.statusText);
-      console.error('[CLIENT] Errore risposta API - Body:', errorText);
-      
-      let errorObject;
-      try {
-        errorObject = JSON.parse(errorText);
-      } catch (e) {
-        errorObject = { error: errorText || 'Errore sconosciuto' };
-      }
-      
-      throw new Error(errorObject.error || `Errore HTTP ${response.status}`);
-    }
-    
-    // Leggiamo e loggiamo la risposta di successo
+    // Leggiamo il corpo della risposta come testo
     const responseText = await response.text();
-    console.log('[CLIENT] Risposta testuale:', responseText);
+    console.log('[CLIENT] Risposta testuale:', responseText.slice(0, 200) + (responseText.length > 200 ? '...' : ''));
     
     let jsonResponse;
+    
     try {
+      // Tenta di analizzare la risposta come JSON
       jsonResponse = responseText ? JSON.parse(responseText) : {};
-      console.log('[CLIENT] Salvataggio completato con successo:', jsonResponse);
     } catch (parseError) {
       console.error('[CLIENT] Errore nel parsing della risposta JSON:', parseError);
-      throw new Error('Errore nel parsing della risposta dal server');
+      // Se la risposta non è un JSON valido ma lo status code è ok, presumiamo successo
+      if (response.ok) {
+        return { success: true, message: 'Sinossi salvata con successo' };
+      }
+      throw new Error('Formato risposta non valido dal server');
     }
     
+    // Se la risposta non è ok, genera un errore
+    if (!response.ok) {
+      console.error('[CLIENT] Errore risposta API - Status:', response.status, response.statusText);
+      console.error('[CLIENT] Errore risposta API - Body:', jsonResponse);
+      
+      // Formiamo un messaggio di errore chiaro
+      const errorMessage = jsonResponse.error || jsonResponse.message || 
+                          jsonResponse.detail || `Errore HTTP ${response.status}`;
+      
+      throw new Error(errorMessage);
+    }
+    
+    console.log('[CLIENT] Salvataggio completato con successo:', jsonResponse);
     return jsonResponse;
   } catch (error) {
     console.error('[CLIENT] Errore catturato in saveMovieSynopsis:', error);
