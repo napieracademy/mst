@@ -70,13 +70,16 @@ export const EditableBio = ({ initialBio, onSave, title, year, director }: Edita
     setAiError(null)
     setAiLoading(true)
     console.log("Debug AI - Valori ricevuti:", { title, year, director })
+    
+    // Validazione più robusta con valori predefiniti
+    const filmTitle = title && title.trim() !== "" ? title : "Film sconosciuto"
+    const filmYear = year && String(year).trim() !== "" ? year : "anno sconosciuto"
+    const filmDirector = director && director.trim() !== "" ? director : "regista sconosciuto"
+    
+    console.log("Debug AI - Valori normalizzati:", { filmTitle, filmYear, filmDirector })
+    
     try {
-      if (!title || !year || !director) {
-        setAiError('Dati insufficienti per la generazione AI.')
-        setAiLoading(false)
-        return
-      }
-      const prompt = `Scrivi una sinossi breve, precisa e oggettiva (max 3 frasi) per il film intitolato '${title}', uscito nel ${year}, diretto da ${director}. Se non hai informazioni certe su questo film, rispondi chiaramente che non hai dati e non inventare nulla.`
+      const prompt = `Scrivi una sinossi breve, precisa e oggettiva (max 3 frasi) per il film intitolato '${filmTitle}', uscito nel ${filmYear}, diretto da ${filmDirector}. Se non hai informazioni certe su questo film, rispondi chiaramente che non hai dati e non inventare nulla.`
       const response = await fetch('/api/generate-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
