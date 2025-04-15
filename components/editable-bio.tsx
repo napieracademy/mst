@@ -9,9 +9,10 @@ interface EditableBioProps {
   title?: string
   year?: string | number
   director?: string
+  tmdbId?: number | string
 }
 
-export const EditableBio = ({ initialBio, onSave, title, year, director }: EditableBioProps) => {
+export const EditableBio = ({ initialBio, onSave, title, year, director, tmdbId }: EditableBioProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [bio, setBio] = useState(initialBio)
   const [isSaving, setIsSaving] = useState(false)
@@ -69,21 +70,35 @@ export const EditableBio = ({ initialBio, onSave, title, year, director }: Edita
   const handleAIGenerate = async () => {
     setAiError(null)
     setAiLoading(true)
-    console.log("Debug AI - Valori ricevuti:", { title, year, director })
-    
-    // Validazione più robusta con valori predefiniti
-    const filmTitle = title && title.trim() !== "" ? title : "Film sconosciuto"
-    const filmYear = year && String(year).trim() !== "" ? year : "anno sconosciuto"
-    const filmDirector = director && director.trim() !== "" ? director : "regista sconosciuto"
-    
-    console.log("Debug AI - Valori normalizzati:", { filmTitle, filmYear, filmDirector })
+    console.log("Debug AI - Valori ricevuti:", { title, year, director, tmdbId })
     
     try {
-      const prompt = `Scrivi una sinossi breve, precisa e oggettiva (max 3 frasi) per il film intitolato '${filmTitle}', uscito nel ${filmYear}, diretto da ${filmDirector}. Se non hai informazioni certe su questo film, rispondi chiaramente che non hai dati e non inventare nulla.`
+      // Usa il tmdbId passato come prop se disponibile
+      let movieTmdbId = tmdbId || null
+      
+      // Se non disponibile come prop, prova a estrarlo dall'URL
+      if (!movieTmdbId && typeof window !== 'undefined') {
+        const urlParts = window.location.pathname.split('/')
+        const idIndex = urlParts.findIndex(part => part === 'movie') + 1
+        if (idIndex > 0 && idIndex < urlParts.length) {
+          movieTmdbId = parseInt(urlParts[idIndex])
+          if (isNaN(Number(movieTmdbId))) movieTmdbId = null
+        }
+      }
+      
+      console.log("Debug AI - TMDB ID finale:", movieTmdbId)
+      
+      // Utilizza il prompt semplificato e lascia che il backend recuperi i metadati
+      const basePrompt = "Scrivi una sinossi breve, precisa e oggettiva per il film."
       const response = await fetch('/api/generate-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, model: 'gpt-4', temperature: 0.2 })
+        body: JSON.stringify({ 
+          prompt: basePrompt, 
+          model: 'gpt-4', 
+          temperature: 0.2,
+          tmdb_id: movieTmdbId
+        })
       })
       const data = await response.json()
       if (data.text && !/non ho dati|non ho informazioni|non conosco|non sono a conoscenza/i.test(data.text.toLowerCase())) {

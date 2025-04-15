@@ -115,6 +115,7 @@ export default function FilmSynopsis({ tmdbId, originalSynopsis, title, year, di
         title={title}
         year={year}
         director={director}
+        tmdbId={normalizedTmdbId}
       />
     </div>
   );
