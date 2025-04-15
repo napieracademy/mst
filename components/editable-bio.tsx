@@ -6,32 +6,33 @@ import { CheckCircle, X } from "lucide-react"
 interface EditableBioProps {
   initialBio: string
   onSave?: (newBio: string) => Promise<void>
+  title?: string
+  year?: string | number
+  director?: string
 }
 
-export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
+export const EditableBio = ({ initialBio, onSave, title, year, director }: EditableBioProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [bio, setBio] = useState(initialBio)
   const [isSaving, setIsSaving] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  // Riferimento alla versione visualizzata del testo
   const bioTextRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
     console.log("EditableBio - initialBio ricevuto:", initialBio);
   }, [initialBio]);
   
-  // Gestisce il doppio click per attivare la modalità di modifica
   const handleDoubleClick = () => {
     setIsEditing(true)
   }
   
-  // Gestisce la cancellazione della modifica
   const handleCancel = () => {
     setBio(initialBio)
     setIsEditing(false)
   }
   
-  // Gestisce il salvataggio della biografia
   const handleSave = async () => {
     setIsSaving(true)
     
@@ -39,12 +40,10 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
       console.log("Iniziando il salvataggio della biografia...");
       
       if (onSave) {
-        // Impostiamo un timeout di sicurezza per evitare che il componente rimanga bloccato
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error("Timeout durante il salvataggio")), 10000)
         );
         
-        // Race tra il salvataggio normale e il timeout
         await Promise.race([
           onSave(bio),
           timeoutPromise
@@ -52,33 +51,55 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
         
         console.log("Salvataggio completato con successo");
       } else {
-        // Implementazione fittizia del salvataggio
         await new Promise(resolve => setTimeout(resolve, 800))
         console.log("Bio salvata (simulato):", bio)
       }
       
-      // Forza uscita dalla modalità di modifica
       setIsEditing(false)
     } catch (error) {
       console.error("Errore durante il salvataggio della biografia:", error)
-      // Mostra un messaggio all'utente per non bloccare l'esperienza
       alert('Si è verificato un problema durante il salvataggio. La modifica potrebbe non essere stata salvata.')
-      setIsEditing(false) // Chiudi comunque la modalità di modifica
+      setIsEditing(false)
     } finally {
-      // Garantisce che lo stato di salvataggio venga sempre rimosso
       setIsSaving(false)
       console.log("Stato di salvataggio resettato");
     }
   }
   
-  // Focus automatico sul textarea quando si entra in modalità editing
+  const handleAIGenerate = async () => {
+    setAiError(null)
+    setAiLoading(true)
+    try {
+      if (!title || !year || !director) {
+        setAiError('Dati insufficienti per la generazione AI.')
+        setAiLoading(false)
+        return
+      }
+      const prompt = `Scrivi una sinossi breve, precisa e oggettiva (max 3 frasi) per il film intitolato '${title}', uscito nel ${year}, diretto da ${director}. Se non hai informazioni certe su questo film, rispondi chiaramente che non hai dati e non inventare nulla.`
+      const response = await fetch('/api/generate-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, model: 'gpt-3.5-turbo', temperature: 0.2 })
+      })
+      const data = await response.json()
+      if (data.text && !/non ho dati|non ho informazioni|non conosco|non sono a conoscenza/i.test(data.text.toLowerCase())) {
+        setBio(data.text.trim())
+      } else {
+        setAiError("L'AI non ha trovato informazioni affidabili su questo film.")
+      }
+    } catch (err) {
+      setAiError('Errore nella generazione della sinossi con AI.')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+  
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus()
     }
   }, [isEditing])
   
-  // Supporto per salvare con Ctrl+Enter o Cmd+Enter
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       handleSave()
@@ -99,7 +120,7 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
           disabled={isSaving}
         />
         
-        <div className="flex justify-end gap-4 mt-2">
+        <div className="flex justify-end gap-4 mt-2 items-center">
           <button
             onClick={handleCancel}
             className="flex items-center gap-1 text-white opacity-70 hover:opacity-100 transition-opacity"
@@ -117,6 +138,19 @@ export const EditableBio = ({ initialBio, onSave }: EditableBioProps) => {
             <CheckCircle className="w-4 h-4" />
             <span className="text-sm">{isSaving ? "Salvataggio..." : "Salva"}</span>
           </button>
+          
+          <button
+            type="button"
+            onClick={handleAIGenerate}
+            className="flex items-center gap-1 text-white bg-blue-600 hover:bg-blue-700 rounded px-2 py-1 text-sm disabled:opacity-50"
+            disabled={aiLoading || isSaving}
+            title="Genera sinossi con AI"
+          >
+            <span role="img" aria-label="AI">🪄</span>
+            {aiLoading ? 'Generazione...' : 'AI'}
+          </button>
+          
+          {aiError && <span className="text-red-500 text-xs ml-2">{aiError}</span>}
         </div>
       </div>
     )
