@@ -13,31 +13,6 @@ interface FilmSynopsisProps {
   director: string;
 }
 
-// Backup della funzione AI per generare la sinossi
-// Puoi incollarla dove vuoi in futuro
-const handleAIGenerate = async () => {
-  setAiError(null);
-  setAiLoading(true);
-  try {
-    const prompt = `Scrivi una sinossi breve, precisa e oggettiva (max 3 frasi) per il film intitolato '${title}', uscito nel ${year}, diretto da ${director}. Se non hai informazioni certe su questo film, rispondi chiaramente che non hai dati e non inventare nulla.`;
-    const response = await fetch('/api/generate-text', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, model: 'gpt-3.5-turbo', temperature: 0.2 })
-    });
-    const data = await response.json();
-    if (data.text && !/non ho dati|non ho informazioni|non conosco|non sono a conoscenza/i.test(data.text.toLowerCase())) {
-      setSynopsis(data.text.trim());
-    } else {
-      setAiError('L\'AI non ha trovato informazioni affidabili su questo film.');
-    }
-  } catch (err) {
-    setAiError('Errore nella generazione della sinossi con AI.');
-  } finally {
-    setAiLoading(false);
-  }
-};
-
 export default function FilmSynopsis({ tmdbId, originalSynopsis, title, year, director }: FilmSynopsisProps) {
   const [synopsis, setSynopsis] = useState(originalSynopsis);
   const [isCustom, setIsCustom] = useState(false);
