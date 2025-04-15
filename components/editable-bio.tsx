@@ -69,6 +69,7 @@ export const EditableBio = ({ initialBio, onSave, title, year, director }: Edita
   const handleAIGenerate = async () => {
     setAiError(null)
     setAiLoading(true)
+    console.log("Debug AI - Valori ricevuti:", { title, year, director })
     try {
       if (!title || !year || !director) {
         setAiError('Dati insufficienti per la generazione AI.')
