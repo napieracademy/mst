@@ -20,6 +20,18 @@ export default function FilmSynopsis({ tmdbId, originalSynopsis, title, year, di
 
   // Normalizza l'ID TMDB
   const normalizedTmdbId = typeof tmdbId === 'string' ? parseInt(tmdbId) : tmdbId;
+  
+  // Log dei dati film all'inizio
+  useEffect(() => {
+    console.log("[FILM-DEBUG] Dati film ricevuti:", { 
+      tmdbId, 
+      normalizedTmdbId,
+      title, 
+      year, 
+      director,
+      originalSynopsisLength: originalSynopsis?.length || 0
+    });
+  }, [tmdbId, normalizedTmdbId, title, year, director, originalSynopsis]);
 
   const fetchSynopsis = async () => {
     try {

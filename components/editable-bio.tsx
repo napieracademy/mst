@@ -23,7 +23,11 @@ export const EditableBio = ({ initialBio, onSave, title, year, director, tmdbId 
   
   useEffect(() => {
     console.log("EditableBio - initialBio ricevuto:", initialBio);
-  }, [initialBio]);
+    // Verifica tmdbId
+    if (tmdbId !== undefined) {
+      console.log("EditableBio - tmdbId ricevuto:", tmdbId, "tipo:", typeof tmdbId);
+    }
+  }, [initialBio, tmdbId]);
   
   const handleDoubleClick = () => {
     setIsEditing(true)
@@ -70,7 +74,7 @@ export const EditableBio = ({ initialBio, onSave, title, year, director, tmdbId 
   const handleAIGenerate = async () => {
     setAiError(null)
     setAiLoading(true)
-    console.log("Debug AI - Valori ricevuti:", { title, year, director, tmdbId })
+    console.log("[CLIENT-DEBUG] Inizio generazione AI", { title, year, director, tmdbId })
     
     try {
       // Usa il tmdbId passato come prop se disponibile
@@ -86,10 +90,12 @@ export const EditableBio = ({ initialBio, onSave, title, year, director, tmdbId 
         }
       }
       
-      console.log("Debug AI - TMDB ID finale:", movieTmdbId)
+      console.log("[CLIENT-DEBUG] TMDB ID finale:", movieTmdbId)
       
       // Utilizza il prompt semplificato e lascia che il backend recuperi i metadati
       const basePrompt = "Scrivi una sinossi breve, precisa e oggettiva per il film."
+      
+      console.log("[CLIENT-DEBUG] Invio richiesta a /api/generate-text")
       const response = await fetch('/api/generate-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,14 +106,41 @@ export const EditableBio = ({ initialBio, onSave, title, year, director, tmdbId 
           tmdb_id: movieTmdbId
         })
       })
+      
+      console.log("[CLIENT-DEBUG] Risposta ricevuta:", { 
+        status: response.status, 
+        ok: response.ok,
+        statusText: response.statusText
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[CLIENT-ERROR] Errore API:", errorText)
+        throw new Error(`Errore API: ${response.status} ${response.statusText}`)
+      }
+      
       const data = await response.json()
+      console.log("[CLIENT-DEBUG] Dati ricevuti:", { 
+        hasText: !!data.text,
+        textLength: data.text?.length,
+        error: data.error
+      })
+      
+      if (data.error) {
+        console.error("[CLIENT-ERROR] Errore ricevuto dall'API:", data.error)
+        throw new Error(data.error)
+      }
+      
       if (data.text && !/non ho dati|non ho informazioni|non conosco|non sono a conoscenza/i.test(data.text.toLowerCase())) {
+        console.log("[CLIENT-DEBUG] Aggiornamento sinossi con testo generato")
         setBio(data.text.trim())
       } else {
+        console.warn("[CLIENT-WARN] L'AI non ha trovato informazioni sul film")
         setAiError("L'AI non ha trovato informazioni affidabili su questo film.")
       }
     } catch (err) {
-      setAiError('Errore nella generazione della sinossi con AI.')
+      console.error("[CLIENT-ERROR] Errore completo:", err)
+      setAiError('Errore nella generazione della sinossi con AI: ' + (err instanceof Error ? err.message : 'Errore sconosciuto'))
     } finally {
       setAiLoading(false)
     }
