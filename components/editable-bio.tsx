@@ -79,7 +79,7 @@ export const EditableBio = ({ initialBio, onSave, title, year, director }: Edita
       const response = await fetch('/api/generate-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, model: 'gpt-3.5-turbo', temperature: 0.2 })
+        body: JSON.stringify({ prompt, model: 'gpt-4', temperature: 0.2 })
       })
       const data = await response.json()
       if (data.text && !/non ho dati|non ho informazioni|non conosco|non sono a conoscenza/i.test(data.text.toLowerCase())) {
