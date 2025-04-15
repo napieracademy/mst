@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       try {
         console.log("[DEBUG] Tentativo recupero metadati TMDB per ID:", tmdb_id);
         
-        const TMDB_API_KEY = process.env.TMDB_API_KEY;
+        const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
         if (!TMDB_API_KEY) {
           console.error("[ERROR] TMDB_API_KEY non configurata nell'ambiente");
           throw new Error('TMDB_API_KEY non configurata');

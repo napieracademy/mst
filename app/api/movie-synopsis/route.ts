@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     }
 
     // Recupera l'overview dalle API di TMDB
-    const TMDB_API_KEY = process.env.TMDB_API_KEY;
+    const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
     
     if (!TMDB_API_KEY) {
       return NextResponse.json({ error: 'TMDB_API_KEY non definita' }, { status: 500 });
@@ -165,7 +165,7 @@ export async function POST(request: Request) {
       console.log("[DEBUG] Film non trovato, creazione nuovo record");
       
       // Recupera le informazioni del film da TMDB API
-      const TMDB_API_KEY = process.env.TMDB_API_KEY;
+      const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
       
       if (!TMDB_API_KEY) {
         return createErrorResponse("TMDB_API_KEY non definita", 500);
