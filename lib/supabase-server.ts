@@ -49,7 +49,10 @@ export const createServerSupabaseClient = async () => {
   )
 }
 
-export const createApiSupabaseClient = (options?: { adminAccess?: boolean }) => {
+export const createApiSupabaseClient = (options?: { 
+  adminAccess?: boolean, 
+  headers?: Record<string, string> 
+}) => {
   // Se richiediamo accesso admin, non utilizziamo la cache
   if (options?.adminAccess) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -58,10 +61,20 @@ export const createApiSupabaseClient = (options?: { adminAccess?: boolean }) => 
     // Se la service role key è disponibile, usala
     if (supabaseUrl && supabaseServiceKey) {
       console.log('[DEBUG] Creando client Supabase con privilegio di service role');
+      
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': supabaseServiceKey,
+        ...options?.headers
+      };
+      
       return createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
           autoRefreshToken: false,
           persistSession: false
+        },
+        global: {
+          headers
         }
       });
     }
@@ -79,6 +92,9 @@ export const createApiSupabaseClient = (options?: { adminAccess?: boolean }) => 
       auth: {
         autoRefreshToken: false,
         persistSession: false
+      },
+      global: {
+        headers: options?.headers
       }
     });
   }

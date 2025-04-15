@@ -8,7 +8,7 @@ import { getApiKey } from './api-keys-client'
 
 // Configurazione di default per OpenAI
 const OPENAI_API_URL = 'https://api.openai.com/v1'
-const DEFAULT_MODEL = 'gpt-3.5-turbo'
+const DEFAULT_MODEL = 'gpt-4'
 const DEFAULT_MAX_TOKENS = 1000
 
 // Errore specifico per le API OpenAI

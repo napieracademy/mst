@@ -119,10 +119,17 @@ export async function POST(request: NextRequest) {
         usage: result.usage
       });
       
-      // Restituisci il risultato
+      // Restituisci il risultato con informazioni aggiuntive per l'overlay
       return NextResponse.json({
         text: result.text,
-        usage: result.usage
+        usage: result.usage,
+        metadata: {
+          finalPrompt: finalPrompt,
+          model: model || 'gpt-4',
+          temperature: temperature || 0.7,
+          maxTokens: maxTokens || 1000,
+          tmdbId: tmdb_id
+        }
       })
     } catch (openaiError) {
       console.error("[ERROR] Errore nella generazione OpenAI:", openaiError);

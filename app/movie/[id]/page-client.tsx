@@ -16,11 +16,10 @@ import { PreRenderizzazioneCheck } from "@/components/prerenderizzazione-check"
 import { PersonFilmography } from "@/components/person-filmography"
 import { WatchProviders, WatchProvidersConditional } from "@/components/watch-providers"
 import { MovieAwards } from "@/components/movie-awards"
-import { fetchImdbAwards } from "@/utils/imdb-api"
-import AwardsSection from "@/components/awards-section"
 import { AwardsTextDisplay } from "@/components/awards-text-display"
 import FilmSynopsis from "@/components/film-synopsis"
 // AwardsAndBoxOfficeInfo import removed to prevent hydration errors
+import useMovieAwards from "@/hooks/use-movie-awards"
 
 import { translateCountries, translateLanguage } from "@/lib/utils";
 
@@ -53,15 +52,12 @@ export function MoviePageClient({
   writers,
   producers
 }: MoviePageClientProps) {
-  const [awardsData, setAwardsData] = useState(null);
-
-  useEffect(() => {
-    if (movie?.external_ids?.imdb_id) {
-      fetchImdbAwards(movie.external_ids.imdb_id)
-        .then(data => setAwardsData(data))
-        .catch(error => console.error("Error fetching awards:", error));
-    }
-  }, [movie]);
+  // Utilizziamo il nuovo hook per recuperare i premi
+  const { awards, isLoading: isLoadingAwards } = useMovieAwards({
+    tmdbId: movie.id || id,
+    imdbId: movie?.external_ids?.imdb_id || undefined,
+    autoFetch: true
+  });
 
   return (
     <main className="min-h-screen w-full bg-black text-white">
@@ -98,12 +94,16 @@ export function MoviePageClient({
             <FadeInSection delay={100}>
               <div className="mb-12">
                 <FilmSynopsis 
-                  tmdbId={movie.tmdb_id || movie.id || id} 
+                  tmdbId={movie.id || id} 
                   originalSynopsis={movie.overview || "Nessuna sinossi disponibile per questo film."}
+                  title={movie.title || ""}
+                  year={releaseYear || (movie.release_date ? movie.release_date.split("-")[0] : "")}
+                  director={director?.name || ""}
                 />
                 
-                {awardsData && typeof awardsData === 'object' && 'awardsText' in awardsData && (
-                  <AwardsTextDisplay awardsText={awardsData.awardsText} />
+                {/* Visualizza i premi recuperati automaticamente */}
+                {awards?.awardsData?.awardsText && (
+                  <AwardsTextDisplay awardsText={awards.awardsData.awardsText} />
                 )}
               </div>
             </FadeInSection>
